@@ -7,7 +7,7 @@
         var checkbox = document.getElementById("risk-terms-check");
         var confirmedInput = document.getElementById("risk-terms-confirmed");
         var submitButton = document.getElementById("risk-submit-button");
-        var termsViewed = false;
+        var termsViewed = confirmedInput && confirmedInput.value === "1";
 
         if (!modal || !openButton || !closeButton || !understandButton || !checkbox || !confirmedInput || !submitButton) {
             return;
@@ -16,6 +16,11 @@
         var form = submitButton.closest("form");
         if (!form) {
             return;
+        }
+
+        if (termsViewed) {
+            checkbox.disabled = false;
+            checkbox.checked = true;
         }
         
         function setModal(open) {

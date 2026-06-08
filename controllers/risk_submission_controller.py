@@ -75,12 +75,19 @@ class RiskSubmissionController(http.Controller):
                 return self._render_step(4)
 
             data.update({
-                "banking_info_accepted": True,
-                "compensation_accepted": True,
-                "personal_data_accepted": True,
+                "terms_accepted": "1",
+                "banking_info_accepted": "1",
+                "compensation_accepted": "1",
+                "personal_data_accepted": "1",
                 "terms_accepted_at": fields.Datetime.to_string(fields.Datetime.now()),
             })
             data.pop("terms_error", None)
+            request.session["risk_terms_accepted"] = "1"
+            request.session["risk_vehicle_form"] = data
+            return request.render("risk_module.register_driver", {
+                "step": 5,
+                "data": data,
+            })
         else:
             for field in allowed_fields.get(step, ()):
                 data[field] = post.get(field, "").strip()
@@ -90,7 +97,7 @@ class RiskSubmissionController(http.Controller):
         if step < 5:
             return request.redirect("/registro-conductor/%s" % (step + 1))
 
-        if not data.get("banking_info_accepted") or not data.get("compensation_accepted") or not data.get("personal_data_accepted"):
+        if data.get("terms_accepted") != "1" and request.session.get("risk_terms_accepted") != "1":
             data["terms_error"] = "Debes leer y aceptar los terminos para continuar."
             request.session["risk_vehicle_form"] = data
             return self._render_step(4)
@@ -133,14 +140,15 @@ class RiskSubmissionController(http.Controller):
             "family_reference_phone": data.get("family_reference_phone"),
             "cargo_reference_name": data.get("cargo_reference_name"),
             "cargo_reference_phone": data.get("cargo_reference_phone"),
-            "banking_info_accepted": bool(data.get("banking_info_accepted")),
-            "compensation_accepted": bool(data.get("compensation_accepted")),
-            "personal_data_accepted": bool(data.get("personal_data_accepted")),
+            "banking_info_accepted": data.get("banking_info_accepted") == "1" or request.session.get("risk_terms_accepted") == "1",
+            "compensation_accepted": data.get("compensation_accepted") == "1" or request.session.get("risk_terms_accepted") == "1",
+            "personal_data_accepted": data.get("personal_data_accepted") == "1" or request.session.get("risk_terms_accepted") == "1",
             "terms_accepted_at": data.get("terms_accepted_at") or False,
             "message": data.get("message"),
         })
 
         request.session["risk_vehicle_form"] = {}
+        request.session["risk_terms_accepted"] = None
         return request.render("risk_module.register_driver_success", {
             "submission": submission,
         })
@@ -152,7 +160,7 @@ class RiskSubmissionController(http.Controller):
         data = request.session.get("risk_vehicle_form", {})
         if step == 1 and not data.get("form_date"):
             data = dict(data, form_date=date.today().isoformat())
-        if step == 5 and not data.get("banking_info_accepted"):
+        if step == 5 and data.get("terms_accepted") != "1" and request.session.get("risk_terms_accepted") != "1":
             data["terms_error"] = "Debes leer y aceptar los terminos para continuar."
             request.session["risk_vehicle_form"] = data
             return self._render_step(4)

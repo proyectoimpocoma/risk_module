@@ -245,13 +245,14 @@
                                     <button type="button" class="btn btn-secondary" id="risk-open-terms">Ver terminos completos</button>
                                 </div>
                                 <label class="risk-terms-accept">
-                                    <input id="risk-terms-confirmed" type="hidden" name="terms_accepted" value="0"/>
-                                    <input id="risk-terms-check" type="checkbox" disabled="disabled"/>
+                                    <input id="risk-terms-confirmed" type="hidden" name="terms_accepted" t-att-value="'1' if data.get('terms_accepted') == '1' else '0'"/>
+                                    <input id="risk-terms-check" type="checkbox" t-att-checked="'checked' if data.get('terms_accepted') == '1' else None" t-att-disabled="None if data.get('terms_accepted') == '1' else 'disabled'"/>
                                     <span>He leido los terminos completos y acepto la informacion bancaria, la autorizacion de compensacion general y la autorizacion de datos personales.</span>
                                 </label>
                             </t>
 
                             <t t-if="step == 5">
+                                <input type="hidden" name="terms_accepted" value="1"/>
                                 <div class="risk-field">
                                     <label>Placa</label>
                                     <input type="text" t-att-value="data.get('vehicle_plate')" readonly="readonly"/>
