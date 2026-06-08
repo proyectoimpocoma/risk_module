@@ -1,6 +1,6 @@
 from datetime import date
 
-from odoo import http
+from odoo import fields, http
 from odoo.http import request
 
 
@@ -48,15 +48,52 @@ class RiskModuleController(http.Controller):
                 "registered_owner_name",
                 "registered_owner_phone",
             ),
+            3: (
+                "driver_name",
+                "driver_document_number",
+                "driver_address",
+                "driver_neighborhood",
+                "driver_city",
+                "driver_phone",
+                "driver_optional_phone",
+                "driver_email",
+                "driver_is_fit",
+                "driver_is_trained",
+                "family_reference_name",
+                "family_reference_relationship",
+                "family_reference_phone",
+                "cargo_reference_name",
+                "cargo_reference_phone",
+            ),
+            5: ("message",),
         }
 
-        for field in allowed_fields.get(step, ()):
-            data[field] = post.get(field, "").strip()
+        if step == 4:
+            if post.get("terms_accepted") != "on":
+                data["terms_error"] = "Debes leer y aceptar los terminos para continuar."
+                request.session["risk_vehicle_form"] = data
+                return self._render_step(4)
+
+            data.update({
+                "banking_info_accepted": True,
+                "compensation_accepted": True,
+                "personal_data_accepted": True,
+                "terms_accepted_at": fields.Datetime.to_string(fields.Datetime.now()),
+            })
+            data.pop("terms_error", None)
+        else:
+            for field in allowed_fields.get(step, ()):
+                data[field] = post.get(field, "").strip()
 
         request.session["risk_vehicle_form"] = data
 
-        if step < 3:
+        if step < 5:
             return request.redirect("/registro-conductor/%s" % (step + 1))
+
+        if not data.get("banking_info_accepted") or not data.get("compensation_accepted") or not data.get("personal_data_accepted"):
+            data["terms_error"] = "Debes leer y aceptar los terminos para continuar."
+            request.session["risk_vehicle_form"] = data
+            return self._render_step(4)
 
         plate = data.get("vehicle_plate") or "Sin placa"
         submission = request.env["risk.module"].sudo().create({
@@ -81,6 +118,25 @@ class RiskModuleController(http.Controller):
             "registered_owner_document_number": data.get("registered_owner_document_number"),
             "registered_owner_name": data.get("registered_owner_name"),
             "registered_owner_phone": data.get("registered_owner_phone"),
+            "driver_name": data.get("driver_name"),
+            "driver_document_number": data.get("driver_document_number"),
+            "driver_address": data.get("driver_address"),
+            "driver_neighborhood": data.get("driver_neighborhood"),
+            "driver_city": data.get("driver_city"),
+            "driver_phone": data.get("driver_phone"),
+            "driver_optional_phone": data.get("driver_optional_phone"),
+            "driver_email": data.get("driver_email"),
+            "driver_is_fit": data.get("driver_is_fit"),
+            "driver_is_trained": data.get("driver_is_trained"),
+            "family_reference_name": data.get("family_reference_name"),
+            "family_reference_relationship": data.get("family_reference_relationship"),
+            "family_reference_phone": data.get("family_reference_phone"),
+            "cargo_reference_name": data.get("cargo_reference_name"),
+            "cargo_reference_phone": data.get("cargo_reference_phone"),
+            "banking_info_accepted": bool(data.get("banking_info_accepted")),
+            "compensation_accepted": bool(data.get("compensation_accepted")),
+            "personal_data_accepted": bool(data.get("personal_data_accepted")),
+            "terms_accepted_at": data.get("terms_accepted_at") or False,
             "message": data.get("message"),
         })
 
@@ -90,12 +146,16 @@ class RiskModuleController(http.Controller):
         })
 
     def _render_step(self, step):
-        if step not in (1, 2, 3):
+        if step not in (1, 2, 3, 4, 5):
             return request.redirect("/registro-conductor")
 
         data = request.session.get("risk_vehicle_form", {})
         if step == 1 and not data.get("form_date"):
             data = dict(data, form_date=date.today().isoformat())
+        if step == 5 and not data.get("banking_info_accepted"):
+            data["terms_error"] = "Debes leer y aceptar los terminos para continuar."
+            request.session["risk_vehicle_form"] = data
+            return self._render_step(4)
 
         return request.render("risk_module.register_driver", {
             "step": step,

@@ -40,4 +40,29 @@ class RiskModule(models.Model):
     registered_owner_document_number = fields.Char(string="Numero documento propietario")
     registered_owner_name = fields.Char(string="Nombres y apellidos propietario")
     registered_owner_phone = fields.Char(string="Celular propietario")
+    driver_name = fields.Char(string="Nombres y apellidos conductor")
+    driver_document_number = fields.Char(string="Numero de cedula conductor")
+    driver_address = fields.Char(string="Direccion conductor")
+    driver_neighborhood = fields.Char(string="Barrio conductor")
+    driver_city = fields.Char(string="Ciudad conductor")
+    driver_phone = fields.Char(string="Celular conductor")
+    driver_optional_phone = fields.Char(string="Telefono opcional conductor")
+    driver_email = fields.Char(string="Correo autorizacion conductor")
+    driver_is_fit = fields.Selection([
+        ("yes", "Si"),
+        ("no", "No"),
+    ], string="Apto fisica, mental y psicotecnicamente")
+    driver_is_trained = fields.Selection([
+        ("yes", "Si"),
+        ("no", "No"),
+    ], string="Capacitado y entrenado")
+    family_reference_name = fields.Char(string="Referencia familiar")
+    family_reference_relationship = fields.Char(string="Parentesco referencia familiar")
+    family_reference_phone = fields.Char(string="Celular referencia familiar")
+    cargo_reference_name = fields.Char(string="Referencia transporte de carga")
+    cargo_reference_phone = fields.Char(string="Celular referencia transporte de carga")
+    banking_info_accepted = fields.Boolean(string="Acepto informacion bancaria")
+    compensation_accepted = fields.Boolean(string="Acepto compensacion general")
+    personal_data_accepted = fields.Boolean(string="Acepto tratamiento de datos personales")
+    terms_accepted_at = fields.Datetime(string="Fecha aceptacion terminos")
     message = fields.Text(string="Observaciones")
