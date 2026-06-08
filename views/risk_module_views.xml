@@ -1,0 +1,296 @@
+<odoo>
+    <record id="view_risk_module_list" model="ir.ui.view">
+        <field name="name">risk.module.list</field>
+        <field name="model">risk.module</field>
+        <field name="arch" type="xml">
+            <list string="Solicitudes de Vehiculo">
+                <field name="create_date"/>
+                <field name="form_date"/>
+                <field name="vehicle_plate"/>
+                <field name="semi_trailer_plate"/>
+                <field name="satellite_company"/>
+                <field name="satellite_user"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_risk_module_form" model="ir.ui.view">
+        <field name="name">risk.module.form</field>
+        <field name="model">risk.module</field>
+        <field name="arch" type="xml">
+            <form string="Solicitud de Vehiculo">
+                <sheet>
+                    <group string="Informacion del Vehiculo">
+                        <field name="name"/>
+                        <field name="form_date"/>
+                        <field name="vehicle_plate"/>
+                        <field name="semi_trailer_plate"/>
+                    </group>
+                    <group string="Informacion Satelital">
+                        <field name="satellite_company"/>
+                        <field name="satellite_user"/>
+                        <field name="satellite_password" password="True"/>
+                    </group>
+                    <group string="Observaciones">
+                        <field name="message" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_risk_module_search" model="ir.ui.view">
+        <field name="name">risk.module.search</field>
+        <field name="model">risk.module</field>
+        <field name="arch" type="xml">
+            <search string="Solicitudes de Vehiculo">
+                <field name="vehicle_plate"/>
+                <field name="semi_trailer_plate"/>
+                <field name="satellite_company"/>
+                <filter string="Con empresa satelital" name="has_satellite_company" domain="[('satellite_company', '!=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_risk_module" model="ir.actions.act_window">
+        <field name="name">Habilitacion de Terceros</field>
+        <field name="res_model">risk.module</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_risk_module_root" name="Riesgo" sequence="60"/>
+    <menuitem id="menu_risk_module_vehicle_requests" name="Vehiculos" parent="menu_risk_module_root" action="action_risk_module" sequence="10"/>
+
+    <template id="register_driver" name="Registro Vehiculo">
+        <t t-call="website.layout">
+            <style>
+                .risk-step-page {
+                    --risk-ink: #1f2933;
+                    --risk-muted: #6b7280;
+                    --risk-line: #f2b17e;
+                    --risk-fill: #fff7ed;
+                    --risk-accent: #e46f22;
+                    max-width: 980px;
+                    margin: 0 auto;
+                    padding: 32px 16px 56px;
+                    color: var(--risk-ink);
+                }
+                .risk-step-header {
+                    border: 2px solid var(--risk-line);
+                    border-radius: 8px;
+                    overflow: hidden;
+                    background: #fff;
+                    margin-bottom: 16px;
+                }
+                .risk-step-title {
+                    background: #f6b37f;
+                    padding: 18px;
+                    text-align: center;
+                    font-weight: 800;
+                    font-size: 24px;
+                    text-transform: uppercase;
+                }
+                .risk-step-meta {
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 12px;
+                    padding: 12px 16px;
+                    font-size: 14px;
+                    font-weight: 700;
+                }
+                .risk-progress {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 8px;
+                    margin: 18px 0;
+                }
+                .risk-progress-item {
+                    border: 1px solid var(--risk-line);
+                    border-radius: 6px;
+                    padding: 10px;
+                    text-align: center;
+                    color: var(--risk-muted);
+                    background: #fff;
+                }
+                .risk-progress-item.is-active,
+                .risk-progress-item.is-done {
+                    background: var(--risk-fill);
+                    color: var(--risk-ink);
+                    font-weight: 700;
+                }
+                .risk-panel {
+                    border: 2px solid var(--risk-line);
+                    border-radius: 8px;
+                    background: #fff;
+                    overflow: hidden;
+                }
+                .risk-panel-title {
+                    background: #f6b37f;
+                    padding: 9px 14px;
+                    text-align: center;
+                    font-size: 18px;
+                    font-weight: 800;
+                    font-style: italic;
+                    text-transform: uppercase;
+                }
+                .risk-fields {
+                    display: grid;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    gap: 18px;
+                    padding: 22px;
+                }
+                .risk-field-full {
+                    grid-column: 1 / -1;
+                }
+                .risk-field label {
+                    display: block;
+                    margin-bottom: 7px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    font-size: 13px;
+                }
+                .risk-field input,
+                .risk-field textarea {
+                    width: 100%;
+                    border: 0;
+                    border-bottom: 2px solid var(--risk-line);
+                    border-radius: 0;
+                    padding: 9px 4px;
+                    background: transparent;
+                    outline: none;
+                }
+                .risk-field textarea {
+                    min-height: 120px;
+                    border: 1px solid var(--risk-line);
+                    border-radius: 6px;
+                    padding: 12px;
+                }
+                .risk-actions {
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 12px;
+                    margin-top: 18px;
+                }
+                .risk-actions .btn {
+                    min-width: 132px;
+                    border-radius: 6px;
+                    font-weight: 700;
+                }
+                @media (max-width: 720px) {
+                    .risk-step-meta,
+                    .risk-fields,
+                    .risk-progress {
+                        grid-template-columns: 1fr;
+                        display: grid;
+                    }
+                    .risk-step-title {
+                        font-size: 20px;
+                    }
+                }
+            </style>
+
+            <main class="risk-step-page">
+                <section class="risk-step-header">
+                    <div class="risk-step-title">Hoja de Vida Habilitacion Terceros</div>
+                    <div class="risk-step-meta">
+                        <span>CODIGO: FO-RI-01</span>
+                        <span>VERSION: 13</span>
+                        <span>FECHA: 09/05/2026</span>
+                    </div>
+                </section>
+
+                <div class="risk-progress" aria-label="Progreso">
+                    <div t-attf-class="risk-progress-item #{'is-active' if step == 1 else 'is-done' if step &gt; 1 else ''}">1. Vehiculo</div>
+                    <div t-attf-class="risk-progress-item #{'is-active' if step == 2 else 'is-done' if step &gt; 2 else ''}">2. Observaciones</div>
+                    <div t-attf-class="risk-progress-item #{'is-active' if step == 3 else ''}">3. Revision</div>
+                </div>
+
+                <form t-attf-action="/registro-conductor/submit/#{step}" method="post" class="risk-form">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                    <section class="risk-panel">
+                        <div class="risk-panel-title">Informacion del Vehiculo</div>
+                        <div class="risk-fields">
+                            <t t-if="step == 1">
+                                <div class="risk-field">
+                                    <label for="form_date">Fecha</label>
+                                    <input id="form_date" name="form_date" type="date" t-att-value="data.get('form_date')" required="required"/>
+                                </div>
+                                <div class="risk-field">
+                                    <label for="vehicle_plate">Placa</label>
+                                    <input id="vehicle_plate" name="vehicle_plate" type="text" t-att-value="data.get('vehicle_plate')" required="required" autocomplete="off"/>
+                                </div>
+                                <div class="risk-field risk-field-full">
+                                    <label for="semi_trailer_plate">Semi/Remolque</label>
+                                    <input id="semi_trailer_plate" name="semi_trailer_plate" type="text" t-att-value="data.get('semi_trailer_plate')" autocomplete="off"/>
+                                </div>
+                                <div class="risk-field">
+                                    <label for="satellite_company">Empresa satelital</label>
+                                    <input id="satellite_company" name="satellite_company" type="text" t-att-value="data.get('satellite_company')" autocomplete="off"/>
+                                </div>
+                                <div class="risk-field">
+                                    <label for="satellite_user">Usuario</label>
+                                    <input id="satellite_user" name="satellite_user" type="text" t-att-value="data.get('satellite_user')" autocomplete="off"/>
+                                </div>
+                                <div class="risk-field risk-field-full">
+                                    <label for="satellite_password">Clave</label>
+                                    <input id="satellite_password" name="satellite_password" type="password" t-att-value="data.get('satellite_password')" autocomplete="off"/>
+                                </div>
+                            </t>
+
+                            <t t-if="step == 2">
+                                <div class="risk-field risk-field-full">
+                                    <label for="message">Observaciones</label>
+                                    <textarea id="message" name="message" placeholder="Observaciones adicionales"><t t-esc="data.get('message') or ''"/></textarea>
+                                </div>
+                            </t>
+
+                            <t t-if="step == 3">
+                                <div class="risk-field">
+                                    <label>Placa</label>
+                                    <input type="text" t-att-value="data.get('vehicle_plate')" readonly="readonly"/>
+                                </div>
+                                <div class="risk-field">
+                                    <label>Semi/Remolque</label>
+                                    <input type="text" t-att-value="data.get('semi_trailer_plate')" readonly="readonly"/>
+                                </div>
+                                <div class="risk-field">
+                                    <label>Empresa satelital</label>
+                                    <input type="text" t-att-value="data.get('satellite_company')" readonly="readonly"/>
+                                </div>
+                                <div class="risk-field">
+                                    <label>Usuario</label>
+                                    <input type="text" t-att-value="data.get('satellite_user')" readonly="readonly"/>
+                                </div>
+                                <div class="risk-field risk-field-full">
+                                    <label>Observaciones</label>
+                                    <textarea readonly="readonly"><t t-esc="data.get('message') or ''"/></textarea>
+                                </div>
+                            </t>
+                        </div>
+                    </section>
+
+                    <div class="risk-actions">
+                        <a t-if="step &gt; 1" t-attf-href="/registro-conductor/#{step - 1}" class="btn btn-secondary">Anterior</a>
+                        <span t-if="step == 1"></span>
+                        <button type="submit" class="btn btn-primary">
+                            <t t-if="step &lt; 3">Siguiente</t>
+                            <t t-if="step == 3">Enviar</t>
+                        </button>
+                    </div>
+                </form>
+            </main>
+        </t>
+    </template>
+
+    <template id="register_driver_success" name="Registro Vehiculo Exitoso">
+        <t t-call="website.layout">
+            <main class="container py-5">
+                <div class="alert alert-success" role="status">
+                    Solicitud registrada para el vehiculo <strong t-esc="submission.vehicle_plate"/>.
+                </div>
+                <a href="/registro-conductor" class="btn btn-primary">Crear otra solicitud</a>
+            </main>
+        </t>
+    </template>
+</odoo>
