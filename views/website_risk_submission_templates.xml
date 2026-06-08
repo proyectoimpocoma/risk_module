@@ -318,73 +318,17 @@
                                 <input type="hidden" name="driver_has_valid_study" t-att-value="data.get('driver_has_valid_study')"/>
                                 <input type="hidden" name="driver_signature" t-att-value="data.get('driver_signature')"/>
                                 <input type="hidden" name="driver_signature_document" t-att-value="data.get('driver_signature_document')"/>
-                                <div class="risk-field">
-                                    <label>Placa</label>
-                                    <input type="text" t-att-value="data.get('vehicle_plate')" readonly="readonly"/>
-                                </div>
-                                <div class="risk-field">
-                                    <label>Semi/Remolque</label>
-                                    <input type="text" t-att-value="data.get('semi_trailer_plate')" readonly="readonly"/>
-                                </div>
-                                <div class="risk-field">
-                                    <label>Empresa satelital</label>
-                                    <input type="text" t-att-value="data.get('satellite_company')" readonly="readonly"/>
-                                </div>
-                                <div class="risk-field">
-                                    <label>Usuario</label>
-                                    <input type="text" t-att-value="data.get('satellite_user')" readonly="readonly"/>
-                                </div>
                                 <div class="risk-field risk-field-full">
-                                    <label>Propietario / Tenedor / Poseedor</label>
-                                    <input type="text" t-att-value="data.get('owner_name')" readonly="readonly"/>
-                                </div>
-                                <div class="risk-field">
-                                    <label>Documento</label>
-                                    <input type="text" t-att-value="'%s %s' % ((data.get('owner_document_type') or '').upper(), data.get('owner_document_number') or '')" readonly="readonly"/>
-                                </div>
-                                <div class="risk-field">
-                                    <label>Ciudad</label>
-                                    <input type="text" t-att-value="data.get('owner_city')" readonly="readonly"/>
-                                </div>
-                                <div class="risk-field">
-                                    <label>Celular</label>
-                                    <input type="text" t-att-value="data.get('owner_phone')" readonly="readonly"/>
-                                </div>
-                                <div class="risk-field">
-                                    <label>Correo</label>
-                                    <input type="text" t-att-value="data.get('owner_email')" readonly="readonly"/>
-                                </div>
-                                <div class="risk-field risk-field-full">
-                                    <label>Conductor</label>
-                                    <input type="text" t-att-value="data.get('driver_name')" readonly="readonly"/>
-                                </div>
-                                <div class="risk-field">
-                                    <label>Cedula conductor</label>
-                                    <input type="text" t-att-value="data.get('driver_document_number')" readonly="readonly"/>
-                                </div>
-                                <div class="risk-field">
-                                    <label>Ciudad conductor</label>
-                                    <input type="text" t-att-value="data.get('driver_city')" readonly="readonly"/>
-                                </div>
-                                <div class="risk-field">
-                                    <label>Celular conductor</label>
-                                    <input type="text" t-att-value="data.get('driver_phone')" readonly="readonly"/>
-                                </div>
-                                <div class="risk-field">
-                                    <label>Correo conductor</label>
-                                    <input type="text" t-att-value="data.get('driver_email')" readonly="readonly"/>
-                                </div>
-                                <div class="risk-field risk-field-full">
-                                    <label>Terminos y autorizaciones</label>
-                                    <input type="text" value="Aceptados" readonly="readonly"/>
-                                </div>
-                                <div class="risk-field">
-                                    <label>Firma propietario</label>
-                                    <input type="text" t-att-value="'No requerida' if data.get('owner_has_valid_study') == 'yes' else 'Registrada'" readonly="readonly"/>
-                                </div>
-                                <div class="risk-field">
-                                    <label>Firma conductor</label>
-                                    <input type="text" t-att-value="'No requerida' if data.get('driver_has_valid_study') == 'yes' else 'Registrada'" readonly="readonly"/>
+                                    <div class="risk-print-toolbar">
+                                        <button t-if="print_url" type="button" class="btn btn-secondary" id="risk-print-preview">Imprimir / Guardar como PDF</button>
+                                        <a t-if="print_url" t-att-href="print_url" target="_blank" class="btn btn-secondary">Abrir vista imprimible</a>
+                                    </div>
+                                    <div t-if="print_url" class="risk-print-preview">
+                                        <iframe id="risk-print-frame" t-att-src="print_url" title="Vista imprimible Hoja de Vida"/>
+                                    </div>
+                                    <div t-if="not print_url" class="risk-error">
+                                        No se pudo generar la vista imprimible. Vuelve al paso de firmas y continua nuevamente.
+                                    </div>
                                 </div>
                                 <div class="risk-field risk-field-full">
                                     <label for="message">Observaciones</label>
@@ -442,6 +386,7 @@
                 <div class="alert alert-success" role="status">
                     Solicitud registrada para el vehiculo <strong t-esc="submission.vehicle_plate"/>.
                 </div>
+                <a t-attf-href="/registro-conductor/imprimir/#{submission.id}?token=#{submission.access_token}" target="_blank" class="btn btn-secondary">Abrir vista imprimible</a>
                 <a href="/registro-conductor" class="btn btn-primary">Crear otra solicitud</a>
             </main>
         </t>

@@ -1,0 +1,198 @@
+<odoo>
+    <record id="action_report_risk_submission" model="ir.actions.report">
+        <field name="name">Hoja de Vida Habilitacion Terceros</field>
+        <field name="model">risk.module</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">risk_module.report_risk_submission_document</field>
+        <field name="report_file">risk_module.report_risk_submission_document</field>
+        <field name="print_report_name">'Hoja de vida - %s' % (object.vehicle_plate or '')</field>
+    </record>
+
+    <template id="report_risk_submission_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <div class="page risk-report-page">
+                    <style>
+                        @page { size: A4; margin: 7mm; }
+                        html, body { margin: 0; padding: 0; background: #fff; }
+                        .risk-report-page { font-family: Arial, Helvetica, sans-serif; color: #000; font-size: 9px; }
+                        .risk-report-header { display: table; width: 100%; border-collapse: separate; border-spacing: 2px; margin-bottom: 4px; }
+                        .risk-report-logo, .risk-report-title, .risk-report-meta { display: table-cell; border: 1px solid #f2a978; border-radius: 7px; vertical-align: middle; height: 44px; }
+                        .risk-report-logo { width: 16%; text-align: center; }
+                        .risk-report-logo img { max-width: 78px; max-height: 39px; vertical-align: middle; }
+                        .risk-report-title { width: 66%; text-align: center; background: #f4b183; font-size: 16px; font-weight: 800; line-height: 18px; }
+                        .risk-report-meta { width: 18%; padding-left: 7px; font-size: 9px; font-weight: 800; line-height: 12px; }
+                        .risk-report-date { width: 45%; border: 1px solid #f2a978; border-radius: 4px; height: 22px; padding: 3px 5px; margin-bottom: 5px; font-size: 9px; }
+                        .risk-section-title { background: #f4b183; border-radius: 3px; text-align: center; font-size: 11px; font-weight: 800; font-style: italic; padding: 3px; margin: 4px 0; text-transform: uppercase; }
+                        .risk-box { border: 1px solid #f2a978; border-radius: 10px; padding: 5px; margin-bottom: 4px; }
+                        .risk-row { display: table; width: 100%; table-layout: fixed; margin-bottom: 5px; }
+                        .risk-cell { display: table-cell; vertical-align: bottom; padding-right: 7px; white-space: nowrap; }
+                        .risk-label { font-weight: 500; }
+                        .risk-line { display: inline-block; border-bottom: 1px solid #d9783f; min-height: 11px; vertical-align: bottom; padding: 0 3px; white-space: normal; }
+                        .w7 { width: 7%; } .w10 { width: 10%; } .w11 { width: 11%; } .w15 { width: 15%; } .w20 { width: 20%; } .w23 { width: 23%; } .w25 { width: 25%; } .w27 { width: 27%; } .w30 { width: 30%; } .w31 { width: 31%; } .w35 { width: 35%; } .w40 { width: 40%; } .w45 { width: 45%; } .w48 { width: 48%; } .w50 { width: 50%; } .w55 { width: 55%; } .w60 { width: 60%; } .w63 { width: 63%; } .w65 { width: 65%; } .w70 { width: 70%; } .w75 { width: 75%; } .w78 { width: 78%; } .w80 { width: 80%; } .w100 { width: 100%; }
+                        .check { display: inline-block; width: 10px; height: 10px; border: 1px solid #b96a36; margin: 0 8px 0 3px; vertical-align: middle; text-align: center; line-height: 9px; font-size: 8px; }
+                        .checked:after { content: "X"; font-weight: 800; }
+                        .risk-small-text { border: 1px solid #f2a978; border-radius: 4px; padding: 5px 7px; font-size: 7px; line-height: 8px; text-align: justify; margin-bottom: 5px; }
+                        .risk-large-text { border: 1px solid #f2a978; border-radius: 18px; padding: 8px; font-size: 7px; line-height: 8px; text-align: justify; margin-bottom: 5px; }
+                        .risk-signatures { display: table; width: 100%; border-spacing: 3px 0; margin-top: 4px; }
+                        .risk-signature-box { display: table-cell; width: 50%; border: 1px solid #f2a978; border-radius: 15px; height: 105px; text-align: center; vertical-align: top; padding: 6px; }
+                        .risk-signature-img { height: 50px; max-width: 90%; margin: 12px auto 2px; display: block; }
+                        .risk-signature-line { border-bottom: 1px solid #d9783f; height: 18px; margin: 24px 20px 3px; }
+                        .risk-note { border: 1px solid #f2a978; border-radius: 6px; padding: 6px; font-size: 8px; line-height: 10px; margin-top: 4px; }
+                        @media print {
+                            .risk-report-page { page-break-after: always; }
+                        }
+                    </style>
+
+                    <div class="risk-report-header">
+                        <div class="risk-report-logo">
+                            <img src="/risk_module/static/src/img/impocoma_logo.jpeg" alt="Impocoma"/>
+                        </div>
+                        <div class="risk-report-title">HOJA DE VIDA<br/>Habilitacion Terceros</div>
+                        <div class="risk-report-meta">
+                            CODIGO: FO-RI-01<br/>
+                            VERSION: 13<br/>
+                            FECHA: 09/05/2026
+                        </div>
+                    </div>
+
+                    <div class="risk-report-date">
+                        FECHA DD/MM/AA:
+                        <span class="risk-line w60" t-esc="o.form_date and o.form_date.strftime('%d/%m/%Y') or ''"/>
+                    </div>
+
+                    <div class="risk-section-title">Informacion del Vehiculo</div>
+                    <div class="risk-box">
+                        <div class="risk-row">
+                            <div class="risk-cell w50">PLACA:<span class="risk-line w70" t-esc="o.vehicle_plate or ''"/></div>
+                            <div class="risk-cell w50">SEMI/REMOLQUE:<span class="risk-line w60" t-esc="o.semi_trailer_plate or ''"/></div>
+                        </div>
+                        <div class="risk-row">
+                            <div class="risk-cell w45">EMPRESA SATELITAL:<span class="risk-line w55" t-esc="o.satellite_company or ''"/></div>
+                            <div class="risk-cell w30">USUARIO:<span class="risk-line w65" t-esc="o.satellite_user or ''"/></div>
+                            <div class="risk-cell w25">CLAVE:<span class="risk-line w65" t-esc="o.satellite_password or ''"/></div>
+                        </div>
+                    </div>
+
+                    <div class="risk-section-title">Informacion del Propietario / Tenedor / Poseedor</div>
+                    <div class="risk-box">
+                        <div class="risk-row">
+                            <div class="risk-cell w63">NOMBRES Y APELLIDOS / EMPRESA:<span class="risk-line w60" t-esc="o.owner_name or ''"/></div>
+                            <div class="risk-cell w7">CC:<span t-att-class="'check checked' if o.owner_document_type == 'cc' else 'check'"/></div>
+                            <div class="risk-cell w7">Nit:<span t-att-class="'check checked' if o.owner_document_type == 'nit' else 'check'"/></div>
+                            <div class="risk-cell w23">Numero:<span class="risk-line w65" t-esc="o.owner_document_number or ''"/></div>
+                        </div>
+                        <div class="risk-row">
+                            <div class="risk-cell w48">DIRECCION:<span class="risk-line w75" t-esc="o.owner_address or ''"/></div>
+                            <div class="risk-cell w25">BARRIO:<span class="risk-line w70" t-esc="o.owner_neighborhood or ''"/></div>
+                            <div class="risk-cell w27">CIUDAD:<span class="risk-line w70" t-esc="o.owner_city or ''"/></div>
+                        </div>
+                        <div class="risk-row">
+                            <div class="risk-cell w50">Numero de celular para notificaciones y autorizaciones electronicas:<span class="risk-line w45" t-esc="o.owner_phone or ''"/></div>
+                            <div class="risk-cell w50">Correo electronico de facturacion y notificaciones:<span class="risk-line w55" t-esc="o.owner_email or ''"/></div>
+                        </div>
+                        <div class="risk-row">
+                            <div class="risk-cell w45">Autorizo la entrega y pago de anticipos a</div>
+                            <div class="risk-cell w20">Conductor<span t-att-class="'check checked' if o.advance_payment_to == 'driver' else 'check'"/></div>
+                            <div class="risk-cell w20">Propietario<span t-att-class="'check checked' if o.advance_payment_to == 'owner' else 'check'"/></div>
+                        </div>
+                        <div class="risk-row">
+                            <div class="risk-cell w80">La informacion del tenedor o poseedor corresponde al mismo o unico propietario, registrado en la Licencia de Transito?</div>
+                            <div class="risk-cell w10">SI<span t-att-class="'check checked' if o.same_owner_on_license == 'yes' else 'check'"/></div>
+                            <div class="risk-cell w10">NO<span t-att-class="'check checked' if o.same_owner_on_license == 'no' else 'check'"/></div>
+                        </div>
+                        <div class="risk-row">
+                            <div class="risk-cell w55">En caso de que su respuesta sea NO, informacion del propietario:</div>
+                            <div class="risk-cell w7">CC:<span t-att-class="'check checked' if o.registered_owner_document_type == 'cc' else 'check'"/></div>
+                            <div class="risk-cell w7">Nit:<span t-att-class="'check checked' if o.registered_owner_document_type == 'nit' else 'check'"/></div>
+                            <div class="risk-cell w31">Numero:<span class="risk-line w65" t-esc="o.registered_owner_document_number or ''"/></div>
+                        </div>
+                        <div class="risk-row">
+                            <div class="risk-cell w70">NOMBRES Y APELLIDOS:<span class="risk-line w70" t-esc="o.registered_owner_name or ''"/></div>
+                            <div class="risk-cell w30">CELULAR:<span class="risk-line w70" t-esc="o.registered_owner_phone or ''"/></div>
+                        </div>
+                    </div>
+
+                    <div class="risk-section-title">Informacion del Conductor</div>
+                    <div class="risk-box">
+                        <div class="risk-row">
+                            <div class="risk-cell w65">NOMBRES Y APELLIDOS:<span class="risk-line w70" t-esc="o.driver_name or ''"/></div>
+                            <div class="risk-cell w35">NUMERO DE CEDULA:<span class="risk-line w60" t-esc="o.driver_document_number or ''"/></div>
+                        </div>
+                        <div class="risk-row">
+                            <div class="risk-cell w45">DIRECCION:<span class="risk-line w75" t-esc="o.driver_address or ''"/></div>
+                            <div class="risk-cell w25">BARRIO:<span class="risk-line w70" t-esc="o.driver_neighborhood or ''"/></div>
+                            <div class="risk-cell w30">CIUDAD:<span class="risk-line w70" t-esc="o.driver_city or ''"/></div>
+                        </div>
+                        <div class="risk-row">
+                            <div class="risk-cell w55">Numero de celular para notificaciones y autorizaciones electronicas:<span class="risk-line w50" t-esc="o.driver_phone or ''"/></div>
+                            <div class="risk-cell w45">TELEFONO OPCIONAL:<span class="risk-line w65" t-esc="o.driver_optional_phone or ''"/></div>
+                        </div>
+                        <div class="risk-row">
+                            <div class="risk-cell w100">Correo electronico de autorizacion para notificaciones:<span class="risk-line w70" t-esc="o.driver_email or ''"/></div>
+                        </div>
+                    </div>
+                    <div class="risk-box">
+                        <div class="risk-row">
+                            <div class="risk-cell w78">SE DECLARA FISICA, MENTAL Y PSICOTECNICAMENTE APTO PARA PRESTAR SUS SERVICIOS?</div>
+                            <div class="risk-cell w11">SI<span t-att-class="'check checked' if o.driver_is_fit == 'yes' else 'check'"/></div>
+                            <div class="risk-cell w11">NO<span t-att-class="'check checked' if o.driver_is_fit == 'no' else 'check'"/></div>
+                        </div>
+                        <div class="risk-row">
+                            <div class="risk-cell w78">ESTA CAPACITADO Y ENTRENADO PARA CONTINGENCIAS Y PREVENCION DE ACCIDENTES POR CARRETERAS?</div>
+                            <div class="risk-cell w11">SI<span t-att-class="'check checked' if o.driver_is_trained == 'yes' else 'check'"/></div>
+                            <div class="risk-cell w11">NO<span t-att-class="'check checked' if o.driver_is_trained == 'no' else 'check'"/></div>
+                        </div>
+                        <div class="risk-row">
+                            <div class="risk-cell w45">REFERENCIA FAMILIAR:<span class="risk-line w60" t-esc="o.family_reference_name or ''"/></div>
+                            <div class="risk-cell w30">PARENTESCO:<span class="risk-line w60" t-esc="o.family_reference_relationship or ''"/></div>
+                            <div class="risk-cell w25">CELULAR:<span class="risk-line w65" t-esc="o.family_reference_phone or ''"/></div>
+                        </div>
+                        <div class="risk-row">
+                            <div class="risk-cell w65">REFERENCIA TRANSPORTE DE CARGA:<span class="risk-line w60" t-esc="o.cargo_reference_name or ''"/></div>
+                            <div class="risk-cell w35">CELULAR:<span class="risk-line w70" t-esc="o.cargo_reference_phone or ''"/></div>
+                        </div>
+                    </div>
+
+                    <div class="risk-section-title">Informacion Bancaria</div>
+                    <div class="risk-small-text">Se certifica que la cuenta bancaria entregada es vigente, esta libre de embargos o cualquier limitacion para su manejo y exonera a IMPOCOMA S.A.S., por cualquier eventualidad presentada con la cuenta bancaria y que se hace responsable por ello.</div>
+
+                    <div class="risk-section-title">Autorizacion de Compensacion General</div>
+                    <div class="risk-small-text">Por medio del presente autorizo expresamente a los Senores IMPOCOMA S.A.S., identificados con el Nit. No. 860.078.780-2, para que efectue la Compensacion prevista en el Codigo Civil Articulo 1714 y S.S., los saldos generados por novedad de faltantes de mercancias, averias, saqueos, hurtos de mercancia, contaminacion, contaminacion especifica, sobrantes o contrabando abierto o tecnico, anticipo no utilizado, cobro de los derechos del contrato de vinculacion bajo la figura de compensacion y demas que se presente durante la operacion del transporte.</div>
+
+                    <div class="risk-section-title">Autorizacion de Datos Personales</div>
+                    <div class="risk-large-text">
+                        Como titular de los datos y bajo los parametros de la Ley 1581 de 2012 y las normas que la adicionen y/o modifiquen, autorizo a IMPOCOMA S.A.S. a recolectar, consultar, validar, almacenar, utilizar, procesar, transferir, transmitir, tratar, reportar y disponer de los datos personales aqui solicitados para la ejecucion del contrato, pago de obligaciones contractuales, envio de informacion a autoridades, soporte de auditoria, registro de informacion de terceros, contacto operativo, recoleccion de datos para el cumplimiento de deberes legales, envio de correspondencia, mensajes de texto y aplicaciones de mensajeria, seguridad, prevencion de fraude, reporte y consulta a centrales de riesgo, asignacion y contacto para operaciones de carga, registro en manifiestos, validacion de antecedentes, consultas comerciales y procesos estadisticos.
+                        <br/><br/>
+                        Autorizo el tratamiento de mis datos sensibles, incluyendo antecedentes penales o disciplinarios, datos biometricos, fotografias, videos, informacion financiera, huellas dactilares, habitos de cumplimiento contractual, datos relativos a la salud, imagen personal, resultado de pruebas de alcohol y drogas, seguimiento GPS del vehiculo y demas datos necesarios para las finalidades descritas.
+                        <br/><br/>
+                        Asi mismo, otorgo autorizacion a IMPOCOMA S.A.S. y a quienes actuen como encargados a acceder al sistema de Posicionamiento Global (GPS) y utilizar la informacion del vehiculo para seguimiento en tiempo real. Derechos como titular: conocer, actualizar y rectificar mis datos personales, solicitar prueba de autorizacion, ser informado sobre el uso de los datos, presentar quejas ante la SIC, revocar la autorizacion y solicitar la supresion cuando sea procedente.
+                        <br/><br/>
+                        Datos del responsable del tratamiento: IMPOCOMA S.A.S. Nit. 860078780-2, Telefono: 315 3363641, Correo: notificaciones@impocoma.com, Domicilio principal: Mosquera/Cundinamarca. RISK INTERNATIONAL S.A.S., Nit. 900352786-5, Canal de atencion: habeasdata@riskintl.com, Domicilio principal: Bogota D.C. Declaro que he leido y comprendo el contenido de esta autorizacion.
+                    </div>
+
+                    <div class="risk-signatures">
+                        <div class="risk-signature-box">
+                            Si el propietario cuenta con estudio vigente, no debe diligenciar<br/>el siguiente espacio:
+                            <img t-if="o.owner_signature" class="risk-signature-img" t-att-src="image_data_uri(o.owner_signature)"/>
+                            <div t-if="not o.owner_signature" class="risk-signature-line"/>
+                            <div>Firma y numero de cedula<br/>Tenedor/Representante Legal</div>
+                            <strong t-esc="o.owner_signature_document or ''"/>
+                        </div>
+                        <div class="risk-signature-box">
+                            Si el conductor cuenta con estudio vigente, no debe diligenciar<br/>el siguiente espacio:
+                            <img t-if="o.driver_signature" class="risk-signature-img" t-att-src="image_data_uri(o.driver_signature)"/>
+                            <div t-if="not o.driver_signature" class="risk-signature-line"/>
+                            <div>Firma y numero de cedula de Conductor</div>
+                            <strong t-esc="o.driver_signature_document or ''"/>
+                        </div>
+                    </div>
+                    <div class="risk-note">
+                        <strong>Nota:</strong> En caso de creacion de nuevo vehiculo, el propietario/tenedor debe firmar sin ninguna excepcion.<br/>
+                        Para los casos que se requiera cambio de conductor y este, cuente con estudio vigente, tanto el propietario/tenedor y conductor, deberan firmar sin ninguna excepcion.
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

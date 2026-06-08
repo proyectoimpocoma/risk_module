@@ -227,6 +227,27 @@
     line-height: 1.35;
     background: #fffaf5;
 }
+.risk-print-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+}
+.risk-print-preview {
+    width: 100%;
+    min-height: 760px;
+    border: 1px solid var(--risk-line);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f8fafc;
+}
+.risk-print-preview iframe {
+    width: 100%;
+    min-height: 760px;
+    display: block;
+    border: 0;
+}
 .risk-modal {
     position: fixed;
     inset: 0;

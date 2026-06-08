@@ -1,3 +1,5 @@
+import uuid
+
 from odoo import fields, models
 
 
@@ -8,6 +10,11 @@ class RiskSubmission(models.Model):
     _order = "create_date desc"
 
     name = fields.Char(string="Referencia")
+    state = fields.Selection([
+        ("draft", "Borrador"),
+        ("submitted", "Enviado"),
+    ], string="Estado", default="draft", required=True)
+    access_token = fields.Char(string="Token publico", default=lambda self: uuid.uuid4().hex, copy=False)
     form_date = fields.Date(string="Fecha", default=fields.Date.context_today)
     vehicle_plate = fields.Char(string="Placa", required=True)
     semi_trailer_plate = fields.Char(string="Semi/Remolque")
