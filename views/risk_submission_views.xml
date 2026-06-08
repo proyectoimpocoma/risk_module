@@ -72,7 +72,8 @@
                                     <field name="same_owner_on_license"/>
                                 </group>
                             </group>
-                            <group string="Propietario Registrado en Licencia">
+                            <group string="Propietario Registrado en Licencia"
+                                   invisible="same_owner_on_license != 'no'">
                                 <group>
                                     <field name="registered_owner_document_type"/>
                                     <field name="registered_owner_document_number"/>

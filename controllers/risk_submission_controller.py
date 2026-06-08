@@ -1,3 +1,4 @@
+import re
 from datetime import date
 
 from odoo import fields, http
@@ -5,6 +6,39 @@ from odoo.http import request
 
 
 class RiskSubmissionController(http.Controller):
+    PLATE_REGEX = re.compile(r"^[A-Z]{3}[0-9]{2,3}$")
+    EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$")
+    CC_REGEX = re.compile(r"^[0-9]{6,10}$")
+    NIT_REGEX = re.compile(r"^[0-9]{9}(-[0-9])?$")
+    CHOICE_VALUES = {
+        "owner_document_type": ("cc", "nit"),
+        "advance_payment_to": ("driver", "owner"),
+        "same_owner_on_license": ("yes", "no"),
+        "registered_owner_document_type": ("cc", "nit"),
+        "driver_is_fit": ("yes", "no"),
+        "driver_is_trained": ("yes", "no"),
+        "owner_has_valid_study": ("yes", "no"),
+        "driver_has_valid_study": ("yes", "no"),
+    }
+    TEXT_LIMITS = {
+        "satellite_company": 80,
+        "satellite_user": 80,
+        "satellite_password": 80,
+        "owner_name": 140,
+        "owner_address": 140,
+        "owner_neighborhood": 80,
+        "owner_city": 80,
+        "registered_owner_name": 140,
+        "driver_name": 140,
+        "driver_address": 140,
+        "driver_neighborhood": 80,
+        "driver_city": 80,
+        "family_reference_name": 140,
+        "family_reference_relationship": 80,
+        "cargo_reference_name": 140,
+        "message": 1000,
+    }
+
     STEP_FIELDS = {
         1: (
             "form_date",
@@ -138,6 +172,15 @@ class RiskSubmissionController(http.Controller):
             self._update_signature_data(data, post)
             data.pop("signature_error", None)
 
+            if data.get("owner_has_valid_study") not in ("yes", "no"):
+                data["signature_error"] = "Debes indicar si el propietario cuenta con estudio vigente."
+                request.session["risk_vehicle_form"] = data
+                return self._render_step(5)
+            if data.get("driver_has_valid_study") not in ("yes", "no"):
+                data["signature_error"] = "Debes indicar si el conductor cuenta con estudio vigente."
+                request.session["risk_vehicle_form"] = data
+                return self._render_step(5)
+
             if not self._signatures_are_valid(data):
                 data["signature_error"] = self._signature_error_message(data)
                 request.session["risk_vehicle_form"] = data
@@ -172,6 +215,13 @@ class RiskSubmissionController(http.Controller):
         else:
             for field in self.STEP_FIELDS.get(step, ()):
                 data[field] = post.get(field, "").strip()
+            self._normalize_step_data(step, data)
+            validation_error = self._validate_step(step, data)
+            if validation_error:
+                data["step_error"] = validation_error
+                request.session["risk_vehicle_form"] = data
+                return self._render_step(step)
+            data.pop("step_error", None)
             self._persist_step_data(step, data)
             if step == 6:
                 self._update_signature_data(data, post)
@@ -227,6 +277,151 @@ class RiskSubmissionController(http.Controller):
             "print_url": self._print_url(data),
         })
 
+    def _normalize_step_data(self, step, data):
+        if step == 1:
+            for field in ("vehicle_plate", "semi_trailer_plate"):
+                if data.get(field):
+                    data[field] = data[field].strip().upper()
+        if step in (2, 3):
+            for field in ("owner_city", "driver_city"):
+                if data.get(field):
+                    data[field] = data[field].strip().title()
+
+    def _validate_step(self, step, data):
+        length_error = self._validate_text_lengths(data)
+        if length_error:
+            return length_error
+
+        if step == 1:
+            vehicle_plate = data.get("vehicle_plate")
+            semi_trailer_plate = data.get("semi_trailer_plate")
+            form_date = data.get("form_date")
+            if not form_date:
+                return "La fecha es obligatoria."
+            try:
+                parsed_date = date.fromisoformat(form_date)
+            except ValueError:
+                return "La fecha no tiene un formato valido."
+            if parsed_date > date.today():
+                return "La fecha no puede ser futura."
+            if not vehicle_plate:
+                return "La placa del vehiculo es obligatoria."
+            if not self.PLATE_REGEX.match(vehicle_plate):
+                return (
+                    "La placa del vehiculo debe tener formato colombiano valido: "
+                    "ABC123 para vehiculo/carga o ABC12 para motocicleta."
+                )
+            if semi_trailer_plate and not self.PLATE_REGEX.match(semi_trailer_plate):
+                return (
+                    "La placa del semi/remolque debe tener formato colombiano valido: "
+                    "ABC123 o ABC12."
+                )
+
+        if step == 2:
+            owner_email = data.get("owner_email")
+            owner_document_type = data.get("owner_document_type")
+            owner_document_number = data.get("owner_document_number")
+            if not data.get("owner_name"):
+                return "El nombre del propietario, tenedor o empresa es obligatorio."
+            owner_document_error = self._validate_document(
+                owner_document_type,
+                owner_document_number,
+                "documento del propietario",
+            )
+            if owner_document_error:
+                return owner_document_error
+            if owner_email and not self.EMAIL_REGEX.match(owner_email):
+                return "El correo del propietario no tiene un formato valido. Ejemplo: propietario@empresa.com."
+            phone_error = self._validate_mobile_phone(data.get("owner_phone"), "celular del propietario")
+            if phone_error:
+                return phone_error
+            registered_owner_document_error = self._validate_document(
+                data.get("registered_owner_document_type"),
+                data.get("registered_owner_document_number"),
+                "documento del propietario registrado",
+                required=False,
+            )
+            if registered_owner_document_error:
+                return registered_owner_document_error
+            registered_phone_error = self._validate_mobile_phone(
+                data.get("registered_owner_phone"),
+                "celular del propietario registrado",
+            )
+            if registered_phone_error:
+                return registered_phone_error
+
+        if step == 3:
+            if not data.get("driver_name"):
+                return "El nombre del conductor es obligatorio."
+            if not data.get("driver_document_number"):
+                return "La cedula del conductor es obligatoria."
+            if not self.CC_REGEX.match(data.get("driver_document_number")):
+                return "La cedula del conductor debe contener entre 6 y 10 digitos numericos."
+            driver_phone_error = self._validate_mobile_phone(data.get("driver_phone"), "celular del conductor")
+            if driver_phone_error:
+                return driver_phone_error
+            optional_phone_error = self._validate_phone(data.get("driver_optional_phone"), "telefono opcional")
+            if optional_phone_error:
+                return optional_phone_error
+            if data.get("driver_email") and not self.EMAIL_REGEX.match(data.get("driver_email")):
+                return "El correo del conductor no tiene un formato valido. Ejemplo: conductor@empresa.com."
+            family_phone_error = self._validate_mobile_phone(data.get("family_reference_phone"), "celular de referencia familiar")
+            if family_phone_error:
+                return family_phone_error
+            cargo_phone_error = self._validate_mobile_phone(data.get("cargo_reference_phone"), "celular de referencia de carga")
+            if cargo_phone_error:
+                return cargo_phone_error
+            if data.get("driver_is_fit") not in ("yes", "no"):
+                return "Debes indicar si el conductor es apto fisica, mental y psicotecnicamente."
+            if data.get("driver_is_trained") not in ("yes", "no"):
+                return "Debes indicar si el conductor esta capacitado y entrenado."
+        return None
+
+    def _validate_text_lengths(self, data):
+        for field, max_length in self.TEXT_LIMITS.items():
+            value = data.get(field)
+            if value and len(value) > max_length:
+                return "El campo %s no puede superar %s caracteres." % (field, max_length)
+        for field, allowed_values in self.CHOICE_VALUES.items():
+            value = data.get(field)
+            if value and value not in allowed_values:
+                return "El campo %s tiene una opcion invalida." % field
+        return None
+
+    def _validate_document(self, document_type, document_number, label, required=True):
+        if not document_type and not document_number and not required:
+            return None
+        if not document_type:
+            return "Debes seleccionar CC o NIT para el %s." % label
+        if not document_number:
+            return "Debes diligenciar el numero del %s." % label
+        if document_type == "cc" and not self.CC_REGEX.match(document_number):
+            return "La cedula del %s debe contener entre 6 y 10 digitos numericos." % label
+        if document_type == "nit" and not self.NIT_REGEX.match(document_number):
+            return "El NIT del %s debe tener formato 123456789 o 123456789-0." % label
+        return None
+
+    def _phone_digits(self, phone):
+        return re.sub(r"\D", "", phone or "")
+
+    def _validate_mobile_phone(self, phone, label):
+        if not phone:
+            return None
+        digits = self._phone_digits(phone)
+        if len(digits) != 10 or not digits.startswith("3"):
+            return "El %s debe ser un celular colombiano de 10 digitos que inicia por 3." % label
+        return None
+
+    def _validate_phone(self, phone, label):
+        if not phone:
+            return None
+        digits = self._phone_digits(phone)
+        if len(digits) == 7:
+            return None
+        if len(digits) == 10 and digits[0] in ("3", "6"):
+            return None
+        return "El %s debe tener 7 digitos o 10 digitos iniciando por 3 o 6." % label
+
     def _clean_signature_data(self, signature):
         if not signature:
             return ""
@@ -252,8 +447,10 @@ class RiskSubmissionController(http.Controller):
     def _signatures_are_valid(self, data):
         owner_required = data.get("owner_has_valid_study") != "yes"
         driver_required = data.get("driver_has_valid_study") != "yes"
-        owner_ok = not owner_required or (data.get("owner_signature") and data.get("owner_signature_document"))
-        driver_ok = not driver_required or (data.get("driver_signature") and data.get("driver_signature_document"))
+        owner_document_ok = data.get("owner_signature_document") and self.CC_REGEX.match(data.get("owner_signature_document"))
+        driver_document_ok = data.get("driver_signature_document") and self.CC_REGEX.match(data.get("driver_signature_document"))
+        owner_ok = not owner_required or (data.get("owner_signature") and owner_document_ok)
+        driver_ok = not driver_required or (data.get("driver_signature") and driver_document_ok)
         return owner_ok and driver_ok
 
     def _signature_error_message(self, data):
@@ -261,13 +458,13 @@ class RiskSubmissionController(http.Controller):
         if data.get("owner_has_valid_study") != "yes":
             if not data.get("owner_signature"):
                 missing.append("firma del propietario")
-            if not data.get("owner_signature_document"):
-                missing.append("cedula del propietario")
+            if not data.get("owner_signature_document") or not self.CC_REGEX.match(data.get("owner_signature_document")):
+                missing.append("cedula del propietario valida")
         if data.get("driver_has_valid_study") != "yes":
             if not data.get("driver_signature"):
                 missing.append("firma del conductor")
-            if not data.get("driver_signature_document"):
-                missing.append("cedula del conductor")
+            if not data.get("driver_signature_document") or not self.CC_REGEX.match(data.get("driver_signature_document")):
+                missing.append("cedula del conductor valida")
         if missing:
             return "Debes completar: %s." % ", ".join(missing)
         return "Debes completar la firma y cedula cuando el propietario o conductor no cuenta con estudio vigente."

@@ -96,6 +96,10 @@
     background: transparent;
     outline: none;
 }
+#vehicle_plate,
+#semi_trailer_plate {
+    text-transform: uppercase;
+}
 .risk-choice-row {
     display: flex;
     align-items: center;

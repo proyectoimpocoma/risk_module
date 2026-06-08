@@ -32,6 +32,7 @@
                         <div t-if="step == 5" class="risk-panel-title">Firmas</div>
                         <div t-if="step == 6" class="risk-panel-title">Revision de la Solicitud</div>
                         <div class="risk-fields">
+                            <div t-if="data.get('step_error')" class="risk-error" t-esc="data.get('step_error')"/>
                             <t t-if="step == 1">
                                 <div class="risk-field">
                                     <label for="form_date">Fecha</label>
@@ -39,23 +40,23 @@
                                 </div>
                                 <div class="risk-field">
                                     <label for="vehicle_plate">Placa</label>
-                                    <input id="vehicle_plate" name="vehicle_plate" type="text" t-att-value="data.get('vehicle_plate')" required="required" autocomplete="off"/>
+                                    <input id="vehicle_plate" name="vehicle_plate" type="text" t-att-value="data.get('vehicle_plate')" required="required" autocomplete="off" pattern="[A-Za-z]{3}[0-9]{2,3}" title="Formato valido: ABC123 para vehiculo/carga o ABC12 para motocicleta"/>
                                 </div>
                                 <div class="risk-field risk-field-full">
                                     <label for="semi_trailer_plate">Semi/Remolque</label>
-                                    <input id="semi_trailer_plate" name="semi_trailer_plate" type="text" t-att-value="data.get('semi_trailer_plate')" autocomplete="off"/>
+                                    <input id="semi_trailer_plate" name="semi_trailer_plate" type="text" t-att-value="data.get('semi_trailer_plate')" autocomplete="off" pattern="[A-Za-z]{3}[0-9]{2,3}" title="Formato valido: ABC123 o ABC12"/>
                                 </div>
                                 <div class="risk-field">
                                     <label for="satellite_company">Empresa satelital</label>
-                                    <input id="satellite_company" name="satellite_company" type="text" t-att-value="data.get('satellite_company')" autocomplete="off"/>
+                                    <input id="satellite_company" name="satellite_company" type="text" t-att-value="data.get('satellite_company')" maxlength="80" autocomplete="off"/>
                                 </div>
                                 <div class="risk-field">
                                     <label for="satellite_user">Usuario</label>
-                                    <input id="satellite_user" name="satellite_user" type="text" t-att-value="data.get('satellite_user')" autocomplete="off"/>
+                                    <input id="satellite_user" name="satellite_user" type="text" t-att-value="data.get('satellite_user')" maxlength="80" autocomplete="off"/>
                                 </div>
                                 <div class="risk-field risk-field-full">
                                     <label for="satellite_password">Clave</label>
-                                    <input id="satellite_password" name="satellite_password" type="password" t-att-value="data.get('satellite_password')" autocomplete="off"/>
+                                    <input id="satellite_password" name="satellite_password" type="password" t-att-value="data.get('satellite_password')" maxlength="80" autocomplete="off"/>
                                 </div>
                             </t>
 
@@ -63,11 +64,11 @@
                                 <div class="risk-inline-doc">
                                     <div class="risk-field">
                                         <label for="owner_name">Nombres y apellidos / Empresa</label>
-                                        <input id="owner_name" name="owner_name" type="text" t-att-value="data.get('owner_name')" required="required" autocomplete="off"/>
+                                        <input id="owner_name" name="owner_name" type="text" t-att-value="data.get('owner_name')" required="required" maxlength="140" minlength="3" autocomplete="off"/>
                                     </div>
                                     <label class="risk-choice">
                                         <span>CC</span>
-                                        <input type="radio" name="owner_document_type" value="cc" t-att-checked="'checked' if data.get('owner_document_type') == 'cc' else None"/>
+                                        <input type="radio" name="owner_document_type" value="cc" required="required" t-att-checked="'checked' if data.get('owner_document_type') == 'cc' else None"/>
                                     </label>
                                     <label class="risk-choice">
                                         <span>Nit</span>
@@ -75,29 +76,29 @@
                                     </label>
                                     <div class="risk-field">
                                         <label for="owner_document_number">Numero</label>
-                                        <input id="owner_document_number" name="owner_document_number" type="text" t-att-value="data.get('owner_document_number')" autocomplete="off"/>
+                                        <input id="owner_document_number" name="owner_document_number" type="text" t-att-value="data.get('owner_document_number')" required="required" maxlength="11" pattern="[0-9]{6,10}|[0-9]{9}-[0-9]" title="CC: 6 a 10 digitos. NIT: 123456789 o 123456789-0" autocomplete="off"/>
                                     </div>
                                 </div>
 
                                 <div class="risk-field">
                                     <label for="owner_address">Direccion</label>
-                                    <input id="owner_address" name="owner_address" type="text" t-att-value="data.get('owner_address')" autocomplete="off"/>
+                                    <input id="owner_address" name="owner_address" type="text" t-att-value="data.get('owner_address')" maxlength="140" autocomplete="off"/>
                                 </div>
                                 <div class="risk-field">
                                     <label for="owner_neighborhood">Barrio</label>
-                                    <input id="owner_neighborhood" name="owner_neighborhood" type="text" t-att-value="data.get('owner_neighborhood')" autocomplete="off"/>
+                                    <input id="owner_neighborhood" name="owner_neighborhood" type="text" t-att-value="data.get('owner_neighborhood')" maxlength="80" autocomplete="off"/>
                                 </div>
                                 <div class="risk-field">
                                     <label for="owner_city">Ciudad</label>
-                                    <input id="owner_city" name="owner_city" type="text" t-att-value="data.get('owner_city')" autocomplete="off"/>
+                                    <input id="owner_city" name="owner_city" type="text" t-att-value="data.get('owner_city')" maxlength="80" autocomplete="off"/>
                                 </div>
                                 <div class="risk-field">
                                     <label for="owner_phone">Numero de celular para notificaciones y autorizaciones electronicas</label>
-                                    <input id="owner_phone" name="owner_phone" type="tel" t-att-value="data.get('owner_phone')" autocomplete="off"/>
+                                    <input id="owner_phone" name="owner_phone" type="tel" t-att-value="data.get('owner_phone')" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off"/>
                                 </div>
                                 <div class="risk-field risk-field-full">
                                     <label for="owner_email">Correo electronico de facturacion y notificaciones</label>
-                                    <input id="owner_email" name="owner_email" type="email" t-att-value="data.get('owner_email')" autocomplete="off"/>
+                                    <input id="owner_email" name="owner_email" type="email" t-att-value="data.get('owner_email')" maxlength="120" autocomplete="off"/>
                                 </div>
 
                                 <div class="risk-choice-row">
@@ -137,58 +138,58 @@
                                     </label>
                                     <div class="risk-field">
                                         <label for="registered_owner_document_number">Numero</label>
-                                        <input id="registered_owner_document_number" name="registered_owner_document_number" type="text" t-att-value="data.get('registered_owner_document_number')" autocomplete="off"/>
+                                        <input id="registered_owner_document_number" name="registered_owner_document_number" type="text" t-att-value="data.get('registered_owner_document_number')" maxlength="11" pattern="[0-9]{6,10}|[0-9]{9}-[0-9]" title="CC: 6 a 10 digitos. NIT: 123456789 o 123456789-0" autocomplete="off"/>
                                     </div>
                                 </div>
                                 <div class="risk-field">
                                     <label for="registered_owner_name">Nombres y apellidos</label>
-                                    <input id="registered_owner_name" name="registered_owner_name" type="text" t-att-value="data.get('registered_owner_name')" autocomplete="off"/>
+                                    <input id="registered_owner_name" name="registered_owner_name" type="text" t-att-value="data.get('registered_owner_name')" maxlength="140" autocomplete="off"/>
                                 </div>
                                 <div class="risk-field">
                                     <label for="registered_owner_phone">Celular</label>
-                                    <input id="registered_owner_phone" name="registered_owner_phone" type="tel" t-att-value="data.get('registered_owner_phone')" autocomplete="off"/>
+                                    <input id="registered_owner_phone" name="registered_owner_phone" type="tel" t-att-value="data.get('registered_owner_phone')" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off"/>
                                 </div>
                             </t>
 
                             <t t-if="step == 3">
                                 <div class="risk-field">
                                     <label for="driver_name">Nombres y apellidos</label>
-                                    <input id="driver_name" name="driver_name" type="text" t-att-value="data.get('driver_name')" required="required" autocomplete="off"/>
+                                    <input id="driver_name" name="driver_name" type="text" t-att-value="data.get('driver_name')" required="required" maxlength="140" minlength="3" autocomplete="off"/>
                                 </div>
                                 <div class="risk-field">
                                     <label for="driver_document_number">Numero de cedula</label>
-                                    <input id="driver_document_number" name="driver_document_number" type="text" t-att-value="data.get('driver_document_number')" autocomplete="off"/>
+                                    <input id="driver_document_number" name="driver_document_number" type="text" t-att-value="data.get('driver_document_number')" required="required" inputmode="numeric" pattern="[0-9]{6,10}" title="Cedula de 6 a 10 digitos numericos" autocomplete="off"/>
                                 </div>
                                 <div class="risk-field">
                                     <label for="driver_address">Direccion</label>
-                                    <input id="driver_address" name="driver_address" type="text" t-att-value="data.get('driver_address')" autocomplete="off"/>
+                                    <input id="driver_address" name="driver_address" type="text" t-att-value="data.get('driver_address')" maxlength="140" autocomplete="off"/>
                                 </div>
                                 <div class="risk-field">
                                     <label for="driver_neighborhood">Barrio</label>
-                                    <input id="driver_neighborhood" name="driver_neighborhood" type="text" t-att-value="data.get('driver_neighborhood')" autocomplete="off"/>
+                                    <input id="driver_neighborhood" name="driver_neighborhood" type="text" t-att-value="data.get('driver_neighborhood')" maxlength="80" autocomplete="off"/>
                                 </div>
                                 <div class="risk-field">
                                     <label for="driver_city">Ciudad</label>
-                                    <input id="driver_city" name="driver_city" type="text" t-att-value="data.get('driver_city')" autocomplete="off"/>
+                                    <input id="driver_city" name="driver_city" type="text" t-att-value="data.get('driver_city')" maxlength="80" autocomplete="off"/>
                                 </div>
                                 <div class="risk-field">
                                     <label for="driver_phone">Numero de celular para notificaciones y autorizaciones electronicas</label>
-                                    <input id="driver_phone" name="driver_phone" type="tel" t-att-value="data.get('driver_phone')" autocomplete="off"/>
+                                    <input id="driver_phone" name="driver_phone" type="tel" t-att-value="data.get('driver_phone')" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off"/>
                                 </div>
                                 <div class="risk-field">
                                     <label for="driver_optional_phone">Telefono opcional</label>
-                                    <input id="driver_optional_phone" name="driver_optional_phone" type="tel" t-att-value="data.get('driver_optional_phone')" autocomplete="off"/>
+                                    <input id="driver_optional_phone" name="driver_optional_phone" type="tel" t-att-value="data.get('driver_optional_phone')" inputmode="numeric" pattern="[0-9 ()+-]{7,16}" title="Telefono de 7 digitos o 10 digitos iniciando por 3 o 6" autocomplete="off"/>
                                 </div>
                                 <div class="risk-field risk-field-full">
                                     <label for="driver_email">Correo electronico de autorizacion para notificaciones</label>
-                                    <input id="driver_email" name="driver_email" type="email" t-att-value="data.get('driver_email')" autocomplete="off"/>
+                                    <input id="driver_email" name="driver_email" type="email" t-att-value="data.get('driver_email')" maxlength="120" autocomplete="off"/>
                                 </div>
 
                                 <div class="risk-choice-row">
                                     <span>Se declara fisica, mental y psicotecnicamente apto para prestar sus servicios?</span>
                                     <label class="risk-choice">
                                         <span>SI</span>
-                                        <input type="radio" name="driver_is_fit" value="yes" t-att-checked="'checked' if data.get('driver_is_fit') == 'yes' else None"/>
+                                        <input type="radio" name="driver_is_fit" value="yes" required="required" t-att-checked="'checked' if data.get('driver_is_fit') == 'yes' else None"/>
                                     </label>
                                     <label class="risk-choice">
                                         <span>NO</span>
@@ -199,7 +200,7 @@
                                     <span>Esta capacitado y entrenado para contingencias y prevencion de accidentes por carreteras?</span>
                                     <label class="risk-choice">
                                         <span>SI</span>
-                                        <input type="radio" name="driver_is_trained" value="yes" t-att-checked="'checked' if data.get('driver_is_trained') == 'yes' else None"/>
+                                        <input type="radio" name="driver_is_trained" value="yes" required="required" t-att-checked="'checked' if data.get('driver_is_trained') == 'yes' else None"/>
                                     </label>
                                     <label class="risk-choice">
                                         <span>NO</span>
@@ -209,23 +210,23 @@
 
                                 <div class="risk-field">
                                     <label for="family_reference_name">Referencia familiar</label>
-                                    <input id="family_reference_name" name="family_reference_name" type="text" t-att-value="data.get('family_reference_name')" autocomplete="off"/>
+                                    <input id="family_reference_name" name="family_reference_name" type="text" t-att-value="data.get('family_reference_name')" maxlength="140" autocomplete="off"/>
                                 </div>
                                 <div class="risk-field">
                                     <label for="family_reference_relationship">Parentesco</label>
-                                    <input id="family_reference_relationship" name="family_reference_relationship" type="text" t-att-value="data.get('family_reference_relationship')" autocomplete="off"/>
+                                    <input id="family_reference_relationship" name="family_reference_relationship" type="text" t-att-value="data.get('family_reference_relationship')" maxlength="80" autocomplete="off"/>
                                 </div>
                                 <div class="risk-field">
                                     <label for="family_reference_phone">Celular</label>
-                                    <input id="family_reference_phone" name="family_reference_phone" type="tel" t-att-value="data.get('family_reference_phone')" autocomplete="off"/>
+                                    <input id="family_reference_phone" name="family_reference_phone" type="tel" t-att-value="data.get('family_reference_phone')" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off"/>
                                 </div>
                                 <div class="risk-field">
                                     <label for="cargo_reference_name">Referencia transporte de carga</label>
-                                    <input id="cargo_reference_name" name="cargo_reference_name" type="text" t-att-value="data.get('cargo_reference_name')" autocomplete="off"/>
+                                    <input id="cargo_reference_name" name="cargo_reference_name" type="text" t-att-value="data.get('cargo_reference_name')" maxlength="140" autocomplete="off"/>
                                 </div>
                                 <div class="risk-field">
                                     <label for="cargo_reference_phone">Celular</label>
-                                    <input id="cargo_reference_phone" name="cargo_reference_phone" type="tel" t-att-value="data.get('cargo_reference_phone')" autocomplete="off"/>
+                                    <input id="cargo_reference_phone" name="cargo_reference_phone" type="tel" t-att-value="data.get('cargo_reference_phone')" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off"/>
                                 </div>
                             </t>
 
@@ -276,7 +277,7 @@
                                     </div>
                                     <div class="risk-field risk-field-full">
                                         <label for="owner_signature_document">Firma y numero de cedula</label>
-                                        <input id="owner_signature_document" name="owner_signature_document" type="text" t-att-value="data.get('owner_signature_document') or data.get('owner_document_number')" autocomplete="off"/>
+                                        <input id="owner_signature_document" name="owner_signature_document" type="text" t-att-value="data.get('owner_signature_document') or data.get('owner_document_number')" inputmode="numeric" pattern="[0-9]{6,10}" title="Cedula de 6 a 10 digitos numericos" autocomplete="off"/>
                                     </div>
                                 </div>
 
@@ -301,7 +302,7 @@
                                     </div>
                                     <div class="risk-field risk-field-full">
                                         <label for="driver_signature_document">Firma y numero de cedula de Conductor</label>
-                                        <input id="driver_signature_document" name="driver_signature_document" type="text" t-att-value="data.get('driver_signature_document') or data.get('driver_document_number')" autocomplete="off"/>
+                                        <input id="driver_signature_document" name="driver_signature_document" type="text" t-att-value="data.get('driver_signature_document') or data.get('driver_document_number')" inputmode="numeric" pattern="[0-9]{6,10}" title="Cedula de 6 a 10 digitos numericos" autocomplete="off"/>
                                     </div>
                                 </div>
 
