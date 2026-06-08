@@ -15,6 +15,10 @@
             var drawing = false;
             var hasInk = false;
 
+            function saveSignature() {
+                input.value = hasInk ? canvas.toDataURL("image/png") : "";
+            }
+
             function resizeCanvas() {
                 var existingValue = input.value;
                 var ratio = window.devicePixelRatio || 1;
@@ -55,6 +59,9 @@
                 var p = point(event);
                 context.beginPath();
                 context.moveTo(p.x, p.y);
+                context.lineTo(p.x + 0.01, p.y + 0.01);
+                context.stroke();
+                saveSignature();
                 event.preventDefault();
             }
 
@@ -65,6 +72,7 @@
                 var p = point(event);
                 context.lineTo(p.x, p.y);
                 context.stroke();
+                saveSignature();
                 event.preventDefault();
             }
 
@@ -73,7 +81,7 @@
                     return;
                 }
                 drawing = false;
-                input.value = hasInk ? canvas.toDataURL("image/png") : "";
+                saveSignature();
             }
 
             function clear() {
@@ -105,6 +113,10 @@
                 radio.addEventListener("change", syncStudyState);
             });
             window.addEventListener("resize", resizeCanvas);
+            var form = canvas.closest("form");
+            if (form) {
+                form.addEventListener("submit", saveSignature);
+            }
 
             resizeCanvas();
             syncStudyState();

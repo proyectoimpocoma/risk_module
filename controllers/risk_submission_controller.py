@@ -90,20 +90,11 @@ class RiskSubmissionController(http.Controller):
                 "data": data,
             })
         elif step == 5:
-            data.update({
-                "owner_has_valid_study": post.get("owner_has_valid_study", "").strip(),
-                "owner_signature": self._clean_signature_data(post.get("owner_signature", "")),
-                "owner_signature_document": post.get("owner_signature_document", "").strip(),
-                "driver_has_valid_study": post.get("driver_has_valid_study", "").strip(),
-                "driver_signature": self._clean_signature_data(post.get("driver_signature", "")),
-                "driver_signature_document": post.get("driver_signature_document", "").strip(),
-            })
+            self._update_signature_data(data, post)
             data.pop("signature_error", None)
 
             if not self._signatures_are_valid(data):
-                data["signature_error"] = (
-                    "Debes completar la firma y cedula cuando el propietario o conductor no cuenta con estudio vigente."
-                )
+                data["signature_error"] = self._signature_error_message(data)
                 request.session["risk_vehicle_form"] = data
                 return self._render_step(5)
 
@@ -122,9 +113,16 @@ class RiskSubmissionController(http.Controller):
                     "driver_signature_ip": remote_addr,
                     "driver_signature_user_agent": user_agent,
                 })
+            request.session["risk_vehicle_form"] = data
+            return request.render("risk_module.register_driver", {
+                "step": 6,
+                "data": data,
+            })
         else:
             for field in allowed_fields.get(step, ()):
                 data[field] = post.get(field, "").strip()
+            if step == 6:
+                self._update_signature_data(data, post)
 
         request.session["risk_vehicle_form"] = data
 
@@ -137,9 +135,7 @@ class RiskSubmissionController(http.Controller):
             return self._render_step(4)
 
         if not self._signatures_are_valid(data):
-            data["signature_error"] = (
-                "Debes completar la firma y cedula cuando el propietario o conductor no cuenta con estudio vigente."
-            )
+            data["signature_error"] = self._signature_error_message(data)
             request.session["risk_vehicle_form"] = data
             return self._render_step(5)
 
@@ -218,9 +214,7 @@ class RiskSubmissionController(http.Controller):
             request.session["risk_vehicle_form"] = data
             return self._render_step(4)
         if step == 6 and not self._signatures_are_valid(data):
-            data["signature_error"] = (
-                "Debes completar la firma y cedula cuando el propietario o conductor no cuenta con estudio vigente."
-            )
+            data["signature_error"] = self._signature_error_message(data)
             request.session["risk_vehicle_form"] = data
             return self._render_step(5)
 
@@ -237,9 +231,39 @@ class RiskSubmissionController(http.Controller):
             return signature[len(prefix):]
         return signature
 
+    def _update_signature_data(self, data, post):
+        owner_signature_document = post.get("owner_signature_document", "").strip()
+        driver_signature_document = post.get("driver_signature_document", "").strip()
+        owner_signature = self._clean_signature_data(post.get("owner_signature", ""))
+        driver_signature = self._clean_signature_data(post.get("driver_signature", ""))
+        data.update({
+            "owner_has_valid_study": post.get("owner_has_valid_study", data.get("owner_has_valid_study") or "").strip(),
+            "owner_signature": owner_signature or data.get("owner_signature"),
+            "owner_signature_document": owner_signature_document or data.get("owner_signature_document") or data.get("owner_document_number"),
+            "driver_has_valid_study": post.get("driver_has_valid_study", data.get("driver_has_valid_study") or "").strip(),
+            "driver_signature": driver_signature or data.get("driver_signature"),
+            "driver_signature_document": driver_signature_document or data.get("driver_signature_document") or data.get("driver_document_number"),
+        })
+
     def _signatures_are_valid(self, data):
         owner_required = data.get("owner_has_valid_study") != "yes"
         driver_required = data.get("driver_has_valid_study") != "yes"
         owner_ok = not owner_required or (data.get("owner_signature") and data.get("owner_signature_document"))
         driver_ok = not driver_required or (data.get("driver_signature") and data.get("driver_signature_document"))
         return owner_ok and driver_ok
+
+    def _signature_error_message(self, data):
+        missing = []
+        if data.get("owner_has_valid_study") != "yes":
+            if not data.get("owner_signature"):
+                missing.append("firma del propietario")
+            if not data.get("owner_signature_document"):
+                missing.append("cedula del propietario")
+        if data.get("driver_has_valid_study") != "yes":
+            if not data.get("driver_signature"):
+                missing.append("firma del conductor")
+            if not data.get("driver_signature_document"):
+                missing.append("cedula del conductor")
+        if missing:
+            return "Debes completar: %s." % ", ".join(missing)
+        return "Debes completar la firma y cedula cuando el propietario o conductor no cuenta con estudio vigente."

@@ -276,7 +276,7 @@
                                     </div>
                                     <div class="risk-field risk-field-full">
                                         <label for="owner_signature_document">Firma y numero de cedula</label>
-                                        <input id="owner_signature_document" name="owner_signature_document" type="text" t-att-value="data.get('owner_signature_document')" autocomplete="off"/>
+                                        <input id="owner_signature_document" name="owner_signature_document" type="text" t-att-value="data.get('owner_signature_document') or data.get('owner_document_number')" autocomplete="off"/>
                                     </div>
                                 </div>
 
@@ -301,7 +301,7 @@
                                     </div>
                                     <div class="risk-field risk-field-full">
                                         <label for="driver_signature_document">Firma y numero de cedula de Conductor</label>
-                                        <input id="driver_signature_document" name="driver_signature_document" type="text" t-att-value="data.get('driver_signature_document')" autocomplete="off"/>
+                                        <input id="driver_signature_document" name="driver_signature_document" type="text" t-att-value="data.get('driver_signature_document') or data.get('driver_document_number')" autocomplete="off"/>
                                     </div>
                                 </div>
 
@@ -312,6 +312,12 @@
 
                             <t t-if="step == 6">
                                 <input type="hidden" name="terms_accepted" value="1"/>
+                                <input type="hidden" name="owner_has_valid_study" t-att-value="data.get('owner_has_valid_study')"/>
+                                <input type="hidden" name="owner_signature" t-att-value="data.get('owner_signature')"/>
+                                <input type="hidden" name="owner_signature_document" t-att-value="data.get('owner_signature_document')"/>
+                                <input type="hidden" name="driver_has_valid_study" t-att-value="data.get('driver_has_valid_study')"/>
+                                <input type="hidden" name="driver_signature" t-att-value="data.get('driver_signature')"/>
+                                <input type="hidden" name="driver_signature_document" t-att-value="data.get('driver_signature_document')"/>
                                 <div class="risk-field">
                                     <label>Placa</label>
                                     <input type="text" t-att-value="data.get('vehicle_plate')" readonly="readonly"/>
