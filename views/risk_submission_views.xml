@@ -3,18 +3,20 @@
         <field name="name">risk.module.list</field>
         <field name="model">risk.module</field>
         <field name="arch" type="xml">
-            <list string="Solicitudes de Vehiculo">
-                <field name="create_date"/>
-                <field name="state"/>
-                <field name="form_date"/>
-                <field name="vehicle_plate"/>
-                <field name="semi_trailer_plate"/>
-                <field name="satellite_company"/>
-                <field name="satellite_user"/>
-                <field name="owner_name"/>
-                <field name="owner_city"/>
-                <field name="driver_name"/>
-                <field name="driver_city"/>
+            <list string="Solicitudes de Vehiculo"
+                  decoration-success="state == 'submitted'"
+                  decoration-warning="state == 'draft'">
+                <field name="create_date" string="Creado"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'submitted'"
+                       decoration-warning="state == 'draft'"/>
+                <field name="form_date" string="Fecha"/>
+                <field name="vehicle_plate" string="Placa"/>
+                <field name="semi_trailer_plate" string="Semi/Remolque" optional="hide"/>
+                <field name="owner_name" string="Propietario / Empresa"/>
+                <field name="owner_city" string="Ciudad"/>
+                <field name="driver_name" string="Conductor"/>
+                <field name="satellite_company" string="Empresa Satelital" optional="hide"/>
             </list>
         </field>
     </record>
@@ -24,81 +26,148 @@
         <field name="model">risk.module</field>
         <field name="arch" type="xml">
             <form string="Solicitud de Vehiculo">
+                <header>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submitted"/>
+                </header>
                 <sheet>
-                    <group string="Informacion del Vehiculo">
-                        <field name="name"/>
-                        <field name="state"/>
-                        <field name="form_date"/>
-                        <field name="vehicle_plate"/>
-                        <field name="semi_trailer_plate"/>
+                    <!-- Encabezado con datos clave -->
+                    <div class="oe_title">
+                        <h1>
+                            <field name="vehicle_plate" placeholder="Placa del vehículo"/>
+                        </h1>
+                        <h2>
+                            <field name="name" placeholder="Referencia"/>
+                        </h2>
+                    </div>
+
+                    <group>
+                        <group string="Información General">
+                            <field name="form_date"/>
+                            <field name="semi_trailer_plate"/>
+                        </group>
+                        <group string="Información Satelital">
+                            <field name="satellite_company"/>
+                            <field name="satellite_user"/>
+                            <field name="satellite_password" password="True"/>
+                        </group>
                     </group>
-                    <group string="Informacion Satelital">
-                        <field name="satellite_company"/>
-                        <field name="satellite_user"/>
-                        <field name="satellite_password" password="True"/>
-                    </group>
-                    <group string="Informacion del Propietario / Tenedor / Poseedor">
-                        <field name="owner_name"/>
-                        <field name="owner_document_type"/>
-                        <field name="owner_document_number"/>
-                        <field name="owner_address"/>
-                        <field name="owner_neighborhood"/>
-                        <field name="owner_city"/>
-                        <field name="owner_phone"/>
-                        <field name="owner_email"/>
-                        <field name="advance_payment_to"/>
-                        <field name="same_owner_on_license"/>
-                    </group>
-                    <group string="Propietario registrado en licencia">
-                        <field name="registered_owner_document_type"/>
-                        <field name="registered_owner_document_number"/>
-                        <field name="registered_owner_name"/>
-                        <field name="registered_owner_phone"/>
-                    </group>
-                    <group string="Informacion del Conductor">
-                        <field name="driver_name"/>
-                        <field name="driver_document_number"/>
-                        <field name="driver_address"/>
-                        <field name="driver_neighborhood"/>
-                        <field name="driver_city"/>
-                        <field name="driver_phone"/>
-                        <field name="driver_optional_phone"/>
-                        <field name="driver_email"/>
-                        <field name="driver_is_fit"/>
-                        <field name="driver_is_trained"/>
-                    </group>
-                    <group string="Referencias del Conductor">
-                        <field name="family_reference_name"/>
-                        <field name="family_reference_relationship"/>
-                        <field name="family_reference_phone"/>
-                        <field name="cargo_reference_name"/>
-                        <field name="cargo_reference_phone"/>
-                    </group>
-                    <group string="Aceptacion de Terminos">
-                        <field name="banking_info_accepted"/>
-                        <field name="compensation_accepted"/>
-                        <field name="personal_data_accepted"/>
-                        <field name="terms_accepted_at"/>
-                    </group>
-                    <group string="Firmas">
-                        <field name="owner_has_valid_study"/>
-                        <field name="owner_signature" widget="image"/>
-                        <field name="owner_signature_document"/>
-                        <field name="owner_signed_at"/>
-                        <field name="driver_has_valid_study"/>
-                        <field name="driver_signature" widget="image"/>
-                        <field name="driver_signature_document"/>
-                        <field name="driver_signed_at"/>
-                    </group>
-                    <group string="Trazabilidad de Firmas">
-                        <field name="owner_signature_ip"/>
-                        <field name="owner_signature_user_agent"/>
-                        <field name="driver_signature_ip"/>
-                        <field name="driver_signature_user_agent"/>
-                    </group>
-                    <group string="Observaciones">
-                        <field name="message" nolabel="1"/>
-                    </group>
+
+                    <notebook>
+                        <!-- Pestaña 1: Propietario -->
+                        <page string="Propietario / Tenedor" name="owner_page">
+                            <group string="Datos del Propietario / Tenedor / Poseedor">
+                                <group>
+                                    <field name="owner_name"/>
+                                    <field name="owner_document_type"/>
+                                    <field name="owner_document_number"/>
+                                    <field name="owner_address"/>
+                                    <field name="owner_neighborhood"/>
+                                </group>
+                                <group>
+                                    <field name="owner_city"/>
+                                    <field name="owner_phone"/>
+                                    <field name="owner_email"/>
+                                    <field name="advance_payment_to"/>
+                                    <field name="same_owner_on_license"/>
+                                </group>
+                            </group>
+                            <group string="Propietario Registrado en Licencia">
+                                <group>
+                                    <field name="registered_owner_document_type"/>
+                                    <field name="registered_owner_document_number"/>
+                                </group>
+                                <group>
+                                    <field name="registered_owner_name"/>
+                                    <field name="registered_owner_phone"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- Pestaña 2: Conductor -->
+                        <page string="Conductor" name="driver_page">
+                            <group string="Datos del Conductor">
+                                <group>
+                                    <field name="driver_name"/>
+                                    <field name="driver_document_number"/>
+                                    <field name="driver_address"/>
+                                    <field name="driver_neighborhood"/>
+                                    <field name="driver_city"/>
+                                </group>
+                                <group>
+                                    <field name="driver_phone"/>
+                                    <field name="driver_optional_phone"/>
+                                    <field name="driver_email"/>
+                                    <field name="driver_is_fit"/>
+                                    <field name="driver_is_trained"/>
+                                </group>
+                            </group>
+                            <group string="Referencias del Conductor">
+                                <group>
+                                    <field name="family_reference_name"/>
+                                    <field name="family_reference_relationship"/>
+                                    <field name="family_reference_phone"/>
+                                </group>
+                                <group>
+                                    <field name="cargo_reference_name"/>
+                                    <field name="cargo_reference_phone"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- Pestaña 3: Firmas y Términos -->
+                        <page string="Firmas y Términos" name="signatures_page">
+                            <group string="Aceptación de Términos">
+                                <group>
+                                    <field name="banking_info_accepted"/>
+                                    <field name="compensation_accepted"/>
+                                    <field name="personal_data_accepted"/>
+                                </group>
+                                <group>
+                                    <field name="terms_accepted_at"/>
+                                </group>
+                            </group>
+                            <group string="Firma Propietario">
+                                <group>
+                                    <field name="owner_has_valid_study"/>
+                                    <field name="owner_signature_document"/>
+                                    <field name="owner_signed_at"/>
+                                </group>
+                                <group>
+                                    <field name="owner_signature" widget="image" nolabel="1"/>
+                                </group>
+                            </group>
+                            <group string="Firma Conductor">
+                                <group>
+                                    <field name="driver_has_valid_study"/>
+                                    <field name="driver_signature_document"/>
+                                    <field name="driver_signed_at"/>
+                                </group>
+                                <group>
+                                    <field name="driver_signature" widget="image" nolabel="1"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- Pestaña 4: Trazabilidad -->
+                        <page string="Trazabilidad" name="traceability_page">
+                            <group string="Trazabilidad de Firma Propietario">
+                                <field name="owner_signature_ip"/>
+                                <field name="owner_signature_user_agent"/>
+                            </group>
+                            <group string="Trazabilidad de Firma Conductor">
+                                <field name="driver_signature_ip"/>
+                                <field name="driver_signature_user_agent"/>
+                            </group>
+                        </page>
+
+                        <!-- Pestaña 5: Observaciones -->
+                        <page string="Observaciones" name="notes_page">
+                            <group>
+                                <field name="message" nolabel="1"/>
+                            </group>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
