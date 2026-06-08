@@ -17,6 +17,7 @@
                 <field name="owner_city" string="Ciudad"/>
                 <field name="driver_name" string="Conductor"/>
                 <field name="satellite_company" string="Empresa Satelital" optional="hide"/>
+                <button name="action_open_printable" type="object" string="PDF" icon="fa-print"/>
             </list>
         </field>
     </record>
@@ -27,6 +28,7 @@
         <field name="arch" type="xml">
             <form string="Solicitud de Vehiculo">
                 <header>
+                    <button name="action_open_printable" type="object" string="Imprimir / Guardar PDF" class="btn-primary"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,submitted"/>
                 </header>
@@ -186,6 +188,18 @@
                 <field name="driver_name"/>
                 <filter string="Con empresa satelital" name="has_satellite_company" domain="[('satellite_company', '!=', False)]"/>
             </search>
+        </field>
+    </record>
+
+    <record id="action_risk_module_open_printable" model="ir.actions.server">
+        <field name="name">Imprimir / Guardar PDF</field>
+        <field name="model_id" ref="model_risk_module"/>
+        <field name="binding_model_id" ref="model_risk_module"/>
+        <field name="binding_type">action</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    action = records[0].action_open_printable()
         </field>
     </record>
 

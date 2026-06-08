@@ -13,34 +13,35 @@
             <t t-foreach="docs" t-as="o">
                 <div class="page risk-report-page">
                     <style>
-                        @page { size: A4; margin: 7mm; }
+                        @page { size: Letter; margin: 0.15in; }
                         html, body { margin: 0; padding: 0; background: #fff; }
-                        .risk-report-page { font-family: Arial, Helvetica, sans-serif; color: #000; font-size: 9px; }
-                        .risk-report-header { display: table; width: 100%; border-collapse: separate; border-spacing: 2px; margin-bottom: 4px; }
-                        .risk-report-logo, .risk-report-title, .risk-report-meta { display: table-cell; border: 1px solid #f2a978; border-radius: 7px; vertical-align: middle; height: 44px; }
+                        .risk-report-page { width: 8.2in; min-height: 10.7in; margin: 0 auto; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; color: #000; font-size: 7pt; line-height: 1.08; }
+                        .risk-report-header { display: table; width: 100%; border-collapse: separate; border-spacing: 2pt; margin-bottom: 2pt; }
+                        .risk-report-logo, .risk-report-title, .risk-report-meta { display: table-cell; border: 1px solid #f2a978; border-radius: 7pt; vertical-align: middle; height: 0.48in; }
                         .risk-report-logo { width: 16%; text-align: center; }
-                        .risk-report-logo img { max-width: 78px; max-height: 39px; vertical-align: middle; }
-                        .risk-report-title { width: 66%; text-align: center; background: #f4b183; font-size: 16px; font-weight: 800; line-height: 18px; }
-                        .risk-report-meta { width: 18%; padding-left: 7px; font-size: 9px; font-weight: 800; line-height: 12px; }
-                        .risk-report-date { width: 45%; border: 1px solid #f2a978; border-radius: 4px; height: 22px; padding: 3px 5px; margin-bottom: 5px; font-size: 9px; }
-                        .risk-section-title { background: #f4b183; border-radius: 3px; text-align: center; font-size: 11px; font-weight: 800; font-style: italic; padding: 3px; margin: 4px 0; text-transform: uppercase; }
-                        .risk-box { border: 1px solid #f2a978; border-radius: 10px; padding: 5px; margin-bottom: 4px; }
-                        .risk-row { display: table; width: 100%; table-layout: fixed; margin-bottom: 5px; }
-                        .risk-cell { display: table-cell; vertical-align: bottom; padding-right: 7px; white-space: nowrap; }
+                        .risk-report-logo img { max-width: 0.86in; max-height: 0.38in; vertical-align: middle; }
+                        .risk-report-title { width: 66%; text-align: center; background: #f4b183; font-size: 12pt; font-weight: 800; line-height: 13pt; }
+                        .risk-report-meta { width: 18%; padding-left: 5pt; font-size: 7.2pt; font-weight: 800; line-height: 9pt; }
+                        .risk-report-date { width: 46%; border: 1px solid #f2a978; border-radius: 4pt; height: 0.18in; padding: 2pt 4pt; margin-bottom: 4pt; font-size: 7pt; }
+                        .risk-section-title { background: #f4b183; border-radius: 3pt; text-align: center; font-size: 8.5pt; font-weight: 800; font-style: italic; padding: 2pt; margin: 3pt 0; text-transform: uppercase; }
+                        .risk-box { border: 1px solid #f2a978; border-radius: 9pt; padding: 4pt; margin-bottom: 3pt; }
+                        .risk-row { display: table; width: 100%; table-layout: fixed; margin-bottom: 3pt; }
+                        .risk-cell { display: table-cell; vertical-align: bottom; padding-right: 5pt; white-space: nowrap; }
                         .risk-label { font-weight: 500; }
-                        .risk-line { display: inline-block; border-bottom: 1px solid #d9783f; min-height: 11px; vertical-align: bottom; padding: 0 3px; white-space: normal; }
+                        .risk-line { display: inline-block; border-bottom: 1px solid #d9783f; min-height: 8pt; vertical-align: bottom; padding: 0 2pt; white-space: normal; }
                         .w7 { width: 7%; } .w10 { width: 10%; } .w11 { width: 11%; } .w15 { width: 15%; } .w20 { width: 20%; } .w23 { width: 23%; } .w25 { width: 25%; } .w27 { width: 27%; } .w30 { width: 30%; } .w31 { width: 31%; } .w35 { width: 35%; } .w40 { width: 40%; } .w45 { width: 45%; } .w48 { width: 48%; } .w50 { width: 50%; } .w55 { width: 55%; } .w60 { width: 60%; } .w63 { width: 63%; } .w65 { width: 65%; } .w70 { width: 70%; } .w75 { width: 75%; } .w78 { width: 78%; } .w80 { width: 80%; } .w100 { width: 100%; }
-                        .check { display: inline-block; width: 10px; height: 10px; border: 1px solid #b96a36; margin: 0 8px 0 3px; vertical-align: middle; text-align: center; line-height: 9px; font-size: 8px; }
+                        .check { display: inline-block; width: 8pt; height: 8pt; border: 1px solid #b96a36; margin: 0 5pt 0 2pt; vertical-align: middle; text-align: center; line-height: 7pt; font-size: 6pt; }
                         .checked:after { content: "X"; font-weight: 800; }
-                        .risk-small-text { border: 1px solid #f2a978; border-radius: 4px; padding: 5px 7px; font-size: 7px; line-height: 8px; text-align: justify; margin-bottom: 5px; }
-                        .risk-large-text { border: 1px solid #f2a978; border-radius: 18px; padding: 8px; font-size: 7px; line-height: 8px; text-align: justify; margin-bottom: 5px; }
-                        .risk-signatures { display: table; width: 100%; border-spacing: 3px 0; margin-top: 4px; }
-                        .risk-signature-box { display: table-cell; width: 50%; border: 1px solid #f2a978; border-radius: 15px; height: 105px; text-align: center; vertical-align: top; padding: 6px; }
-                        .risk-signature-img { height: 50px; max-width: 90%; margin: 12px auto 2px; display: block; }
-                        .risk-signature-line { border-bottom: 1px solid #d9783f; height: 18px; margin: 24px 20px 3px; }
-                        .risk-note { border: 1px solid #f2a978; border-radius: 6px; padding: 6px; font-size: 8px; line-height: 10px; margin-top: 4px; }
+                        .risk-small-text { border: 1px solid #f2a978; border-radius: 4pt; padding: 3pt 5pt; font-size: 5.2pt; line-height: 6.2pt; text-align: justify; margin-bottom: 3pt; }
+                        .risk-large-text { border: 1px solid #f2a978; border-radius: 16pt; padding: 7pt; font-size: 5.2pt; line-height: 6.2pt; text-align: justify; margin-bottom: 4pt; min-height: 2.55in; }
+                        .risk-signatures { display: table; width: 100%; border-spacing: 3pt 0; margin-top: 3pt; }
+                        .risk-signature-box { display: table-cell; width: 50%; border: 1px solid #f2a978; border-radius: 14pt; height: 1.05in; text-align: center; vertical-align: top; padding: 5pt; }
+                        .risk-signature-img { height: 0.38in; max-width: 90%; margin: 0.08in auto 1pt; display: block; }
+                        .risk-signature-line { border-bottom: 1px solid #d9783f; height: 0.13in; margin: 0.22in 22pt 3pt; }
+                        .risk-note { border: 1px solid #f2a978; border-radius: 6pt; padding: 5pt; font-size: 6pt; line-height: 7pt; margin-top: 3pt; }
                         @media print {
-                            .risk-report-page { page-break-after: always; }
+                            html, body { width: 8.5in; min-height: 11in; }
+                            .risk-report-page { page-break-after: always; margin: 0 auto; }
                         }
                     </style>
 
@@ -96,11 +97,11 @@
                                     t-esc="o.owner_city or ''" /></div>
                         </div>
                         <div class="risk-row">
-                            <div class="risk-cell w50">Numero de celular para notificaciones y
-                                autorizaciones electronicas:<span class="risk-line w45"
+                            <div class="risk-cell w50">Numero de celular para notificaciones<br />
+                                y autorizaciones electronicas:<span class="risk-line w45"
                                     t-esc="o._format_co_phone(o.owner_phone)" /></div>
-                            <div class="risk-cell w50">Correo electronico de facturacion y
-                                notificaciones:<span class="risk-line w55"
+                            <div class="risk-cell w50">Correo electronico de<br />
+                                facturacion y notificaciones:<span class="risk-line w55"
                                     t-esc="o.owner_email or ''" /></div>
                         </div>
                         <div class="risk-row">
@@ -111,17 +112,14 @@
                                     t-att-class="'check checked' if o.advance_payment_to == 'owner' else 'check'" /></div>
                         </div>
                         <div class="risk-row">
-                            <div class="risk-cell w80">La informacion del tenedor o poseedor
-                                corresponde al mismo o unico propietario, registrado en la Licencia
-                                de Transito?</div>
+                            <div class="risk-cell w80">La informacion del tenedor o poseedor corresponde al mismo o unico propietario, registrado en la Licencia de Transito?</div>
                             <div class="risk-cell w10">SI<span
                                     t-att-class="'check checked' if o.same_owner_on_license == 'yes' else 'check'" /></div>
                             <div class="risk-cell w10">NO<span
                                     t-att-class="'check checked' if o.same_owner_on_license == 'no' else 'check'" /></div>
                         </div>
                         <div class="risk-row">
-                            <div class="risk-cell w55">En caso de que su respuesta sea NO,
-                                informacion del propietario:</div>
+                            <div class="risk-cell w55">En caso de que su respuesta sea NO, informacion del propietario:</div>
                             <div class="risk-cell w7">CC:<span
                                     t-att-class="'check checked' if o.registered_owner_document_type == 'cc' else 'check'" /></div>
                             <div class="risk-cell w7">Nit:<span
@@ -154,8 +152,8 @@
                                     t-esc="o.driver_city or ''" /></div>
                         </div>
                         <div class="risk-row">
-                            <div class="risk-cell w55">Numero de celular para notificaciones y
-                                autorizaciones electronicas:<span class="risk-line w50"
+                            <div class="risk-cell w55">Numero de celular para notificaciones<br />
+                                y autorizaciones electronicas:<span class="risk-line w50"
                                     t-esc="o._format_co_phone(o.driver_phone)" /></div>
                             <div class="risk-cell w45">TELEFONO OPCIONAL:<span class="risk-line w65"
                                     t-esc="o._format_co_phone(o.driver_optional_phone)" /></div>
@@ -168,16 +166,14 @@
                     </div>
                     <div class="risk-box">
                         <div class="risk-row">
-                            <div class="risk-cell w78">SE DECLARA FISICA, MENTAL Y PSICOTECNICAMENTE
-                                APTO PARA PRESTAR SUS SERVICIOS?</div>
+                            <div class="risk-cell w78">SE DECLARA FISICA, MENTAL Y PSICOTECNICAMENTE APTO PARA PRESTAR SUS SERVICIOS?</div>
                             <div class="risk-cell w11">SI<span
                                     t-att-class="'check checked' if o.driver_is_fit == 'yes' else 'check'" /></div>
                             <div class="risk-cell w11">NO<span
                                     t-att-class="'check checked' if o.driver_is_fit == 'no' else 'check'" /></div>
                         </div>
                         <div class="risk-row">
-                            <div class="risk-cell w78">ESTA CAPACITADO Y ENTRENADO PARA
-                                CONTINGENCIAS Y PREVENCION DE ACCIDENTES POR CARRETERAS?</div>
+                            <div class="risk-cell w78">ESTA CAPACITADO Y ENTRENADO PARA CONTINGENCIAS Y PREVENCION DE ACCIDENTES POR CARRETERAS?</div>
                             <div class="risk-cell w11">SI<span
                                     t-att-class="'check checked' if o.driver_is_trained == 'yes' else 'check'" /></div>
                             <div class="risk-cell w11">NO<span

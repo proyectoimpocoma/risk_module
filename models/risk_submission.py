@@ -99,6 +99,18 @@ class RiskSubmission(models.Model):
     driver_signature_user_agent = fields.Text(string="Navegador firma conductor")
     message = fields.Text(string="Observaciones")
 
+    def action_open_printable(self):
+        """Abre la hoja de vida imprimible desde la vista interna."""
+        self.ensure_one()
+        if not self.access_token:
+            self.access_token = uuid.uuid4().hex
+        return {
+            'type': 'ir.actions.act_url',
+            'name': 'Hoja de Vida Imprimible',
+            'url': f'/registro-conductor/imprimir/{self.id}?token={self.access_token}',
+            'target': 'new',
+        }
+
     def _format_co_phone(self, phone):
         """Formatea un numero de telefono segun el estandar colombiano.
 
