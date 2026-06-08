@@ -1,5 +1,5 @@
-from . import solicitud
+from . import risk_submission
 
 __all__ = [
-    "solicitud",
+    "risk_submission",
 ]

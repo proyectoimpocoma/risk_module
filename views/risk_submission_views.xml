@@ -1,0 +1,104 @@
+<odoo>
+    <record id="view_risk_module_list" model="ir.ui.view">
+        <field name="name">risk.module.list</field>
+        <field name="model">risk.module</field>
+        <field name="arch" type="xml">
+            <list string="Solicitudes de Vehiculo">
+                <field name="create_date"/>
+                <field name="form_date"/>
+                <field name="vehicle_plate"/>
+                <field name="semi_trailer_plate"/>
+                <field name="satellite_company"/>
+                <field name="satellite_user"/>
+                <field name="owner_name"/>
+                <field name="owner_city"/>
+                <field name="driver_name"/>
+                <field name="driver_city"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_risk_module_form" model="ir.ui.view">
+        <field name="name">risk.module.form</field>
+        <field name="model">risk.module</field>
+        <field name="arch" type="xml">
+            <form string="Solicitud de Vehiculo">
+                <sheet>
+                    <group string="Informacion del Vehiculo">
+                        <field name="name"/>
+                        <field name="form_date"/>
+                        <field name="vehicle_plate"/>
+                        <field name="semi_trailer_plate"/>
+                    </group>
+                    <group string="Informacion Satelital">
+                        <field name="satellite_company"/>
+                        <field name="satellite_user"/>
+                        <field name="satellite_password" password="True"/>
+                    </group>
+                    <group string="Informacion del Propietario / Tenedor / Poseedor">
+                        <field name="owner_name"/>
+                        <field name="owner_document_type"/>
+                        <field name="owner_document_number"/>
+                        <field name="owner_address"/>
+                        <field name="owner_neighborhood"/>
+                        <field name="owner_city"/>
+                        <field name="owner_phone"/>
+                        <field name="owner_email"/>
+                        <field name="advance_payment_to"/>
+                        <field name="same_owner_on_license"/>
+                    </group>
+                    <group string="Propietario registrado en licencia">
+                        <field name="registered_owner_document_type"/>
+                        <field name="registered_owner_document_number"/>
+                        <field name="registered_owner_name"/>
+                        <field name="registered_owner_phone"/>
+                    </group>
+                    <group string="Informacion del Conductor">
+                        <field name="driver_name"/>
+                        <field name="driver_document_number"/>
+                        <field name="driver_address"/>
+                        <field name="driver_neighborhood"/>
+                        <field name="driver_city"/>
+                        <field name="driver_phone"/>
+                        <field name="driver_optional_phone"/>
+                        <field name="driver_email"/>
+                        <field name="driver_is_fit"/>
+                        <field name="driver_is_trained"/>
+                    </group>
+                    <group string="Referencias del Conductor">
+                        <field name="family_reference_name"/>
+                        <field name="family_reference_relationship"/>
+                        <field name="family_reference_phone"/>
+                        <field name="cargo_reference_name"/>
+                        <field name="cargo_reference_phone"/>
+                    </group>
+                    <group string="Aceptacion de Terminos">
+                        <field name="banking_info_accepted"/>
+                        <field name="compensation_accepted"/>
+                        <field name="personal_data_accepted"/>
+                        <field name="terms_accepted_at"/>
+                    </group>
+                    <group string="Observaciones">
+                        <field name="message" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_risk_module_search" model="ir.ui.view">
+        <field name="name">risk.module.search</field>
+        <field name="model">risk.module</field>
+        <field name="arch" type="xml">
+            <search string="Solicitudes de Vehiculo">
+                <field name="vehicle_plate"/>
+                <field name="semi_trailer_plate"/>
+                <field name="satellite_company"/>
+                <field name="owner_name"/>
+                <field name="driver_name"/>
+                <filter string="Con empresa satelital" name="has_satellite_company" domain="[('satellite_company', '!=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+</odoo>

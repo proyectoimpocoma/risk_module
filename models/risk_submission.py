@@ -1,7 +1,7 @@
 from odoo import fields, models
 
 
-class RiskModule(models.Model):
+class RiskSubmission(models.Model):
     _name = "risk.module"
     _description = "Solicitud de habilitacion de terceros"
     _rec_name = "vehicle_plate"

@@ -1,3 +1,3 @@
-from . import main
+from . import risk_submission_controller
 
-__all__ = ["main"]
+__all__ = ["risk_submission_controller"]

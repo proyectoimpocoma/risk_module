@@ -4,7 +4,7 @@ from odoo import fields, http
 from odoo.http import request
 
 
-class RiskModuleController(http.Controller):
+class RiskSubmissionController(http.Controller):
     @http.route("/registro-conductor", type="http", auth="public", website=True, sitemap=True)
     def register_driver(self, **kwargs):
         request.session["risk_vehicle_form"] = {}
@@ -69,7 +69,7 @@ class RiskModuleController(http.Controller):
         }
 
         if step == 4:
-            if post.get("terms_accepted") != "on":
+            if post.get("terms_accepted") != "1":
                 data["terms_error"] = "Debes leer y aceptar los terminos para continuar."
                 request.session["risk_vehicle_form"] = data
                 return self._render_step(4)

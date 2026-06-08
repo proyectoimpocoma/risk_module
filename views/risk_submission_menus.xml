@@ -1,0 +1,11 @@
+<odoo>
+    <record id="action_risk_module" model="ir.actions.act_window">
+        <field name="name">Habilitacion de Terceros</field>
+        <field name="res_model">risk.module</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_risk_module_root" name="Riesgo" sequence="60"/>
+    <menuitem id="menu_risk_module_vehicle_requests" name="Vehiculos" parent="menu_risk_module_root" action="action_risk_module" sequence="10"/>
+
+</odoo>
