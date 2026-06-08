@@ -14,6 +14,7 @@
         "web.assets_frontend": [
             "risk_module/static/src/css/risk_submission.css",
             "risk_module/static/src/js/risk_submission_terms.js",
+            "risk_module/static/src/js/risk_submission_signatures.js",
         ],
     },
     "installable": True,

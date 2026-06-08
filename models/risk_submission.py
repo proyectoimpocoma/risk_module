@@ -65,4 +65,22 @@ class RiskSubmission(models.Model):
     compensation_accepted = fields.Boolean(string="Acepto compensacion general")
     personal_data_accepted = fields.Boolean(string="Acepto tratamiento de datos personales")
     terms_accepted_at = fields.Datetime(string="Fecha aceptacion terminos")
+    owner_has_valid_study = fields.Selection([
+        ("yes", "Si"),
+        ("no", "No"),
+    ], string="Propietario con estudio vigente")
+    owner_signature = fields.Binary(string="Firma propietario")
+    owner_signature_document = fields.Char(string="Cedula firma propietario")
+    owner_signed_at = fields.Datetime(string="Fecha firma propietario")
+    owner_signature_ip = fields.Char(string="IP firma propietario")
+    owner_signature_user_agent = fields.Text(string="Navegador firma propietario")
+    driver_has_valid_study = fields.Selection([
+        ("yes", "Si"),
+        ("no", "No"),
+    ], string="Conductor con estudio vigente")
+    driver_signature = fields.Binary(string="Firma conductor")
+    driver_signature_document = fields.Char(string="Cedula firma conductor")
+    driver_signed_at = fields.Datetime(string="Fecha firma conductor")
+    driver_signature_ip = fields.Char(string="IP firma conductor")
+    driver_signature_user_agent = fields.Text(string="Navegador firma conductor")
     message = fields.Text(string="Observaciones")

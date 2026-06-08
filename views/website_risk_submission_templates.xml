@@ -17,7 +17,8 @@
                     <div t-attf-class="risk-progress-item #{'is-active' if step == 2 else 'is-done' if step &gt; 2 else ''}">2. Propietario</div>
                     <div t-attf-class="risk-progress-item #{'is-active' if step == 3 else 'is-done' if step &gt; 3 else ''}">3. Conductor</div>
                     <div t-attf-class="risk-progress-item #{'is-active' if step == 4 else 'is-done' if step &gt; 4 else ''}">4. Terminos</div>
-                    <div t-attf-class="risk-progress-item #{'is-active' if step == 5 else ''}">5. Revision</div>
+                    <div t-attf-class="risk-progress-item #{'is-active' if step == 5 else 'is-done' if step &gt; 5 else ''}">5. Firmas</div>
+                    <div t-attf-class="risk-progress-item #{'is-active' if step == 6 else ''}">6. Revision</div>
                 </div>
 
                 <form t-attf-action="/registro-conductor/submit/#{step}" method="post" class="risk-form">
@@ -28,7 +29,8 @@
                         <div t-if="step == 2" class="risk-panel-title">Informacion del Propietario / Tenedor / Poseedor</div>
                         <div t-if="step == 3" class="risk-panel-title">Informacion del Conductor</div>
                         <div t-if="step == 4" class="risk-panel-title">Aceptacion de Terminos y Autorizaciones</div>
-                        <div t-if="step == 5" class="risk-panel-title">Revision de la Solicitud</div>
+                        <div t-if="step == 5" class="risk-panel-title">Firmas</div>
+                        <div t-if="step == 6" class="risk-panel-title">Revision de la Solicitud</div>
                         <div class="risk-fields">
                             <t t-if="step == 1">
                                 <div class="risk-field">
@@ -252,6 +254,63 @@
                             </t>
 
                             <t t-if="step == 5">
+                                <div t-if="data.get('signature_error')" class="risk-error" t-esc="data.get('signature_error')"/>
+                                <div class="risk-signature-card">
+                                    <h3>Propietario / Tenedor / Representante Legal</h3>
+                                    <p>Si el propietario cuenta con estudio vigente, no debe diligenciar el siguiente espacio.</p>
+                                    <div class="risk-choice-row">
+                                        <span>Cuenta con estudio vigente?</span>
+                                        <label class="risk-choice">
+                                            <span>SI</span>
+                                            <input type="radio" name="owner_has_valid_study" value="yes" t-att-checked="'checked' if data.get('owner_has_valid_study') == 'yes' else None"/>
+                                        </label>
+                                        <label class="risk-choice">
+                                            <span>NO</span>
+                                            <input type="radio" name="owner_has_valid_study" value="no" t-att-checked="'checked' if data.get('owner_has_valid_study') != 'yes' else None"/>
+                                        </label>
+                                    </div>
+                                    <div class="risk-signature-pad" data-signature-pad="owner">
+                                        <canvas id="owner-signature-canvas" width="720" height="190"></canvas>
+                                        <input id="owner-signature-input" type="hidden" name="owner_signature" t-att-value="'data:image/png;base64,%s' % data.get('owner_signature') if data.get('owner_signature') else ''"/>
+                                        <button type="button" class="btn btn-secondary risk-clear-signature" data-clear-signature="owner">Limpiar firma</button>
+                                    </div>
+                                    <div class="risk-field risk-field-full">
+                                        <label for="owner_signature_document">Firma y numero de cedula</label>
+                                        <input id="owner_signature_document" name="owner_signature_document" type="text" t-att-value="data.get('owner_signature_document')" autocomplete="off"/>
+                                    </div>
+                                </div>
+
+                                <div class="risk-signature-card">
+                                    <h3>Conductor</h3>
+                                    <p>Si el conductor cuenta con estudio vigente, no debe diligenciar el siguiente espacio.</p>
+                                    <div class="risk-choice-row">
+                                        <span>Cuenta con estudio vigente?</span>
+                                        <label class="risk-choice">
+                                            <span>SI</span>
+                                            <input type="radio" name="driver_has_valid_study" value="yes" t-att-checked="'checked' if data.get('driver_has_valid_study') == 'yes' else None"/>
+                                        </label>
+                                        <label class="risk-choice">
+                                            <span>NO</span>
+                                            <input type="radio" name="driver_has_valid_study" value="no" t-att-checked="'checked' if data.get('driver_has_valid_study') != 'yes' else None"/>
+                                        </label>
+                                    </div>
+                                    <div class="risk-signature-pad" data-signature-pad="driver">
+                                        <canvas id="driver-signature-canvas" width="720" height="190"></canvas>
+                                        <input id="driver-signature-input" type="hidden" name="driver_signature" t-att-value="'data:image/png;base64,%s' % data.get('driver_signature') if data.get('driver_signature') else ''"/>
+                                        <button type="button" class="btn btn-secondary risk-clear-signature" data-clear-signature="driver">Limpiar firma</button>
+                                    </div>
+                                    <div class="risk-field risk-field-full">
+                                        <label for="driver_signature_document">Firma y numero de cedula de Conductor</label>
+                                        <input id="driver_signature_document" name="driver_signature_document" type="text" t-att-value="data.get('driver_signature_document')" autocomplete="off"/>
+                                    </div>
+                                </div>
+
+                                <div class="risk-signature-note">
+                                    <strong>Nota:</strong> En caso de creacion de nuevo vehiculo, el propietario/tenedor debe firmar sin ninguna excepcion. Para los casos que se requiera cambio de conductor y este cuente con estudio vigente, tanto el propietario/tenedor y conductor deberan firmar sin ninguna excepcion.
+                                </div>
+                            </t>
+
+                            <t t-if="step == 6">
                                 <input type="hidden" name="terms_accepted" value="1"/>
                                 <div class="risk-field">
                                     <label>Placa</label>
@@ -313,6 +372,14 @@
                                     <label>Terminos y autorizaciones</label>
                                     <input type="text" value="Aceptados" readonly="readonly"/>
                                 </div>
+                                <div class="risk-field">
+                                    <label>Firma propietario</label>
+                                    <input type="text" t-att-value="'No requerida' if data.get('owner_has_valid_study') == 'yes' else 'Registrada'" readonly="readonly"/>
+                                </div>
+                                <div class="risk-field">
+                                    <label>Firma conductor</label>
+                                    <input type="text" t-att-value="'No requerida' if data.get('driver_has_valid_study') == 'yes' else 'Registrada'" readonly="readonly"/>
+                                </div>
                                 <div class="risk-field risk-field-full">
                                     <label for="message">Observaciones</label>
                                     <textarea id="message" name="message" placeholder="Observaciones adicionales"><t t-esc="data.get('message') or ''"/></textarea>
@@ -325,8 +392,8 @@
                         <a t-if="step &gt; 1" t-attf-href="/registro-conductor/#{step - 1}" class="btn btn-secondary">Anterior</a>
                         <span t-if="step == 1"></span>
                         <button t-att-disabled="'disabled' if step == 4 else None" type="submit" class="btn btn-primary" id="risk-submit-button">
-                            <t t-if="step &lt; 5">Siguiente</t>
-                            <t t-if="step == 5">Enviar</t>
+                            <t t-if="step &lt; 6">Siguiente</t>
+                            <t t-if="step == 6">Enviar</t>
                         </button>
                     </div>
                 </form>

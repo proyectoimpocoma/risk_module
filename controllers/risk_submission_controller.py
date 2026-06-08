@@ -8,6 +8,7 @@ class RiskSubmissionController(http.Controller):
     @http.route("/registro-conductor", type="http", auth="public", website=True, sitemap=True)
     def register_driver(self, **kwargs):
         request.session["risk_vehicle_form"] = {}
+        request.session["risk_terms_accepted"] = None
         return self._render_step(1)
 
     @http.route("/registro-conductor/<int:step>", type="http", auth="public", website=True, sitemap=False)
@@ -65,7 +66,7 @@ class RiskSubmissionController(http.Controller):
                 "cargo_reference_name",
                 "cargo_reference_phone",
             ),
-            5: ("message",),
+            6: ("message",),
         }
 
         if step == 4:
@@ -88,19 +89,59 @@ class RiskSubmissionController(http.Controller):
                 "step": 5,
                 "data": data,
             })
+        elif step == 5:
+            data.update({
+                "owner_has_valid_study": post.get("owner_has_valid_study", "").strip(),
+                "owner_signature": self._clean_signature_data(post.get("owner_signature", "")),
+                "owner_signature_document": post.get("owner_signature_document", "").strip(),
+                "driver_has_valid_study": post.get("driver_has_valid_study", "").strip(),
+                "driver_signature": self._clean_signature_data(post.get("driver_signature", "")),
+                "driver_signature_document": post.get("driver_signature_document", "").strip(),
+            })
+            data.pop("signature_error", None)
+
+            if not self._signatures_are_valid(data):
+                data["signature_error"] = (
+                    "Debes completar la firma y cedula cuando el propietario o conductor no cuenta con estudio vigente."
+                )
+                request.session["risk_vehicle_form"] = data
+                return self._render_step(5)
+
+            now = fields.Datetime.to_string(fields.Datetime.now())
+            remote_addr = request.httprequest.remote_addr
+            user_agent = request.httprequest.user_agent.string
+            if data.get("owner_has_valid_study") != "yes":
+                data.update({
+                    "owner_signed_at": now,
+                    "owner_signature_ip": remote_addr,
+                    "owner_signature_user_agent": user_agent,
+                })
+            if data.get("driver_has_valid_study") != "yes":
+                data.update({
+                    "driver_signed_at": now,
+                    "driver_signature_ip": remote_addr,
+                    "driver_signature_user_agent": user_agent,
+                })
         else:
             for field in allowed_fields.get(step, ()):
                 data[field] = post.get(field, "").strip()
 
         request.session["risk_vehicle_form"] = data
 
-        if step < 5:
+        if step < 6:
             return request.redirect("/registro-conductor/%s" % (step + 1))
 
         if data.get("terms_accepted") != "1" and request.session.get("risk_terms_accepted") != "1":
             data["terms_error"] = "Debes leer y aceptar los terminos para continuar."
             request.session["risk_vehicle_form"] = data
             return self._render_step(4)
+
+        if not self._signatures_are_valid(data):
+            data["signature_error"] = (
+                "Debes completar la firma y cedula cuando el propietario o conductor no cuenta con estudio vigente."
+            )
+            request.session["risk_vehicle_form"] = data
+            return self._render_step(5)
 
         plate = data.get("vehicle_plate") or "Sin placa"
         submission = request.env["risk.module"].sudo().create({
@@ -144,6 +185,18 @@ class RiskSubmissionController(http.Controller):
             "compensation_accepted": data.get("compensation_accepted") == "1" or request.session.get("risk_terms_accepted") == "1",
             "personal_data_accepted": data.get("personal_data_accepted") == "1" or request.session.get("risk_terms_accepted") == "1",
             "terms_accepted_at": data.get("terms_accepted_at") or False,
+            "owner_has_valid_study": data.get("owner_has_valid_study"),
+            "owner_signature": data.get("owner_signature"),
+            "owner_signature_document": data.get("owner_signature_document"),
+            "owner_signed_at": data.get("owner_signed_at") or False,
+            "owner_signature_ip": data.get("owner_signature_ip"),
+            "owner_signature_user_agent": data.get("owner_signature_user_agent"),
+            "driver_has_valid_study": data.get("driver_has_valid_study"),
+            "driver_signature": data.get("driver_signature"),
+            "driver_signature_document": data.get("driver_signature_document"),
+            "driver_signed_at": data.get("driver_signed_at") or False,
+            "driver_signature_ip": data.get("driver_signature_ip"),
+            "driver_signature_user_agent": data.get("driver_signature_user_agent"),
             "message": data.get("message"),
         })
 
@@ -154,7 +207,7 @@ class RiskSubmissionController(http.Controller):
         })
 
     def _render_step(self, step):
-        if step not in (1, 2, 3, 4, 5):
+        if step not in (1, 2, 3, 4, 5, 6):
             return request.redirect("/registro-conductor")
 
         data = request.session.get("risk_vehicle_form", {})
@@ -164,8 +217,29 @@ class RiskSubmissionController(http.Controller):
             data["terms_error"] = "Debes leer y aceptar los terminos para continuar."
             request.session["risk_vehicle_form"] = data
             return self._render_step(4)
+        if step == 6 and not self._signatures_are_valid(data):
+            data["signature_error"] = (
+                "Debes completar la firma y cedula cuando el propietario o conductor no cuenta con estudio vigente."
+            )
+            request.session["risk_vehicle_form"] = data
+            return self._render_step(5)
 
         return request.render("risk_module.register_driver", {
             "step": step,
             "data": data,
         })
+
+    def _clean_signature_data(self, signature):
+        if not signature:
+            return ""
+        prefix = "data:image/png;base64,"
+        if signature.startswith(prefix):
+            return signature[len(prefix):]
+        return signature
+
+    def _signatures_are_valid(self, data):
+        owner_required = data.get("owner_has_valid_study") != "yes"
+        driver_required = data.get("driver_has_valid_study") != "yes"
+        owner_ok = not owner_required or (data.get("owner_signature") and data.get("owner_signature_document"))
+        driver_ok = not driver_required or (data.get("driver_signature") and data.get("driver_signature_document"))
+        return owner_ok and driver_ok

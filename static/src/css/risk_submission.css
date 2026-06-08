@@ -34,7 +34,7 @@
 }
 .risk-progress {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 8px;
     margin: 18px 0;
 }
@@ -177,6 +177,55 @@
     color: #991b1b;
     background: #fef2f2;
     font-weight: 700;
+}
+.risk-signature-card {
+    grid-column: 1 / -1;
+    border: 1px solid var(--risk-line);
+    border-radius: 8px;
+    padding: 16px;
+    background: #fff;
+}
+.risk-signature-card h3 {
+    margin: 0 0 8px;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+.risk-signature-card p {
+    margin: 0 0 14px;
+    text-align: center;
+    font-weight: 700;
+}
+.risk-signature-pad {
+    position: relative;
+    margin: 14px 0;
+}
+.risk-signature-pad canvas {
+    width: 100%;
+    height: 190px;
+    display: block;
+    border: 1px solid var(--risk-line);
+    border-radius: 6px;
+    background: #fff;
+    touch-action: none;
+}
+.risk-signature-pad.is-disabled {
+    opacity: 0.45;
+}
+.risk-signature-pad.is-disabled canvas {
+    pointer-events: none;
+}
+.risk-clear-signature {
+    margin-top: 10px;
+}
+.risk-signature-note {
+    grid-column: 1 / -1;
+    border: 1px solid var(--risk-line);
+    border-radius: 8px;
+    padding: 14px;
+    line-height: 1.35;
+    background: #fffaf5;
 }
 .risk-modal {
     position: fixed;

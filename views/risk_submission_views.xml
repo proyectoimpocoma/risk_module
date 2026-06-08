@@ -78,6 +78,22 @@
                         <field name="personal_data_accepted"/>
                         <field name="terms_accepted_at"/>
                     </group>
+                    <group string="Firmas">
+                        <field name="owner_has_valid_study"/>
+                        <field name="owner_signature" widget="image"/>
+                        <field name="owner_signature_document"/>
+                        <field name="owner_signed_at"/>
+                        <field name="driver_has_valid_study"/>
+                        <field name="driver_signature" widget="image"/>
+                        <field name="driver_signature_document"/>
+                        <field name="driver_signed_at"/>
+                    </group>
+                    <group string="Trazabilidad de Firmas">
+                        <field name="owner_signature_ip"/>
+                        <field name="owner_signature_user_agent"/>
+                        <field name="driver_signature_ip"/>
+                        <field name="driver_signature_user_agent"/>
+                    </group>
                     <group string="Observaciones">
                         <field name="message" nolabel="1"/>
                     </group>
