@@ -1,0 +1,4 @@
+interface:
+  display_name: "Odoo Module Builder"
+  short_description: "Create scalable Odoo modules from scratch"
+  default_prompt: "Use $odoo-module-builder to create a scalable Odoo module from scratch."
