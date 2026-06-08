@@ -5,9 +5,86 @@ from odoo.http import request
 
 
 class RiskSubmissionController(http.Controller):
+    STEP_FIELDS = {
+        1: (
+            "form_date",
+            "vehicle_plate",
+            "semi_trailer_plate",
+            "satellite_company",
+            "satellite_user",
+            "satellite_password",
+        ),
+        2: (
+            "owner_name",
+            "owner_document_type",
+            "owner_document_number",
+            "owner_address",
+            "owner_neighborhood",
+            "owner_city",
+            "owner_phone",
+            "owner_email",
+            "advance_payment_to",
+            "same_owner_on_license",
+            "registered_owner_document_type",
+            "registered_owner_document_number",
+            "registered_owner_name",
+            "registered_owner_phone",
+        ),
+        3: (
+            "driver_name",
+            "driver_document_number",
+            "driver_address",
+            "driver_neighborhood",
+            "driver_city",
+            "driver_phone",
+            "driver_optional_phone",
+            "driver_email",
+            "driver_is_fit",
+            "driver_is_trained",
+            "family_reference_name",
+            "family_reference_relationship",
+            "family_reference_phone",
+            "cargo_reference_name",
+            "cargo_reference_phone",
+        ),
+        4: (
+            "terms_accepted",
+            "banking_info_accepted",
+            "compensation_accepted",
+            "personal_data_accepted",
+            "terms_accepted_at",
+        ),
+        5: (
+            "owner_has_valid_study",
+            "owner_signature",
+            "owner_signature_document",
+            "owner_signed_at",
+            "owner_signature_ip",
+            "owner_signature_user_agent",
+            "driver_has_valid_study",
+            "driver_signature",
+            "driver_signature_document",
+            "driver_signed_at",
+            "driver_signature_ip",
+            "driver_signature_user_agent",
+        ),
+        6: ("message",),
+    }
+
+    STEP_SESSION_KEYS = {
+        1: "risk_step_1_form",
+        2: "risk_step_2_form",
+        3: "risk_step_3_form",
+        4: "risk_step_4_form",
+        5: "risk_step_5_form",
+        6: "risk_step_6_form",
+    }
+
     @http.route("/registro-conductor", type="http", auth="public", website=True, sitemap=True)
     def register_driver(self, **kwargs):
         request.session["risk_vehicle_form"] = {}
+        for session_key in self.STEP_SESSION_KEYS.values():
+            request.session[session_key] = {}
         request.session["risk_terms_accepted"] = None
         request.session["risk_submission_id"] = None
         return self._render_step(1)
@@ -35,50 +112,6 @@ class RiskSubmissionController(http.Controller):
     )
     def _post_register_driver(self, step=1, **post):
         data = request.session.get("risk_vehicle_form", {})
-        allowed_fields = {
-            1: (
-                "form_date",
-                "vehicle_plate",
-                "semi_trailer_plate",
-                "satellite_company",
-                "satellite_user",
-                "satellite_password",
-            ),
-            2: (
-                "owner_name",
-                "owner_document_type",
-                "owner_document_number",
-                "owner_address",
-                "owner_neighborhood",
-                "owner_city",
-                "owner_phone",
-                "owner_email",
-                "advance_payment_to",
-                "same_owner_on_license",
-                "registered_owner_document_type",
-                "registered_owner_document_number",
-                "registered_owner_name",
-                "registered_owner_phone",
-            ),
-            3: (
-                "driver_name",
-                "driver_document_number",
-                "driver_address",
-                "driver_neighborhood",
-                "driver_city",
-                "driver_phone",
-                "driver_optional_phone",
-                "driver_email",
-                "driver_is_fit",
-                "driver_is_trained",
-                "family_reference_name",
-                "family_reference_relationship",
-                "family_reference_phone",
-                "cargo_reference_name",
-                "cargo_reference_phone",
-            ),
-            6: ("message",),
-        }
 
         if step == 4:
             if post.get("terms_accepted") != "1":
@@ -95,6 +128,7 @@ class RiskSubmissionController(http.Controller):
             })
             data.pop("terms_error", None)
             request.session["risk_terms_accepted"] = "1"
+            self._persist_step_data(4, data)
             request.session["risk_vehicle_form"] = data
             return request.render("risk_module.register_driver", {
                 "step": 5,
@@ -124,6 +158,7 @@ class RiskSubmissionController(http.Controller):
                     "driver_signature_ip": remote_addr,
                     "driver_signature_user_agent": user_agent,
                 })
+            self._persist_step_data(5, data)
             submission = self._create_or_update_submission(data, state="draft")
             data["submission_id"] = submission.id
             data["submission_token"] = submission.access_token
@@ -135,8 +170,9 @@ class RiskSubmissionController(http.Controller):
                 "print_url": self._print_url(data),
             })
         else:
-            for field in allowed_fields.get(step, ()):
+            for field in self.STEP_FIELDS.get(step, ()):
                 data[field] = post.get(field, "").strip()
+            self._persist_step_data(step, data)
             if step == 6:
                 self._update_signature_data(data, post)
 
@@ -155,9 +191,12 @@ class RiskSubmissionController(http.Controller):
             request.session["risk_vehicle_form"] = data
             return self._render_step(5)
 
+        self._merge_persisted_step_data(data)
         submission = self._create_or_update_submission(data, state="submitted")
 
         request.session["risk_vehicle_form"] = {}
+        for session_key in self.STEP_SESSION_KEYS.values():
+            request.session[session_key] = {}
         request.session["risk_terms_accepted"] = None
         request.session["risk_submission_id"] = None
         return request.render("risk_module.register_driver_success", {
@@ -171,6 +210,8 @@ class RiskSubmissionController(http.Controller):
         data = request.session.get("risk_vehicle_form", {})
         if step == 1 and not data.get("form_date"):
             data = dict(data, form_date=date.today().isoformat())
+        if step >= 3:
+            self._merge_persisted_step_data(data)
         if step == 5 and data.get("terms_accepted") != "1" and request.session.get("risk_terms_accepted") != "1":
             data["terms_error"] = "Debes leer y aceptar los terminos para continuar."
             request.session["risk_vehicle_form"] = data
@@ -232,6 +273,7 @@ class RiskSubmissionController(http.Controller):
         return "Debes completar la firma y cedula cuando el propietario o conductor no cuenta con estudio vigente."
 
     def _submission_values(self, data, state):
+        self._merge_persisted_step_data(data)
         plate = data.get("vehicle_plate") or "Sin placa"
         return {
             "state": state,
@@ -291,6 +333,7 @@ class RiskSubmissionController(http.Controller):
         }
 
     def _create_or_update_submission(self, data, state):
+        self._merge_persisted_step_data(data)
         submission_id = data.get("submission_id") or request.session.get("risk_submission_id")
         submission = request.env["risk.module"].sudo().browse(int(submission_id or 0)).exists()
         values = self._submission_values(data, state)
@@ -301,6 +344,22 @@ class RiskSubmissionController(http.Controller):
         data["submission_id"] = submission.id
         data["submission_token"] = submission.access_token
         return submission
+
+    def _merge_persisted_step_data(self, data):
+        for step in sorted(self.STEP_SESSION_KEYS):
+            step_data = request.session.get(self.STEP_SESSION_KEYS[step]) or {}
+            for field, value in step_data.items():
+                if value is not None:
+                    data[field] = value
+
+    def _persist_step_data(self, step, data):
+        session_key = self.STEP_SESSION_KEYS.get(step)
+        if not session_key:
+            return
+        request.session[session_key] = {
+            field: data.get(field)
+            for field in self.STEP_FIELDS.get(step, ())
+        }
 
     def _print_url(self, data):
         submission_id = data.get("submission_id")
