@@ -1,8 +1,9 @@
 {
     "name": "Risk Module",
     "version": "19.0.1.0.0",
-    "category": "Custom",
+    "category": "Impocoma",
     "author": "Angel",
+    "website": "https://www.impocoma.com",
     "summary": "Modulo para el departamento de riesgo en Impocoma",
     "depends": ["base", "website", "mail"],
     "data": [
