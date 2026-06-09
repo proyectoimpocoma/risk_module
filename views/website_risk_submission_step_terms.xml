@@ -1,0 +1,25 @@
+<odoo>
+    <template id="register_driver_step_terms" name="Registro Vehiculo Paso Terminos">
+        <div t-if="data.get('terms_error')" class="risk-error" t-esc="data.get('terms_error')"/>
+        <div class="risk-terms-card">
+            <h3>Informacion bancaria</h3>
+            <p>Se certifica que la cuenta bancaria entregada es vigente, esta libre de embargos o cualquier limitacion para su manejo y exonera a IMPOCOMA S.A.S. por cualquier eventualidad presentada con la cuenta bancaria.</p>
+        </div>
+        <div class="risk-terms-card">
+            <h3>Autorizacion de compensacion general</h3>
+            <p>Autoriza a IMPOCOMA S.A.S. a efectuar la compensacion prevista por saldos, novedades, faltantes, averias, saqueos, hurtos, contaminacion, anticipos no utilizados y demas eventos presentados durante la operacion del transporte.</p>
+        </div>
+        <div class="risk-terms-card">
+            <h3>Autorizacion de datos personales</h3>
+            <p>Autoriza la recoleccion, consulta, validacion, almacenamiento, uso, procesamiento, transferencia, transmision y tratamiento de datos personales para las finalidades relacionadas con la vinculacion y operacion.</p>
+        </div>
+        <div class="risk-field risk-field-full">
+            <button type="button" class="btn btn-secondary" id="risk-open-terms">Ver terminos completos</button>
+        </div>
+        <label class="risk-terms-accept">
+            <input id="risk-terms-confirmed" type="hidden" name="terms_accepted" t-att-value="'1' if data.get('terms_accepted') == '1' else '0'"/>
+            <input id="risk-terms-check" type="checkbox" t-att-checked="'checked' if data.get('terms_accepted') == '1' else None" t-att-disabled="None if data.get('terms_accepted') == '1' else 'disabled'"/>
+            <span>He leido los terminos completos y acepto la informacion bancaria, la autorizacion de compensacion general y la autorizacion de datos personales.</span>
+        </label>
+    </template>
+</odoo>

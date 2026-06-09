@@ -1,0 +1,13 @@
+<odoo>
+    <template id="register_driver_success" name="Registro Vehiculo Exitoso">
+        <t t-call="website.layout">
+            <main class="container py-5">
+                <div class="alert alert-success" role="status">
+                    Solicitud registrada para el vehiculo <strong t-esc="submission.vehicle_plate"/>.
+                </div>
+                <a t-attf-href="/registro-conductor/imprimir/#{submission.id}?token=#{submission.access_token}" target="_blank" class="btn btn-secondary">Abrir vista imprimible</a>
+                <a href="/registro-conductor" class="btn btn-primary">Crear otra solicitud</a>
+            </main>
+        </t>
+    </template>
+</odoo>

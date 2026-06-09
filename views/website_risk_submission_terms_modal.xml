@@ -1,0 +1,30 @@
+<odoo>
+    <template id="register_driver_terms_modal" name="Registro Vehiculo Modal Terminos">
+        <div class="risk-modal" id="risk-terms-modal" role="dialog" aria-modal="true" aria-labelledby="risk-terms-title">
+            <div class="risk-modal-dialog">
+                <div class="risk-modal-header">
+                    <h2 id="risk-terms-title">Terminos y autorizaciones completas</h2>
+                    <button type="button" class="risk-modal-close" id="risk-close-terms" aria-label="Cerrar">x</button>
+                </div>
+                <div class="risk-modal-body">
+                    <h3>Informacion bancaria</h3>
+                    <p>Se certifica que la cuenta bancaria entregada es vigente, esta libre de embargos o cualquier limitacion para su manejo y exonera a IMPOCOMA S.A.S., por cualquier eventualidad presentada con la cuenta bancaria y que se hace responsable por ello.</p>
+
+                    <h3>Autorizacion de compensacion general</h3>
+                    <p>Por medio del presente autorizo expresamente a los Senores IMPOCOMA S.A.S., identificados con el Nit. No. 860.078.780-2, para que efectue la Compensacion prevista en el Codigo Civil Articulo 1714 y S.S., los saldos generados por novedad de faltantes de mercancias, averias, saqueos, hurtos de mercancia, contaminacion, contaminacion especifica, sobrantes o contrabando abierto o tecnico, anticipo no utilizado, cobro de los derechos del contrato de vinculacion bajo la figura de compensacion y demas que se presente durante la operacion del transporte.</p>
+
+                    <h3>Autorizacion de datos personales</h3>
+                    <p>Como titular de los datos y bajo los parametros de la Ley 1581 de 2012 y las normas que la adicionen y/o modifiquen, autorizo a IMPOCOMA S.A.S. a recolectar, consultar, validar, almacenar, utilizar, procesar, transferir, transmitir, tratar, reportar y disponer de los datos personales aqui solicitados, y quien actue como encargado, con el fin de: ejecucion del contrato suscrito con cualquiera de la Compania, pago de obligaciones contractuales, envio de informacion a entidades gubernamentales o judiciales por solicitud expresa de la misma, soporte en procesos de auditoria externa/interna, registro de informacion de terceros en la base de datos de IMPOCOMA S.A.S., contacto con terceros para el envio de informacion relacionada con la relacion contractual y obligacional, recoleccion de datos para el cumplimiento de los deberes como responsable de la informacion y datos personales, envio de correspondencia, correos electronicos, mensajes de texto, mensajes por aplicaciones de mensajeria instantanea, propositos de seguridad o prevencion de fraude, reporte y consulta a centrales de riesgo, asignacion y contacto para operaciones de carga, registro en manifiestos y documentos exigidos por autoridades competentes, validacion de antecedentes judiciales, disciplinarios, comerciales y de comportamiento social, consulta, actualizacion, reporte y comparticion de informacion ante terceros autorizados, procesos estadisticos, elaboracion de perfiles de cumplimiento y evaluacion de riesgos, uso de datos para entrenamiento y mejora de tecnologias basadas en IA, contacto para verificacion, firma de documentos y control de calidad, conservacion de datos en bases seguras por el tiempo necesario para el cumplimiento de dichas finalidades, y cualquier otra finalidad que resulte en el desarrollo del contrato o relacion entre usted e IMPOCOMA S.A.S.</p>
+                    <p>Autorizo de forma libre, previa, expresa, explicita, facultativa e informada, el tratamiento de mis datos sensibles, incluyendo antecedentes penales o disciplinarios, datos biometricos, fotografias, videos, informacion financiera, huellas dactilares, habitos de cumplimiento contractual, datos relativos a la salud, imagen personal, resultado de prueba de deteccion de consumo de alcohol y drogas, seguimiento GPS del vehiculo, y demas datos necesarios para las finalidades descritas y en cumplimiento de obligaciones legales, contractuales y de los sistemas de prevencion de riesgos LA/FT/FPADM.</p>
+                    <p>Asi mismo, otorgo autorizacion a IMPOCOMA S.A.S. y a quienes actuen como encargados a acceder con mi usuario y contrasena al sistema de Posicionamiento Global (GPS) y utilizar la informacion del vehiculo con el fin de realizar seguimiento en tiempo real. En caso de presentarse irregularidades, dicha informacion podra ser utilizada en investigaciones disciplinarias, civiles y/o penales.</p>
+                    <p>Derechos como titular: conocer, actualizar y rectificar mis datos personales, solicitar prueba de la autorizacion otorgada, ser informado sobre el uso dado a los datos, presentar quejas ante la SIC, revocar la autorizacion y/o solicitar la supresion de los datos cuando sea procedente, y acceder gratuitamente a los mismos mediante los canales informados por IMPOCOMA S.A.S.</p>
+                    <p>Datos del responsable del tratamiento: IMPOCOMA S.A.S., Nit. 860078780-2, Telefono: 315 3363641, Correo: notificaciones@impocoma.com, Domicilio principal: Mosquera/Cundinamarca. RISK INTERNATIONAL S.A.S., Nit. 900352786-5, Canal de atencion: habeasdata@riskintl.com, Domicilio principal: Bogota D.C.</p>
+                    <p>Declaro que he leido y he sido informado de todo lo dispuesto en el articulo 12 de la Ley 1581 de 2012, y que comprendo plenamente el contenido de esta autorizacion, la cual acepto en ejercicio de mi libertad y con conocimiento de mis derechos.</p>
+                </div>
+                <div class="risk-modal-footer">
+                    <button type="button" class="btn btn-primary" id="risk-understand-terms">Entiendo y cerrar</button>
+                </div>
+            </div>
+        </div>
+    </template>
+</odoo>

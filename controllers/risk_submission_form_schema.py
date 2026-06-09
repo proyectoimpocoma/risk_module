@@ -1,0 +1,112 @@
+import re
+
+
+PLATE_REGEX = re.compile(r"^[A-Z]{3}[0-9]{2,3}$")
+EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$")
+CC_REGEX = re.compile(r"^[0-9]{6,10}$")
+NIT_REGEX = re.compile(r"^[0-9]{9}(-[0-9])?$")
+
+CHOICE_VALUES = {
+    "owner_document_type": ("cc", "nit"),
+    "advance_payment_to": ("driver", "owner"),
+    "same_owner_on_license": ("yes", "no"),
+    "registered_owner_document_type": ("cc", "nit"),
+    "driver_is_fit": ("yes", "no"),
+    "driver_is_trained": ("yes", "no"),
+    "owner_has_valid_study": ("yes", "no"),
+    "driver_has_valid_study": ("yes", "no"),
+}
+
+TEXT_LIMITS = {
+    "satellite_company": 80,
+    "satellite_user": 80,
+    "satellite_password": 80,
+    "owner_name": 140,
+    "owner_address": 140,
+    "owner_neighborhood": 80,
+    "owner_city": 80,
+    "registered_owner_name": 140,
+    "driver_name": 140,
+    "driver_address": 140,
+    "driver_neighborhood": 80,
+    "driver_city": 80,
+    "family_reference_name": 140,
+    "family_reference_relationship": 80,
+    "cargo_reference_name": 140,
+    "message": 1000,
+}
+
+STEP_FIELDS = {
+    1: (
+        "form_date",
+        "vehicle_plate",
+        "semi_trailer_plate",
+        "satellite_company",
+        "satellite_user",
+        "satellite_password",
+    ),
+    2: (
+        "owner_name",
+        "owner_document_type",
+        "owner_document_number",
+        "owner_address",
+        "owner_neighborhood",
+        "owner_city",
+        "owner_phone",
+        "owner_email",
+        "advance_payment_to",
+        "same_owner_on_license",
+        "registered_owner_document_type",
+        "registered_owner_document_number",
+        "registered_owner_name",
+        "registered_owner_phone",
+    ),
+    3: (
+        "driver_name",
+        "driver_document_number",
+        "driver_address",
+        "driver_neighborhood",
+        "driver_city",
+        "driver_phone",
+        "driver_optional_phone",
+        "driver_email",
+        "driver_is_fit",
+        "driver_is_trained",
+        "family_reference_name",
+        "family_reference_relationship",
+        "family_reference_phone",
+        "cargo_reference_name",
+        "cargo_reference_phone",
+    ),
+    4: (
+        "terms_accepted",
+        "banking_info_accepted",
+        "compensation_accepted",
+        "personal_data_accepted",
+        "terms_accepted_at",
+    ),
+    5: (
+        "owner_has_valid_study",
+        "owner_signature",
+        "owner_signature_document",
+        "owner_signed_at",
+        "owner_signature_ip",
+        "owner_signature_user_agent",
+        "driver_has_valid_study",
+        "driver_signature",
+        "driver_signature_document",
+        "driver_signed_at",
+        "driver_signature_ip",
+        "driver_signature_user_agent",
+    ),
+    6: ("message",),
+}
+
+STEP_SESSION_KEYS = {
+    1: "risk_step_1_form",
+    2: "risk_step_2_form",
+    3: "risk_step_3_form",
+    4: "risk_step_4_form",
+    5: "risk_step_5_form",
+    6: "risk_step_6_form",
+}

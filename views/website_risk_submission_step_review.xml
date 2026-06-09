@@ -1,0 +1,27 @@
+<odoo>
+    <template id="register_driver_step_review" name="Registro Vehiculo Paso Revision">
+        <input type="hidden" name="terms_accepted" value="1"/>
+        <input type="hidden" name="owner_has_valid_study" t-att-value="data.get('owner_has_valid_study')"/>
+        <input type="hidden" name="owner_signature" t-att-value="data.get('owner_signature')"/>
+        <input type="hidden" name="owner_signature_document" t-att-value="data.get('owner_signature_document')"/>
+        <input type="hidden" name="driver_has_valid_study" t-att-value="data.get('driver_has_valid_study')"/>
+        <input type="hidden" name="driver_signature" t-att-value="data.get('driver_signature')"/>
+        <input type="hidden" name="driver_signature_document" t-att-value="data.get('driver_signature_document')"/>
+        <div class="risk-field risk-field-full">
+            <div class="risk-print-toolbar">
+                <button t-if="print_url" type="button" class="btn btn-secondary" id="risk-print-preview">Imprimir / Guardar como PDF</button>
+                <a t-if="print_url" t-att-href="print_url" target="_blank" class="btn btn-secondary">Abrir vista imprimible</a>
+            </div>
+            <div t-if="print_url" class="risk-print-preview">
+                <iframe id="risk-print-frame" t-att-src="print_url" title="Vista imprimible Hoja de Vida"/>
+            </div>
+            <div t-if="not print_url" class="risk-error">
+                No se pudo generar la vista imprimible. Vuelve al paso de firmas y continua nuevamente.
+            </div>
+        </div>
+        <div class="risk-field risk-field-full">
+            <label for="message">Observaciones</label>
+            <textarea id="message" name="message" placeholder="Observaciones adicionales"><t t-esc="data.get('message') or ''"/></textarea>
+        </div>
+    </template>
+</odoo>

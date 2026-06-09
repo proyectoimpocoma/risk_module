@@ -1,0 +1,58 @@
+<odoo>
+    <template id="register_driver_step_signatures" name="Registro Vehiculo Paso Firmas">
+        <div t-if="data.get('signature_error')" class="risk-error" t-esc="data.get('signature_error')"/>
+        <div class="risk-signature-card">
+            <h3>Propietario / Tenedor / Representante Legal</h3>
+            <p>Si el propietario cuenta con estudio vigente, no debe diligenciar el siguiente espacio.</p>
+            <div class="risk-choice-row">
+                <span>Cuenta con estudio vigente?</span>
+                <label class="risk-choice">
+                    <span>SI</span>
+                    <input type="radio" name="owner_has_valid_study" value="yes" t-att-checked="'checked' if data.get('owner_has_valid_study') == 'yes' else None"/>
+                </label>
+                <label class="risk-choice">
+                    <span>NO</span>
+                    <input type="radio" name="owner_has_valid_study" value="no" t-att-checked="'checked' if data.get('owner_has_valid_study') != 'yes' else None"/>
+                </label>
+            </div>
+            <div class="risk-signature-pad" data-signature-pad="owner">
+                <canvas id="owner-signature-canvas" width="720" height="190"></canvas>
+                <input id="owner-signature-input" type="hidden" name="owner_signature" t-att-value="'data:image/png;base64,%s' % data.get('owner_signature') if data.get('owner_signature') else ''"/>
+                <button type="button" class="btn btn-secondary risk-clear-signature" data-clear-signature="owner">Limpiar firma</button>
+            </div>
+            <div class="risk-field risk-field-full">
+                <label for="owner_signature_document">Firma y numero de cedula</label>
+                <input id="owner_signature_document" name="owner_signature_document" type="text" t-att-value="data.get('owner_signature_document') or data.get('owner_document_number')" inputmode="numeric" pattern="[0-9]{6,10}" title="Cedula de 6 a 10 digitos numericos" autocomplete="off"/>
+            </div>
+        </div>
+
+        <div class="risk-signature-card">
+            <h3>Conductor</h3>
+            <p>Si el conductor cuenta con estudio vigente, no debe diligenciar el siguiente espacio.</p>
+            <div class="risk-choice-row">
+                <span>Cuenta con estudio vigente?</span>
+                <label class="risk-choice">
+                    <span>SI</span>
+                    <input type="radio" name="driver_has_valid_study" value="yes" t-att-checked="'checked' if data.get('driver_has_valid_study') == 'yes' else None"/>
+                </label>
+                <label class="risk-choice">
+                    <span>NO</span>
+                    <input type="radio" name="driver_has_valid_study" value="no" t-att-checked="'checked' if data.get('driver_has_valid_study') != 'yes' else None"/>
+                </label>
+            </div>
+            <div class="risk-signature-pad" data-signature-pad="driver">
+                <canvas id="driver-signature-canvas" width="720" height="190"></canvas>
+                <input id="driver-signature-input" type="hidden" name="driver_signature" t-att-value="'data:image/png;base64,%s' % data.get('driver_signature') if data.get('driver_signature') else ''"/>
+                <button type="button" class="btn btn-secondary risk-clear-signature" data-clear-signature="driver">Limpiar firma</button>
+            </div>
+            <div class="risk-field risk-field-full">
+                <label for="driver_signature_document">Firma y numero de cedula de Conductor</label>
+                <input id="driver_signature_document" name="driver_signature_document" type="text" t-att-value="data.get('driver_signature_document') or data.get('driver_document_number')" inputmode="numeric" pattern="[0-9]{6,10}" title="Cedula de 6 a 10 digitos numericos" autocomplete="off"/>
+            </div>
+        </div>
+
+        <div class="risk-signature-note">
+            <strong>Nota:</strong> En caso de creacion de nuevo vehiculo, el propietario/tenedor debe firmar sin ninguna excepcion. Para los casos que se requiera cambio de conductor y este cuente con estudio vigente, tanto el propietario/tenedor y conductor deberan firmar sin ninguna excepcion.
+        </div>
+    </template>
+</odoo>
