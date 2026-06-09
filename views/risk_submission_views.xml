@@ -37,6 +37,10 @@
                             invisible="state != 'submitted'"/>
                     <button name="action_mark_external_validation_pending" type="object" string="Dejar validacion externa pendiente"
                             invisible="state != 'risk_review'"/>
+                    <button name="action_send_external_validation" type="object" string="Enviar a Validiti"
+                            invisible="state != 'external_validation_pending'"/>
+                    <button name="action_register_external_validation_result" type="object" string="Registrar resultado Validiti"
+                            invisible="state != 'external_validation_pending'"/>
                     <button name="action_skip_external_validation" type="object" string="Continuar a aprobacion manual"
                             invisible="state not in ('risk_review', 'external_validation_pending')"/>
                     <button name="action_request_documents" type="object" string="Solicitar documentos"
@@ -199,6 +203,37 @@
                                             invisible="state not in ('received', 'rejected')"/>
                                     <button name="action_reject" type="object" string="Rechazar"
                                             invisible="state not in ('received', 'approved')"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Validacion Externa" name="external_validation_page">
+                            <field name="external_validation_ids" context="{'default_submission_id': id}">
+                                <list editable="bottom"
+                                      decoration-success="status == 'approved'"
+                                      decoration-danger="status == 'rejected'"
+                                      decoration-info="status in ('sent', 'manual_review')"
+                                      decoration-warning="status in ('pending', 'error')"
+                                      decoration-muted="status == 'skipped'">
+                                    <field name="status" widget="badge"
+                                           decoration-success="status == 'approved'"
+                                           decoration-danger="status == 'rejected'"
+                                           decoration-info="status in ('sent', 'manual_review')"
+                                           decoration-warning="status in ('pending', 'error')"
+                                           decoration-muted="status == 'skipped'"/>
+                                    <field name="provider"/>
+                                    <field name="profile"/>
+                                    <field name="external_reference"/>
+                                    <field name="risk_score"/>
+                                    <field name="requested_at"/>
+                                    <field name="completed_at"/>
+                                    <field name="summary"/>
+                                    <button name="action_send_to_validiti" type="object" string="Enviar"
+                                            invisible="provider != 'validiti' or status not in ('pending', 'error')"/>
+                                    <button name="action_open_result_wizard" type="object" string="Resultado"
+                                            invisible="status in ('approved', 'rejected', 'skipped')"/>
+                                    <button name="action_skip" type="object" string="Omitir"
+                                            invisible="status in ('approved', 'rejected', 'skipped')"/>
                                 </list>
                             </field>
                         </page>

@@ -1,0 +1,109 @@
+<odoo>
+    <record id="view_risk_external_validation_list" model="ir.ui.view">
+        <field name="name">risk.external.validation.list</field>
+        <field name="model">risk.external.validation</field>
+        <field name="arch" type="xml">
+            <list string="Validaciones Externas"
+                  decoration-success="status == 'approved'"
+                  decoration-danger="status == 'rejected'"
+                  decoration-info="status in ('sent', 'manual_review')"
+                  decoration-warning="status in ('pending', 'error')"
+                  decoration-muted="status == 'skipped'">
+                <field name="create_date" string="Creado"/>
+                <field name="status" widget="badge"
+                       decoration-success="status == 'approved'"
+                       decoration-danger="status == 'rejected'"
+                       decoration-info="status in ('sent', 'manual_review')"
+                       decoration-warning="status in ('pending', 'error')"
+                       decoration-muted="status == 'skipped'"/>
+                <field name="submission_id"/>
+                <field name="provider"/>
+                <field name="profile"/>
+                <field name="external_reference"/>
+                <field name="risk_score"/>
+                <field name="requested_at"/>
+                <field name="completed_at"/>
+                <button name="action_send_to_validiti" type="object" string="Enviar"
+                        invisible="provider != 'validiti' or status not in ('pending', 'error')"/>
+                <button name="action_open_result_wizard" type="object" string="Resultado"
+                        invisible="status in ('approved', 'rejected', 'skipped')"/>
+                <button name="action_skip" type="object" string="Omitir"
+                        invisible="status in ('approved', 'rejected', 'skipped')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_risk_external_validation_form" model="ir.ui.view">
+        <field name="name">risk.external.validation.form</field>
+        <field name="model">risk.external.validation</field>
+        <field name="arch" type="xml">
+            <form string="Validacion Externa">
+                <header>
+                    <button name="action_send_to_validiti" type="object" string="Enviar a Validiti" class="btn-primary"
+                            invisible="provider != 'validiti' or status not in ('pending', 'error')"/>
+                    <button name="action_open_result_wizard" type="object" string="Registrar resultado"
+                            invisible="status in ('approved', 'rejected', 'skipped')"/>
+                    <button name="action_skip" type="object" string="Omitir validacion"
+                            invisible="status in ('approved', 'rejected', 'skipped')"/>
+                    <field name="status" widget="statusbar"
+                           statusbar_visible="pending,sent,manual_review,approved,rejected,error,skipped"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="submission_id"/>
+                            <field name="provider"/>
+                            <field name="profile"/>
+                            <field name="external_reference"/>
+                        </group>
+                        <group>
+                            <field name="decision"/>
+                            <field name="risk_score"/>
+                            <field name="requested_at"/>
+                            <field name="completed_at"/>
+                            <field name="requested_by_id"/>
+                            <field name="completed_by_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Resumen" name="summary_page">
+                            <field name="summary" nolabel="1"/>
+                        </page>
+                        <page string="Payload enviado" name="request_payload_page">
+                            <field name="request_payload" nolabel="1" readonly="1"/>
+                        </page>
+                        <page string="Respuesta / evidencia" name="response_payload_page">
+                            <field name="response_payload" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_risk_external_validation_search" model="ir.ui.view">
+        <field name="name">risk.external.validation.search</field>
+        <field name="model">risk.external.validation</field>
+        <field name="arch" type="xml">
+            <search string="Validaciones Externas">
+                <field name="submission_id"/>
+                <field name="provider"/>
+                <field name="external_reference"/>
+                <filter string="Pendientes" name="pending" domain="[('status', '=', 'pending')]"/>
+                <filter string="Enviadas" name="sent" domain="[('status', '=', 'sent')]"/>
+                <filter string="Revision manual" name="manual_review" domain="[('status', '=', 'manual_review')]"/>
+                <filter string="Aprobadas" name="approved" domain="[('status', '=', 'approved')]"/>
+                <filter string="Rechazadas" name="rejected" domain="[('status', '=', 'rejected')]"/>
+                <filter string="Proveedor" name="group_provider" context="{'group_by': 'provider'}"/>
+                <filter string="Estado" name="group_status" context="{'group_by': 'status'}"/>
+                <filter string="Solicitud" name="group_submission" context="{'group_by': 'submission_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_risk_external_validation" model="ir.actions.act_window">
+        <field name="name">Validaciones Externas</field>
+        <field name="res_model">risk.external.validation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>
