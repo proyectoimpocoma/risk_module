@@ -20,6 +20,13 @@ class RiskSubmission(models.Model):
     state = fields.Selection([
         ("draft", "Borrador"),
         ("submitted", "Enviado"),
+        ("risk_review", "En revision de riesgo"),
+        ("external_validation_pending", "Validacion externa pendiente"),
+        ("manual_approval_pending", "Pendiente aprobacion manual"),
+        ("documents_requested", "Documentos solicitados"),
+        ("documents_review", "Documentos en revision"),
+        ("approved", "Aprobado"),
+        ("rejected", "Rechazado"),
     ], string="Estado", default="draft", required=True)
     access_token = fields.Char(string="Token publico", default=lambda self: uuid.uuid4().hex, copy=False)
     form_date = fields.Date(string="Fecha", default=fields.Date.context_today)
@@ -110,6 +117,30 @@ class RiskSubmission(models.Model):
             'url': f'/registro-conductor/imprimir/{self.id}?token={self.access_token}',
             'target': 'new',
         }
+
+    def action_start_risk_review(self):
+        self.write({"state": "risk_review"})
+
+    def action_mark_external_validation_pending(self):
+        self.write({"state": "external_validation_pending"})
+
+    def action_skip_external_validation(self):
+        self.write({"state": "manual_approval_pending"})
+
+    def action_request_documents(self):
+        self.write({"state": "documents_requested"})
+
+    def action_start_document_review(self):
+        self.write({"state": "documents_review"})
+
+    def action_approve(self):
+        self.write({"state": "approved"})
+
+    def action_reject(self):
+        self.write({"state": "rejected"})
+
+    def action_reset_to_submitted(self):
+        self.write({"state": "submitted"})
 
     def _format_co_phone(self, phone):
         """Formatea un numero de telefono segun el estandar colombiano.
