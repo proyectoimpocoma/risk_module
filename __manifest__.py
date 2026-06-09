@@ -8,6 +8,7 @@
     "data": [
         "security/ir.model.access.csv",
         "views/risk_submission_report.xml",
+        "views/risk_submission_document_views.xml",
         "views/risk_submission_views.xml",
         "views/risk_approval_wizard_views.xml",
         "views/risk_submission_menus.xml",

@@ -7,5 +7,6 @@
 
     <menuitem id="menu_risk_module_root" name="Riesgo" sequence="60"/>
     <menuitem id="menu_risk_module_vehicle_requests" name="Vehiculos" parent="menu_risk_module_root" action="action_risk_module" sequence="10"/>
+    <menuitem id="menu_risk_module_documents" name="Documentos" parent="menu_risk_module_root" action="action_risk_module_document" sequence="20"/>
 
 </odoo>
