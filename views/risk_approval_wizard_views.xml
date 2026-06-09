@@ -1,0 +1,22 @@
+<odoo>
+    <record id="view_risk_approval_wizard_form" model="ir.ui.view">
+        <field name="name">risk.approval.wizard.form</field>
+        <field name="model">risk.approval.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Decision manual">
+                <group>
+                    <field name="submission_id"/>
+                    <field name="decision"/>
+                    <field name="approval_note" invisible="decision != 'approve'"
+                           placeholder="Comentario opcional para dejar trazabilidad de la aprobacion."/>
+                    <field name="rejection_reason" invisible="decision != 'reject'" required="decision == 'reject'"
+                           placeholder="Indica el motivo del rechazo."/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Confirmar" class="btn-primary"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

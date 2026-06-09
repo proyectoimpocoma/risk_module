@@ -4,11 +4,12 @@
     "category": "Custom",
     "author": "Angel",
     "summary": "Modulo para el departamento de riesgo en Impocoma",
-    "depends": ["base", "website"],
+    "depends": ["base", "website", "mail"],
     "data": [
         "security/ir.model.access.csv",
         "views/risk_submission_report.xml",
         "views/risk_submission_views.xml",
+        "views/risk_approval_wizard_views.xml",
         "views/risk_submission_menus.xml",
         "views/website_risk_submission_templates.xml",
     ],
