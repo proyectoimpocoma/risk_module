@@ -1,0 +1,10 @@
+<odoo>
+    <record id="action_report_risk_submission" model="ir.actions.report">
+        <field name="name">Hoja de Vida Habilitacion Terceros</field>
+        <field name="model">risk.module</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">risk_module.report_risk_submission_document</field>
+        <field name="report_file">risk_module.report_risk_submission_document</field>
+        <field name="print_report_name">'Hoja de vida - %s' % (object.vehicle_plate or '')</field>
+    </record>
+</odoo>

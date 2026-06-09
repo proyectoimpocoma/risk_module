@@ -1,49 +1,9 @@
 <odoo>
-    <record id="action_report_risk_submission" model="ir.actions.report">
-        <field name="name">Hoja de Vida Habilitacion Terceros</field>
-        <field name="model">risk.module</field>
-        <field name="report_type">qweb-html</field>
-        <field name="report_name">risk_module.report_risk_submission_document</field>
-        <field name="report_file">risk_module.report_risk_submission_document</field>
-        <field name="print_report_name">'Hoja de vida - %s' % (object.vehicle_plate or '')</field>
-    </record>
-
     <template id="report_risk_submission_document">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
                 <div class="page risk-report-page">
-                    <style>
-                        @page { size: Letter; margin: 0.15in; }
-                        html, body { margin: 0; padding: 0; background: #fff; }
-                        .risk-report-page { width: 8.2in; min-height: 10.7in; margin: 0 auto; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; color: #000; font-size: 7pt; line-height: 1.08; }
-                        .risk-report-header { display: table; width: 100%; border-collapse: separate; border-spacing: 2pt; margin-bottom: 2pt; }
-                        .risk-report-logo, .risk-report-title, .risk-report-meta { display: table-cell; border: 1px solid #f2a978; border-radius: 7pt; vertical-align: middle; height: 0.48in; }
-                        .risk-report-logo { width: 16%; text-align: center; }
-                        .risk-report-logo img { max-width: 0.86in; max-height: 0.38in; vertical-align: middle; }
-                        .risk-report-title { width: 66%; text-align: center; background: #f4b183; font-size: 12pt; font-weight: 800; line-height: 13pt; }
-                        .risk-report-meta { width: 18%; padding-left: 5pt; font-size: 7.2pt; font-weight: 800; line-height: 9pt; }
-                        .risk-report-date { width: 46%; border: 1px solid #f2a978; border-radius: 4pt; height: 0.18in; padding: 2pt 4pt; margin-bottom: 4pt; font-size: 7pt; }
-                        .risk-section-title { background: #f4b183; border-radius: 3pt; text-align: center; font-size: 8.5pt; font-weight: 800; font-style: italic; padding: 2pt; margin: 3pt 0; text-transform: uppercase; }
-                        .risk-box { border: 1px solid #f2a978; border-radius: 9pt; padding: 4pt; margin-bottom: 3pt; }
-                        .risk-row { display: table; width: 100%; table-layout: fixed; margin-bottom: 3pt; }
-                        .risk-cell { display: table-cell; vertical-align: bottom; padding-right: 5pt; white-space: nowrap; }
-                        .risk-label { font-weight: 500; }
-                        .risk-line { display: inline-block; border-bottom: 1px solid #d9783f; min-height: 8pt; vertical-align: bottom; padding: 0 2pt; white-space: normal; }
-                        .w7 { width: 7%; } .w10 { width: 10%; } .w11 { width: 11%; } .w15 { width: 15%; } .w20 { width: 20%; } .w23 { width: 23%; } .w25 { width: 25%; } .w27 { width: 27%; } .w30 { width: 30%; } .w31 { width: 31%; } .w35 { width: 35%; } .w40 { width: 40%; } .w45 { width: 45%; } .w48 { width: 48%; } .w50 { width: 50%; } .w55 { width: 55%; } .w60 { width: 60%; } .w63 { width: 63%; } .w65 { width: 65%; } .w70 { width: 70%; } .w75 { width: 75%; } .w78 { width: 78%; } .w80 { width: 80%; } .w100 { width: 100%; }
-                        .check { display: inline-block; width: 8pt; height: 8pt; border: 1px solid #b96a36; margin: 0 5pt 0 2pt; vertical-align: middle; text-align: center; line-height: 7pt; font-size: 6pt; }
-                        .checked:after { content: "X"; font-weight: 800; }
-                        .risk-small-text { border: 1px solid #f2a978; border-radius: 4pt; padding: 3pt 5pt; font-size: 5.2pt; line-height: 6.2pt; text-align: justify; margin-bottom: 3pt; }
-                        .risk-large-text { border: 1px solid #f2a978; border-radius: 16pt; padding: 7pt; font-size: 5.2pt; line-height: 6.2pt; text-align: justify; margin-bottom: 4pt; min-height: 2.55in; }
-                        .risk-signatures { display: table; width: 100%; border-spacing: 3pt 0; margin-top: 3pt; }
-                        .risk-signature-box { display: table-cell; width: 50%; border: 1px solid #f2a978; border-radius: 14pt; height: 1.05in; text-align: center; vertical-align: top; padding: 5pt; }
-                        .risk-signature-img { height: 0.38in; max-width: 90%; margin: 0.08in auto 1pt; display: block; }
-                        .risk-signature-line { border-bottom: 1px solid #d9783f; height: 0.13in; margin: 0.22in 22pt 3pt; }
-                        .risk-note { border: 1px solid #f2a978; border-radius: 6pt; padding: 5pt; font-size: 6pt; line-height: 7pt; margin-top: 3pt; }
-                        @media print {
-                            html, body { width: 8.5in; min-height: 11in; }
-                            .risk-report-page { page-break-after: always; margin: 0 auto; }
-                        }
-                    </style>
+                    <t t-call="risk_module.report_risk_submission_styles"/>
 
                     <div class="risk-report-header">
                         <div class="risk-report-logo">

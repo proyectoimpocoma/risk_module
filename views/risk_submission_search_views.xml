@@ -1,0 +1,16 @@
+<odoo>
+    <record id="view_risk_module_search" model="ir.ui.view">
+        <field name="name">risk.module.search</field>
+        <field name="model">risk.module</field>
+        <field name="arch" type="xml">
+            <search string="Solicitudes de Vehiculo">
+                <field name="vehicle_plate"/>
+                <field name="semi_trailer_plate"/>
+                <field name="satellite_company"/>
+                <field name="owner_name"/>
+                <field name="driver_name"/>
+                <filter string="Con empresa satelital" name="has_satellite_company" domain="[('satellite_company', '!=', False)]"/>
+            </search>
+        </field>
+    </record>
+</odoo>

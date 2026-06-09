@@ -1,0 +1,28 @@
+<odoo>
+    <record id="view_risk_module_list" model="ir.ui.view">
+        <field name="name">risk.module.list</field>
+        <field name="model">risk.module</field>
+        <field name="arch" type="xml">
+            <list string="Solicitudes de Vehiculo"
+                  decoration-success="state == 'approved'"
+                  decoration-danger="state == 'rejected'"
+                  decoration-info="state in ('submitted', 'risk_review', 'manual_approval_pending', 'documents_review')"
+                  decoration-warning="state in ('draft', 'external_validation_pending', 'documents_requested')">
+                <field name="create_date" string="Creado"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'approved'"
+                       decoration-danger="state == 'rejected'"
+                       decoration-info="state in ('submitted', 'risk_review', 'manual_approval_pending', 'documents_review')"
+                       decoration-warning="state in ('draft', 'external_validation_pending', 'documents_requested')"/>
+                <field name="form_date" string="Fecha"/>
+                <field name="vehicle_plate" string="Placa"/>
+                <field name="semi_trailer_plate" string="Semi/Remolque" optional="hide"/>
+                <field name="owner_name" string="Propietario / Empresa"/>
+                <field name="owner_city" string="Ciudad"/>
+                <field name="driver_name" string="Conductor"/>
+                <field name="satellite_company" string="Empresa Satelital" optional="hide"/>
+                <button name="action_open_printable" type="object" string="PDF" icon="fa-print"/>
+            </list>
+        </field>
+    </record>
+</odoo>

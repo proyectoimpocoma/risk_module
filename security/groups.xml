@@ -1,0 +1,27 @@
+<odoo>
+    <record id="module_category_risk" model="ir.module.category">
+        <field name="name">Riesgo</field>
+        <field name="description">Gestion de solicitudes, documentos y validaciones de riesgo.</field>
+        <field name="sequence">60</field>
+    </record>
+
+    <record id="res_groups_privilege_risk" model="res.groups.privilege">
+        <field name="name">Riesgo</field>
+        <field name="category_id" ref="module_category_risk"/>
+        <field name="sequence">60</field>
+    </record>
+
+    <record id="group_risk_user" model="res.groups">
+        <field name="name">Usuario de Riesgo</field>
+        <field name="privilege_id" ref="res_groups_privilege_risk"/>
+        <field name="sequence">10</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_risk_manager" model="res.groups">
+        <field name="name">Responsable de Riesgo</field>
+        <field name="privilege_id" ref="res_groups_privilege_risk"/>
+        <field name="sequence">20</field>
+        <field name="implied_ids" eval="[(4, ref('risk_module.group_risk_user'))]"/>
+    </record>
+</odoo>

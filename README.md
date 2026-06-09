@@ -188,13 +188,26 @@ python3 - <<'PY'
 from xml.etree import ElementTree as ET
 
 files = [
-    "views/risk_submission_report.xml",
+    "views/risk_submission_report_actions.xml",
+    "views/risk_submission_report_styles.xml",
+    "views/risk_submission_report_templates.xml",
     "views/risk_submission_document_views.xml",
     "views/risk_external_validation_views.xml",
-    "views/risk_submission_views.xml",
+    "views/risk_submission_list_views.xml",
+    "views/risk_submission_form_views.xml",
+    "views/risk_submission_search_views.xml",
+    "views/risk_submission_actions.xml",
     "views/risk_approval_wizard_views.xml",
     "views/risk_external_validation_result_wizard_views.xml",
     "views/risk_submission_menus.xml",
+    "views/website_risk_submission_step_vehicle.xml",
+    "views/website_risk_submission_step_owner.xml",
+    "views/website_risk_submission_step_driver.xml",
+    "views/website_risk_submission_step_terms.xml",
+    "views/website_risk_submission_step_signatures.xml",
+    "views/website_risk_submission_step_review.xml",
+    "views/website_risk_submission_terms_modal.xml",
+    "views/website_risk_submission_success.xml",
     "views/website_risk_submission_templates.xml",
 ]
 
@@ -212,39 +225,72 @@ node --check static/src/js/risk_submission_signatures.js
 node --check static/src/js/risk_submission_print.js
 ```
 
+Ejecutar tests del modulo:
+
+```bash
+PYTHONPATH=/Users/angel/Documents/Projects/odoo/odoo-19.0.post20260606 \
+/Users/angel/Documents/Projects/odoo/.venv/bin/python -m odoo \
+  -c /Users/angel/Documents/Projects/odoo/config/odoo.config \
+  --http-port=8071 \
+  -u risk_module \
+  --test-enable \
+  --test-tags /risk_module \
+  --stop-after-init
+```
+
 ## Estructura
 
 ```text
 risk_module/
 ├── controllers/
-│   └── risk_submission_controller.py
+│   ├── risk_submission_controller.py
+│   ├── risk_submission_form_mapper.py
+│   ├── risk_submission_form_schema.py
+│   ├── risk_submission_form_session.py
+│   ├── risk_submission_form_signatures.py
+│   └── risk_submission_form_validation.py
 ├── models/
 │   ├── risk_submission.py
+│   ├── risk_submission_documents.py
+│   ├── risk_submission_formatting.py
+│   ├── risk_submission_validations.py
+│   ├── risk_submission_validiti.py
+│   ├── risk_submission_workflow.py
 │   ├── risk_submission_document.py
 │   └── risk_external_validation.py
 ├── security/
+│   ├── groups.xml
 │   └── ir.model.access.csv
 ├── static/src/
 │   ├── css/
 │   └── js/
 ├── views/
-│   ├── risk_submission_views.xml
+│   ├── risk_submission_list_views.xml
+│   ├── risk_submission_form_views.xml
+│   ├── risk_submission_search_views.xml
+│   ├── risk_submission_actions.xml
 │   ├── risk_submission_document_views.xml
 │   ├── risk_external_validation_views.xml
-│   ├── risk_submission_report.xml
+│   ├── risk_submission_report_actions.xml
+│   ├── risk_submission_report_styles.xml
+│   ├── risk_submission_report_templates.xml
 │   ├── risk_submission_menus.xml
-│   └── website_risk_submission_templates.xml
-└── wizards/
-    ├── risk_approval_wizard.py
-    └── risk_external_validation_result_wizard.py
+│   ├── website_risk_submission_templates.xml
+│   ├── website_risk_submission_step_*.xml
+│   ├── website_risk_submission_terms_modal.xml
+│   └── website_risk_submission_success.xml
+├── wizards/
+│   ├── risk_approval_wizard.py
+│   └── risk_external_validation_result_wizard.py
+└── tests/
+    └── test_risk_submission.py
 ```
 
 ## Pendientes recomendados
 
-- Crear grupos propios de seguridad para usuarios y managers de riesgo.
-- Separar permisos de lectura/escritura para datos sensibles.
+- Asignar usuarios internos a los grupos `Usuario de Riesgo` o `Responsable de Riesgo`.
+- Revisar periodicamente permisos de datos sensibles como claves satelitales, firmas, IP y documentos.
 - Implementar API real de Validiti cuando haya documentacion.
 - Agregar actividades automaticas para responsables de revision documental.
 - Agregar alertas por vencimiento de documentos.
 - Crear portal/carga publica de documentos si los terceros deben subir archivos directamente.
-- Agregar pruebas automatizadas de transiciones de estado.

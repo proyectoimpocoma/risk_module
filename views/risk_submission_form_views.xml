@@ -1,31 +1,4 @@
 <odoo>
-    <record id="view_risk_module_list" model="ir.ui.view">
-        <field name="name">risk.module.list</field>
-        <field name="model">risk.module</field>
-        <field name="arch" type="xml">
-            <list string="Solicitudes de Vehiculo"
-                  decoration-success="state == 'approved'"
-                  decoration-danger="state == 'rejected'"
-                  decoration-info="state in ('submitted', 'risk_review', 'manual_approval_pending', 'documents_review')"
-                  decoration-warning="state in ('draft', 'external_validation_pending', 'documents_requested')">
-                <field name="create_date" string="Creado"/>
-                <field name="state" widget="badge"
-                       decoration-success="state == 'approved'"
-                       decoration-danger="state == 'rejected'"
-                       decoration-info="state in ('submitted', 'risk_review', 'manual_approval_pending', 'documents_review')"
-                       decoration-warning="state in ('draft', 'external_validation_pending', 'documents_requested')"/>
-                <field name="form_date" string="Fecha"/>
-                <field name="vehicle_plate" string="Placa"/>
-                <field name="semi_trailer_plate" string="Semi/Remolque" optional="hide"/>
-                <field name="owner_name" string="Propietario / Empresa"/>
-                <field name="owner_city" string="Ciudad"/>
-                <field name="driver_name" string="Conductor"/>
-                <field name="satellite_company" string="Empresa Satelital" optional="hide"/>
-                <button name="action_open_printable" type="object" string="PDF" icon="fa-print"/>
-            </list>
-        </field>
-    </record>
-
     <record id="view_risk_module_form" model="ir.ui.view">
         <field name="name">risk.module.form</field>
         <field name="model">risk.module</field>
@@ -40,19 +13,25 @@
                     <button name="action_send_external_validation" type="object" string="Enviar a Validiti"
                             invisible="state != 'external_validation_pending'"/>
                     <button name="action_register_external_validation_result" type="object" string="Registrar resultado Validiti"
-                            invisible="state != 'external_validation_pending'"/>
+                            invisible="state != 'external_validation_pending'"
+                            groups="risk_module.group_risk_manager"/>
                     <button name="action_skip_external_validation" type="object" string="Continuar a aprobacion manual"
-                            invisible="state not in ('risk_review', 'external_validation_pending')"/>
+                            invisible="state not in ('risk_review', 'external_validation_pending')"
+                            groups="risk_module.group_risk_manager"/>
                     <button name="action_request_documents" type="object" string="Solicitar documentos"
-                            invisible="state != 'manual_approval_pending'"/>
+                            invisible="state != 'manual_approval_pending'"
+                            groups="risk_module.group_risk_manager"/>
                     <button name="action_start_document_review" type="object" string="Revisar documentos"
                             invisible="state != 'documents_requested'"/>
                     <button name="action_approve" type="object" string="Aprobar" class="btn-primary"
-                            invisible="state != 'documents_review'"/>
+                            invisible="state != 'documents_review'"
+                            groups="risk_module.group_risk_manager"/>
                     <button name="action_reject" type="object" string="Rechazar"
-                            invisible="state in ('approved', 'rejected')"/>
+                            invisible="state in ('approved', 'rejected')"
+                            groups="risk_module.group_risk_manager"/>
                     <button name="action_reset_to_submitted" type="object" string="Reabrir"
-                            invisible="state not in ('approved', 'rejected')"/>
+                            invisible="state not in ('approved', 'rejected')"
+                            groups="risk_module.group_risk_manager"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,submitted,risk_review,external_validation_pending,manual_approval_pending,documents_requested,documents_review,approved,rejected"/>
                 </header>
@@ -284,32 +263,4 @@
             </form>
         </field>
     </record>
-
-    <record id="view_risk_module_search" model="ir.ui.view">
-        <field name="name">risk.module.search</field>
-        <field name="model">risk.module</field>
-        <field name="arch" type="xml">
-            <search string="Solicitudes de Vehiculo">
-                <field name="vehicle_plate"/>
-                <field name="semi_trailer_plate"/>
-                <field name="satellite_company"/>
-                <field name="owner_name"/>
-                <field name="driver_name"/>
-                <filter string="Con empresa satelital" name="has_satellite_company" domain="[('satellite_company', '!=', False)]"/>
-            </search>
-        </field>
-    </record>
-
-    <record id="action_risk_module_open_printable" model="ir.actions.server">
-        <field name="name">Imprimir / Guardar PDF</field>
-        <field name="model_id" ref="model_risk_module"/>
-        <field name="binding_model_id" ref="model_risk_module"/>
-        <field name="binding_type">action</field>
-        <field name="state">code</field>
-        <field name="code">
-if records:
-    action = records[0].action_open_printable()
-        </field>
-    </record>
-
 </odoo>

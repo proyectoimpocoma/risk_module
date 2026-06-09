@@ -1,0 +1,13 @@
+<odoo>
+    <record id="action_risk_module_open_printable" model="ir.actions.server">
+        <field name="name">Imprimir / Guardar PDF</field>
+        <field name="model_id" ref="model_risk_module"/>
+        <field name="binding_model_id" ref="model_risk_module"/>
+        <field name="binding_type">action</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    action = records[0].action_open_printable()
+        </field>
+    </record>
+</odoo>

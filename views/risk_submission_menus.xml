@@ -5,9 +5,9 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <menuitem id="menu_risk_module_root" name="Riesgo" sequence="60"/>
-    <menuitem id="menu_risk_module_vehicle_requests" name="Vehiculos" parent="menu_risk_module_root" action="action_risk_module" sequence="10"/>
-    <menuitem id="menu_risk_module_external_validations" name="Validaciones Externas" parent="menu_risk_module_root" action="action_risk_external_validation" sequence="20"/>
-    <menuitem id="menu_risk_module_documents" name="Documentos" parent="menu_risk_module_root" action="action_risk_module_document" sequence="30"/>
+    <menuitem id="menu_risk_module_root" name="Riesgo" sequence="60" groups="risk_module.group_risk_user"/>
+    <menuitem id="menu_risk_module_vehicle_requests" name="Vehiculos" parent="menu_risk_module_root" action="action_risk_module" sequence="10" groups="risk_module.group_risk_user"/>
+    <menuitem id="menu_risk_module_external_validations" name="Validaciones Externas" parent="menu_risk_module_root" action="action_risk_external_validation" sequence="20" groups="risk_module.group_risk_user"/>
+    <menuitem id="menu_risk_module_documents" name="Documentos" parent="menu_risk_module_root" action="action_risk_module_document" sequence="30" groups="risk_module.group_risk_user"/>
 
 </odoo>
