@@ -1,0 +1,10 @@
+<odoo>
+    <template id="risk_signup_login_link" inherit_id="web.login" name="Risk signup login link">
+        <xpath expr="//div[hasclass('oe_login_buttons')]/button[@type='submit']" position="after">
+            <a class="btn btn-outline-primary btn-sm mt-2"
+               href="/web/signup?redirect=/registro-conductor">
+                Crear cuenta para solicitud de riesgo
+            </a>
+        </xpath>
+    </template>
+</odoo>

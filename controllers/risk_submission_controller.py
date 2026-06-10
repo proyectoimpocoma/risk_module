@@ -1,4 +1,5 @@
 from datetime import date
+from urllib.parse import quote
 
 from odoo import fields, http
 from odoo.http import request
@@ -17,8 +18,10 @@ class RiskSubmissionController(
     RiskSubmissionFormMapperMixin,
     http.Controller,
 ):
-    @http.route("/registro-conductor", type="http", auth="user", website=True, sitemap=True)
+    @http.route("/registro-conductor", type="http", auth="public", website=True, sitemap=True)
     def register_driver(self, **kwargs):
+        if request.env.user._is_public():
+            return self._redirect_to_signup("/registro-conductor")
         self._reset_registration_session()
         return self._render_step(1)
 
@@ -36,8 +39,10 @@ class RiskSubmissionController(
             "docs": submission,
         })
 
-    @http.route("/registro-conductor/<int:step>", type="http", auth="user", website=True, sitemap=False)
+    @http.route("/registro-conductor/<int:step>", type="http", auth="public", website=True, sitemap=False)
     def register_driver_step(self, step=1, **kwargs):
+        if request.env.user._is_public():
+            return self._redirect_to_signup("/registro-conductor/%s" % step)
         return self._render_step(step)
 
     @http.route(
@@ -172,3 +177,6 @@ class RiskSubmissionController(
         if user.has_group("risk_module.group_risk_user"):
             return True
         return submission._portal_is_owned_by(user)
+
+    def _redirect_to_signup(self, redirect_url):
+        return request.redirect("/web/signup?redirect=%s" % quote(redirect_url, safe="/"))

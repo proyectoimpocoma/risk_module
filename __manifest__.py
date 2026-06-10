@@ -18,6 +18,7 @@
         "views/risk_submission_list_views.xml",
         "views/risk_submission_form_views.xml",
         "views/risk_submission_search_views.xml",
+        "views/risk_signup_login_views.xml",
         "views/risk_submission_actions.xml",
         "views/risk_approval_wizard_views.xml",
         "views/risk_external_validation_result_wizard_views.xml",
