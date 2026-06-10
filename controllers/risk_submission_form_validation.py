@@ -7,6 +7,7 @@ from .risk_submission_form_schema import (
     EMAIL_REGEX,
     NIT_REGEX,
     PLATE_REGEX,
+    SEMI_TRAILER_PLATE_REGEX,
     TEXT_LIMITS,
 )
 
@@ -54,10 +55,10 @@ class RiskSubmissionFormValidationMixin:
                 "La placa del vehiculo debe tener formato colombiano valido: "
                 "ABC123 para vehiculo/carga o ABC12 para motocicleta."
             )
-        if semi_trailer_plate and not PLATE_REGEX.match(semi_trailer_plate):
+        if semi_trailer_plate and not SEMI_TRAILER_PLATE_REGEX.match(semi_trailer_plate):
             return (
-                "La placa del semi/remolque debe tener formato colombiano valido: "
-                "ABC123 o ABC12."
+                "La placa del semi/remolque debe tener formato valido: "
+                "A12345 (una letra y cinco numeros)."
             )
         return None
 

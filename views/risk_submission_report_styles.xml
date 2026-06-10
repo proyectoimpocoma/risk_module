@@ -13,6 +13,9 @@
             .risk-report-date { width: 46%; border: 1px solid #f2a978; border-radius: 4pt; height: 0.18in; padding: 2pt 4pt; margin-bottom: 4pt; font-size: 7pt; }
             .risk-section-title { background: #f4b183; border-radius: 3pt; text-align: center; font-size: 8.5pt; font-weight: 800; font-style: italic; padding: 2pt; margin: 3pt 0; text-transform: uppercase; }
             .risk-box { border: 1px solid #f2a978; border-radius: 9pt; padding: 4pt; margin-bottom: 3pt; }
+            .risk-table { width: 100%; border-collapse: collapse; margin-bottom: 3pt; }
+            .risk-table td { padding: 2pt 4pt; vertical-align: top; border-bottom: 1px solid #f2a978; text-align: left; }
+            .risk-table td.risk-check-cell, .risk-cell.risk-check-cell { text-align: right; }
             .risk-row { display: table; width: 100%; table-layout: fixed; margin-bottom: 3pt; }
             .risk-cell { display: table-cell; vertical-align: bottom; padding-right: 5pt; white-space: nowrap; }
             .risk-label { font-weight: 500; }

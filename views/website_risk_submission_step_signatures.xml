@@ -1,7 +1,8 @@
 <odoo>
     <template id="register_driver_step_signatures" name="Registro Vehiculo Paso Firmas">
         <div t-if="data.get('signature_error')" class="risk-error" t-esc="data.get('signature_error')"/>
-        <div class="risk-signature-card">
+
+        <div t-if="step == 5" class="risk-signature-card">
             <h3>Propietario / Tenedor / Representante Legal</h3>
             <p>Si el propietario cuenta con estudio vigente, no debe diligenciar el siguiente espacio.</p>
             <div class="risk-choice-row">
@@ -26,7 +27,7 @@
             </div>
         </div>
 
-        <div class="risk-signature-card">
+        <div t-if="step == 6" class="risk-signature-card">
             <h3>Conductor</h3>
             <p>Si el conductor cuenta con estudio vigente, no debe diligenciar el siguiente espacio.</p>
             <div class="risk-choice-row">

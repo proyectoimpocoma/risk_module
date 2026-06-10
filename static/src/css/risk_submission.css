@@ -101,15 +101,15 @@
     text-transform: uppercase;
 }
 .risk-choice-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     align-items: center;
-    flex-wrap: wrap;
     gap: 16px;
     grid-column: 1 / -1;
     font-weight: 700;
 }
 .risk-choice-row span {
-    margin-right: 8px;
+    min-width: 0;
 }
 .risk-choice {
     display: inline-flex;
@@ -118,6 +118,7 @@
     margin: 0;
     text-transform: none;
     font-size: 15px;
+    justify-self: end;
 }
 .risk-choice input {
     width: 22px;

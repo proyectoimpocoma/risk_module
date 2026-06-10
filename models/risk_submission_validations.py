@@ -5,6 +5,7 @@ from odoo.exceptions import ValidationError
 
 
 PLATE_REGEX = re.compile(r"^[A-Z]{3}[0-9]{2,3}$")
+SEMI_TRAILER_PLATE_REGEX = re.compile(r"^[A-Z][0-9]{5}$")
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$")
 
 
@@ -25,7 +26,9 @@ class RiskSubmissionValidations(models.Model):
     def _check_driver_email(self):
         """Valida que el correo del conductor tenga un formato valido."""
         for record in self:
-            if record.driver_email and not EMAIL_REGEX.match(record.driver_email.strip()):
+            if record.driver_email and not EMAIL_REGEX.match(
+                record.driver_email.strip()
+            ):
                 raise ValidationError(
                     f'El correo "{record.driver_email}" no tiene un formato valido.\n'
                     "Ejemplo: conductor@empresa.com"
@@ -89,7 +92,9 @@ class RiskSubmissionValidations(models.Model):
     def _check_optional_phone(self):
         """Valida telefono opcional fijo o movil."""
         for record in self:
-            if record.driver_optional_phone and not self._is_valid_phone(record.driver_optional_phone):
+            if record.driver_optional_phone and not self._is_valid_phone(
+                record.driver_optional_phone
+            ):
                 raise ValidationError(
                     "El telefono opcional debe tener 7 digitos o 10 digitos iniciando por 3 o 6."
                 )
@@ -106,12 +111,21 @@ class RiskSubmissionValidations(models.Model):
                 if not plate:
                     continue
                 normalized = self._normalize_plate(plate)
-                if not PLATE_REGEX.match(normalized):
+                if field_name == "vehicle_plate":
+                    valid = PLATE_REGEX.match(normalized)
+                else:
+                    valid = SEMI_TRAILER_PLATE_REGEX.match(normalized)
+                if not valid:
+                    if field_name == "vehicle_plate":
+                        raise ValidationError(
+                            f'{label} "{normalized}" no tiene el formato colombiano valido.\n'
+                            "Formatos aceptados:\n"
+                            "  • Vehiculo / carga: ABC123 (3 letras + 3 digitos)\n"
+                            "  • Motocicleta     : ABC12  (3 letras + 2 digitos)"
+                        )
                     raise ValidationError(
-                        f'{label} "{normalized}" no tiene el formato colombiano valido.\n'
-                        "Formatos aceptados:\n"
-                        "  • Vehiculo / carga: ABC123 (3 letras + 3 digitos)\n"
-                        "  • Motocicleta     : ABC12  (3 letras + 2 digitos)"
+                        f'{label} "{normalized}" no tiene el formato valido.\n'
+                        "Formato aceptado: A12345 (una letra y cinco digitos)."
                     )
 
     @api.onchange("vehicle_plate")
@@ -140,15 +154,13 @@ class RiskSubmissionValidations(models.Model):
         if not self.semi_trailer_plate:
             return
         self.semi_trailer_plate = self._normalize_plate(self.semi_trailer_plate)
-        if not PLATE_REGEX.match(self.semi_trailer_plate):
+        if not SEMI_TRAILER_PLATE_REGEX.match(self.semi_trailer_plate):
             return {
                 "warning": {
                     "title": "Formato de semi/remolque invalido",
                     "message": (
-                        f'La placa "{self.semi_trailer_plate}" no tiene el formato colombiano valido.\n\n'
-                        "Formatos aceptados:\n"
-                        "  • Remolque / carga: ABC123 (3 letras + 3 digitos)\n"
-                        "  • Motocicleta     : ABC12  (3 letras + 2 digitos)"
+                        f'La placa "{self.semi_trailer_plate}" debe tener el formato A12345.\n'
+                        "Una letra seguida de cinco digitos."
                     ),
                 }
             }
