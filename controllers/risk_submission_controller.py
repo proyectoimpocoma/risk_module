@@ -235,9 +235,7 @@ class RiskSubmissionController(
         owner_document_ok = data.get("owner_signature_document") and CC_REGEX.match(
             data.get("owner_signature_document")
         )
-        return not owner_required or (
-            data.get("owner_signature") and owner_document_ok
-        )
+        return not owner_required or (data.get("owner_signature") and owner_document_ok)
 
     def _is_driver_signature_valid(self, data):
         driver_required = data.get("driver_has_valid_study") != "yes"
