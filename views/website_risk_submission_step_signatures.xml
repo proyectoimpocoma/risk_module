@@ -25,7 +25,8 @@
                 <label for="owner_signature_document_display">Firma y número de cédula</label>
                 <input id="owner_signature_document_display" type="text"
                        t-att-value="('%s - %s' % (data.get('owner_name') or '', data.get('owner_document_number') or '')) if data.get('owner_document_number') else (data.get('owner_signature_document') or '')"
-                       readonly="readonly"/>
+                       readonly="readonly"
+                       placeholder="Aquí se mostrará el nombre y cédula del propietario"/>
                 <input type="hidden" name="owner_signature_document"
                        t-att-value="data.get('owner_signature_document') or data.get('owner_document_number')"/>
             </div>
