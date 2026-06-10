@@ -5,8 +5,9 @@
     "author": "Angel",
     "website": "https://www.impocoma.com",
     "summary": "Modulo para el departamento de riesgo en Impocoma",
-    "depends": ["base", "website", "mail"],
+    "depends": ["base", "website", "mail", "portal", "auth_signup"],
     "data": [
+        "data/risk_signup_config.xml",
         "security/groups.xml",
         "security/ir.model.access.csv",
         "views/risk_submission_report_actions.xml",
@@ -29,6 +30,7 @@
         "views/website_risk_submission_step_review.xml",
         "views/website_risk_submission_terms_modal.xml",
         "views/website_risk_submission_success.xml",
+        "views/website_risk_submission_portal.xml",
         "views/website_risk_submission_templates.xml",
     ],
     "assets": {

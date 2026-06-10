@@ -11,6 +11,8 @@ El modulo cubre el primer flujo operativo para integrar conductores y vehiculos 
 - `base`
 - `website`
 - `mail`
+- `portal`
+- `auth_signup`
 
 ## Modelos principales
 
@@ -51,6 +53,14 @@ Ruta principal:
 ```text
 /registro-conductor
 ```
+
+El tercero debe iniciar sesion antes de llenar la solicitud. Si no tiene cuenta, puede registrarse desde:
+
+```text
+/web/signup?redirect=/registro-conductor
+```
+
+El modulo activa el registro abierto de portal con `auth_signup.invitation_scope = b2c`, por lo que el login debe mostrar el enlace de creacion de cuenta despues de actualizar el modulo.
 
 Ruta imprimible protegida por token:
 

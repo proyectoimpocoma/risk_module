@@ -1,0 +1,93 @@
+<odoo>
+    <template id="portal_risk_submission_list" name="Mis Solicitudes de Riesgo">
+        <t t-call="website.layout">
+            <main class="container py-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="h3 mb-0">Mis solicitudes de riesgo</h1>
+                    <a href="/registro-conductor" class="btn btn-primary">Nueva solicitud</a>
+                </div>
+                <div t-if="not submissions" class="alert alert-info">
+                    No tienes solicitudes registradas.
+                </div>
+                <div t-if="submissions" class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Placa</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="submissions" t-as="submission">
+                                <td><strong t-esc="submission.vehicle_plate"/></td>
+                                <td t-esc="submission.form_date or ''"/>
+                                <td><span class="badge text-bg-secondary" t-esc="submission.portal_state_label"/></td>
+                                <td class="text-end">
+                                    <a t-attf-href="/mis-solicitudes-riesgo/#{submission.id}" class="btn btn-sm btn-outline-primary">Ver detalle</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </t>
+    </template>
+
+    <template id="portal_risk_submission_detail" name="Detalle Solicitud de Riesgo">
+        <t t-call="website.layout">
+            <main class="container py-5">
+                <div class="mb-4">
+                    <a href="/mis-solicitudes-riesgo" class="btn btn-link px-0">Volver a mis solicitudes</a>
+                    <h1 class="h3 mb-1">Solicitud <span t-esc="submission.vehicle_plate"/></h1>
+                    <div class="text-muted" t-esc="submission.name or ''"/>
+                </div>
+
+                <div t-if="request.params.get('upload_success')" class="alert alert-success">
+                    Documento cargado correctamente.
+                </div>
+                <div t-if="request.params.get('upload_error') == 'missing'" class="alert alert-danger">
+                    Debes seleccionar un archivo para cargar.
+                </div>
+
+                <section class="mb-4">
+                    <h2 class="h5">Estado</h2>
+                    <p><span class="badge text-bg-secondary" t-esc="submission.portal_state_label"/></p>
+                    <p t-if="submission.rejection_reason" class="alert alert-danger" t-esc="submission.rejection_reason"/>
+                    <p t-if="submission.message" class="alert alert-light" t-esc="submission.message"/>
+                    <a t-attf-href="/registro-conductor/imprimir/#{submission.id}?token=#{submission.access_token}" target="_blank" class="btn btn-outline-secondary">Abrir vista imprimible</a>
+                </section>
+
+                <section>
+                    <h2 class="h5">Documentos solicitados</h2>
+                    <div t-if="not submission.document_ids" class="alert alert-info">
+                        Aun no tienes documentos solicitados.
+                    </div>
+                    <div t-if="submission.document_ids" class="list-group">
+                        <div t-foreach="submission.document_ids.sorted('sequence')" t-as="document" class="list-group-item">
+                            <div class="d-flex justify-content-between gap-3">
+                                <div>
+                                    <strong t-esc="document.name"/>
+                                    <div class="text-muted small">
+                                        Estado: <span t-esc="dict(document._fields['state'].selection).get(document.state)"/>
+                                    </div>
+                                    <div t-if="document.observations" class="text-danger small" t-esc="document.observations"/>
+                                </div>
+                                <form t-if="submission._portal_document_upload_allowed(document)"
+                                      t-attf-action="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/subir"
+                                      method="post"
+                                      enctype="multipart/form-data"
+                                      class="d-flex align-items-center gap-2">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <input type="file" name="document_file" class="form-control form-control-sm" required="required"/>
+                                    <button type="submit" class="btn btn-sm btn-primary">Subir</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </t>
+    </template>
+</odoo>

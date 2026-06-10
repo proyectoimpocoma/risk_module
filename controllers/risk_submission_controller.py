@@ -17,29 +17,33 @@ class RiskSubmissionController(
     RiskSubmissionFormMapperMixin,
     http.Controller,
 ):
-    @http.route("/registro-conductor", type="http", auth="public", website=True, sitemap=True)
+    @http.route("/registro-conductor", type="http", auth="user", website=True, sitemap=True)
     def register_driver(self, **kwargs):
         self._reset_registration_session()
         return self._render_step(1)
 
-    @http.route("/registro-conductor/imprimir/<int:submission_id>", type="http", auth="public", website=True, sitemap=False)
+    @http.route("/registro-conductor/imprimir/<int:submission_id>", type="http", auth="user", website=True, sitemap=False)
     def register_driver_print(self, submission_id, token=None, **kwargs):
         submission = request.env["risk.module"].sudo().browse(submission_id).exists()
-        if not submission or submission.access_token != token:
+        if (
+            not submission
+            or submission.access_token != token
+            or not self._can_access_submission(submission)
+        ):
             return request.not_found()
 
         return request.render("risk_module.report_risk_submission_document", {
             "docs": submission,
         })
 
-    @http.route("/registro-conductor/<int:step>", type="http", auth="public", website=True, sitemap=False)
+    @http.route("/registro-conductor/<int:step>", type="http", auth="user", website=True, sitemap=False)
     def register_driver_step(self, step=1, **kwargs):
         return self._render_step(step)
 
     @http.route(
         "/registro-conductor/submit/<int:step>",
         type="http",
-        auth="public",
+        auth="user",
         website=True,
         methods=["POST"],
     )
@@ -107,6 +111,8 @@ class RiskSubmissionController(
         self._stamp_signature_metadata(data)
         self._persist_step_data(5, data)
         submission = self._create_or_update_submission(data, state="draft")
+        if not submission:
+            return request.not_found()
         data["submission_id"] = submission.id
         data["submission_token"] = submission.access_token
         request.session["risk_vehicle_form"] = data
@@ -130,6 +136,8 @@ class RiskSubmissionController(
 
         self._merge_persisted_step_data(data)
         submission = self._create_or_update_submission(data, state="submitted")
+        if not submission:
+            return request.not_found()
         self._reset_registration_session()
         return request.render("risk_module.register_driver_success", {
             "submission": submission,
@@ -158,3 +166,9 @@ class RiskSubmissionController(
             "data": data,
             "print_url": self._print_url(data),
         })
+
+    def _can_access_submission(self, submission):
+        user = request.env.user
+        if user.has_group("risk_module.group_risk_user"):
+            return True
+        return submission._portal_is_owned_by(user)

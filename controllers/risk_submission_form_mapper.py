@@ -60,12 +60,15 @@ class RiskSubmissionFormMapperMixin:
             "driver_signature_ip": data.get("driver_signature_ip"),
             "driver_signature_user_agent": data.get("driver_signature_user_agent"),
             "message": data.get("message"),
+            **request.env["risk.module"]._portal_ownership_values(request.env.user),
         }
 
     def _create_or_update_submission(self, data, state):
         self._merge_persisted_step_data(data)
         submission_id = data.get("submission_id") or request.session.get("risk_submission_id")
         submission = request.env["risk.module"].sudo().browse(int(submission_id or 0)).exists()
+        if submission and submission.partner_id and not submission._portal_is_owned_by(request.env.user):
+            return False
         values = self._submission_values(data, state)
         if submission:
             submission.write(values)

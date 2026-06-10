@@ -23,6 +23,31 @@ class RiskSubmission(models.Model):
         ("rejected", "Rechazado"),
     ], string="Estado", default="draft", required=True, tracking=True)
     access_token = fields.Char(string="Token publico", default=lambda self: uuid.uuid4().hex, copy=False)
+    partner_id = fields.Many2one(
+        "res.partner",
+        string="Tercero portal",
+        index=True,
+        copy=False,
+        tracking=True,
+    )
+    portal_user_id = fields.Many2one(
+        "res.users",
+        string="Usuario portal",
+        index=True,
+        copy=False,
+        tracking=True,
+    )
+    submitted_by_id = fields.Many2one(
+        "res.users",
+        string="Enviado por",
+        index=True,
+        copy=False,
+        tracking=True,
+    )
+    portal_state_label = fields.Char(
+        string="Estado portal",
+        compute="_compute_portal_state_label",
+    )
     form_date = fields.Date(string="Fecha", default=fields.Date.context_today)
     vehicle_plate = fields.Char(string="Placa", required=True)
     semi_trailer_plate = fields.Char(string="Semi/Remolque")
@@ -152,6 +177,45 @@ class RiskSubmission(models.Model):
         string="Validaciones externas",
         copy=False,
     )
+
+    @api.depends("state")
+    def _compute_portal_state_label(self):
+        labels = {
+            "draft": "En revision",
+            "submitted": "En revision",
+            "risk_review": "En revision",
+            "external_validation_pending": "En revision",
+            "manual_approval_pending": "En revision",
+            "documents_requested": "Documentos solicitados",
+            "documents_review": "Documentos en revision",
+            "approved": "Aprobada",
+            "rejected": "Rechazada",
+        }
+        for record in self:
+            record.portal_state_label = labels.get(record.state, "En revision")
+
+    def _portal_document_upload_allowed(self, document, user=None):
+        self.ensure_one()
+        if user and not self._portal_is_owned_by(user):
+            return False
+        return (
+            self.state == "documents_requested"
+            and document
+            and document.submission_id == self
+            and document.state in ("pending", "rejected")
+        )
+
+    def _portal_is_owned_by(self, user):
+        self.ensure_one()
+        return bool(self.partner_id and self.partner_id == user.partner_id)
+
+    @api.model
+    def _portal_ownership_values(self, user):
+        return {
+            "partner_id": user.partner_id.id,
+            "portal_user_id": user.id,
+            "submitted_by_id": user.id,
+        }
 
     def action_open_printable(self):
         """Abre la hoja de vida imprimible desde la vista interna."""

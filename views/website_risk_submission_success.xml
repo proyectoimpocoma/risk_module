@@ -6,6 +6,7 @@
                     Solicitud registrada para el vehiculo <strong t-esc="submission.vehicle_plate"/>.
                 </div>
                 <a t-attf-href="/registro-conductor/imprimir/#{submission.id}?token=#{submission.access_token}" target="_blank" class="btn btn-secondary">Abrir vista imprimible</a>
+                <a t-attf-href="/mis-solicitudes-riesgo/#{submission.id}" class="btn btn-secondary">Ver estado</a>
                 <a href="/registro-conductor" class="btn btn-primary">Crear otra solicitud</a>
             </main>
         </t>
