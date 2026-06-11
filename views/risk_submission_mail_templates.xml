@@ -73,6 +73,43 @@
             </field>
         </record>
 
+        <record id="email_template_risk_submission_document_rejected" model="mail.template">
+            <field name="name">Documento rechazado</field>
+            <field name="model_id" ref="risk_module.model_risk_module"/>
+            <field name="subject">Documento rechazado - {{ ctx.get('rejected_document_name') or 'Documento' }}</field>
+            <field name="email_from">reporte@impocoma.com</field>
+            <field name="email_to">{{ object._document_rejected_email_to() }}</field>
+            <field name="auto_delete" eval="False"/>
+            <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-size: 13px;">
+    <p>Hola <t t-out="object.partner_id.name or object.owner_name or 'usuario'"/>,</p>
+    <p>
+        El documento <strong><t t-out="ctx.get('rejected_document_name') or 'Documento'"/></strong>
+        de tu solicitud de riesgo del vehiculo
+        <strong t-out="object.vehicle_plate or ''">ABC123</strong> ha sido rechazado.
+    </p>
+    <p>
+        Motivo del rechazo:
+        <strong><t t-out="ctx.get('rejection_observations') or 'No especificado'"/></strong>
+    </p>
+    <p>
+        Referencia:
+        <strong t-out="object.name or ('Solicitud #' + str(object.id))">Solicitud</strong>
+    </p>
+    <p>
+        Puedes revisar los detalles en el portal:
+        <br/>
+        <a t-att-href="object._portal_submission_absolute_url()" target="_blank">
+            Ver mi solicitud
+        </a>
+    </p>
+    <p>
+        Si tienes dudas, responde a este correo o comunicate con el equipo de riesgo.
+    </p>
+</div>
+            </field>
+        </record>
+
         <record id="email_template_owner_signature_code" model="mail.template">
             <field name="name">Codigo de verificacion firma propietario</field>
             <field name="model_id" ref="risk_module.model_risk_module"/>

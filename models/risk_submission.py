@@ -626,6 +626,62 @@ class RiskSubmission(models.Model):
 
         return sent
 
+    def _document_rejected_email_to(self):
+        """Return the best available email address for rejected-document notifications."""
+        self.ensure_one()
+        return (
+            self.partner_id.email
+            or self.owner_email
+            or self.portal_user_id.email
+            or self.submitted_by_id.email
+            or self.driver_email
+        )
+
+    def action_send_document_rejected_email(self, document):
+        template = self.env.ref(
+            "risk_module.email_template_risk_submission_document_rejected",
+            raise_if_not_found=False,
+        )
+        if not template:
+            _logger.warning("Risk document rejected template not found")
+            return False
+
+        recipient = self._document_rejected_email_to()
+        if not recipient:
+            _logger.warning(
+                "Risk document rejected email skipped without recipient submission_id=%s document_id=%s",
+                self.id,
+                getattr(document, "id", None),
+            )
+            return False
+
+        self._queue_mail_after_commit(
+            template=template,
+            record_id=self.id,
+            email_values={
+                "email_from": "reporte@impocoma.com",
+                "reply_to": "reporte@impocoma.com",
+                "email_to": recipient,
+                "recipient_ids": [(5, 0, 0)],
+            },
+            force_send=True,
+            template_context={
+                "rejected_document_name": document.name,
+                "rejection_observations": document.observations or "",
+            },
+            success_message="Correo de documento rechazado enviado a %s." % recipient,
+            failure_message="No fue posible enviar el correo de documento rechazado a %s."
+            % recipient,
+        )
+
+        _logger.info(
+            "Document rejected email scheduled after commit submission_id=%s document_id=%s recipient=%s",
+            self.id,
+            getattr(document, "id", None),
+            recipient,
+        )
+        return True
+
     def _signature_party_config(self, party):
         """Return the signature configuration mapping for the requested party.
 

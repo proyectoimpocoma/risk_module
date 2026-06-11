@@ -131,3 +131,6 @@ class RiskSubmissionDocument(models.Model):
                 raise ValidationError("Debes indicar observaciones para rechazar un documento.")
         _logger.info("Rejecting risk documents document_ids=%s user_id=%s", self.ids, self.env.user.id)
         self.write({"state": "rejected"})
+        for record in self:
+            if record.submission_id:
+                record.submission_id.action_send_document_rejected_email(record)
