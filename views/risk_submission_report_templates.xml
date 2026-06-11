@@ -125,18 +125,19 @@
                         </div>
                     </div>
                     <div class="risk-box">
+                        
                         <div class="risk-row">
                             <div class="risk-cell w78">SE DECLARA FISICA, MENTAL Y PSICOTECNICAMENTE APTO PARA PRESTAR SUS SERVICIOS?</div>
-                            <div class="risk-cell w11">SI<span
+                            <div class="risk-cell w11 risk-check-cell">SI<span
                                     t-att-class="'check checked' if o.driver_is_fit == 'yes' else 'check'" /></div>
-                            <div class="risk-cell w11">NO<span
+                            <div class="risk-cell w11 risk-check-cell">NO<span
                                     t-att-class="'check checked' if o.driver_is_fit == 'no' else 'check'" /></div>
                         </div>
                         <div class="risk-row">
                             <div class="risk-cell w78">ESTA CAPACITADO Y ENTRENADO PARA CONTINGENCIAS Y PREVENCION DE ACCIDENTES POR CARRETERAS?</div>
-                            <div class="risk-cell w11">SI<span
+                            <div class="risk-cell w11 risk-check-cell">SI<span
                                     t-att-class="'check checked' if o.driver_is_trained == 'yes' else 'check'" /></div>
-                            <div class="risk-cell w11">NO<span
+                            <div class="risk-cell w11 risk-check-cell">NO<span
                                     t-att-class="'check checked' if o.driver_is_trained == 'no' else 'check'" /></div>
                         </div>
                         <div class="risk-row">

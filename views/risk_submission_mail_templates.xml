@@ -1,0 +1,15 @@
+<odoo>
+  <record id="email_template_risk_submission_confirmation" model="mail.template">
+    <field name="name">Confirmación de registro de solicitud</field>
+    <field name="model_id" ref="risk_module.model_risk_module"/>
+    <field name="email_from">${(user.email or 'noreply@impocoma.com')|safe}</field>
+    <field name="email_to">${object.owner_email or object.driver_email}</field>
+    <field name="subject">Solicitud recibida: ${object.vehicle_plate}</field>
+    <field name="body_html"><![CDATA[
+      <p>Su solicitud de habilitación fue registrada correctamente.</p>
+      <p>Placa: <strong>${object.vehicle_plate}</strong></p>
+      <p>Conductor: <strong>${object.driver_name}</strong></p>
+      <p>Si los datos no son correctos, por favor responda a este correo.</p>
+    ]]></field>
+  </record>
+</odoo>

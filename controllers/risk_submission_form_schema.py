@@ -2,6 +2,7 @@ import re
 
 
 PLATE_REGEX = re.compile(r"^[A-Z]{3}[0-9]{2,3}$")
+SEMI_TRAILER_PLATE_REGEX = re.compile(r"^[A-Z][0-9]{5}$")
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$")
 CC_REGEX = re.compile(r"^[0-9]{6,10}$")
 NIT_REGEX = re.compile(r"^[0-9]{9}(-[0-9])?$")
@@ -92,6 +93,8 @@ STEP_FIELDS = {
         "owner_signed_at",
         "owner_signature_ip",
         "owner_signature_user_agent",
+    ),
+    6: (
         "driver_has_valid_study",
         "driver_signature",
         "driver_signature_document",
@@ -99,7 +102,7 @@ STEP_FIELDS = {
         "driver_signature_ip",
         "driver_signature_user_agent",
     ),
-    6: ("message",),
+    7: ("message",),
 }
 
 STEP_SESSION_KEYS = {
@@ -109,4 +112,5 @@ STEP_SESSION_KEYS = {
     4: "risk_step_4_form",
     5: "risk_step_5_form",
     6: "risk_step_6_form",
+    7: "risk_step_7_form",
 }

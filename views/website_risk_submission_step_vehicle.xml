@@ -2,27 +2,27 @@
     <template id="register_driver_step_vehicle" name="Registro Vehiculo Paso Vehiculo">
         <div class="risk-field">
             <label for="form_date">Fecha</label>
-            <input id="form_date" name="form_date" type="date" t-att-value="data.get('form_date')" required="required"/>
+            <input id="form_date" name="form_date" type="date" t-att-value="data.get('form_date')" required="required" placeholder="Selecciona la fecha de registro"/>
         </div>
         <div class="risk-field">
             <label for="vehicle_plate">Placa</label>
-            <input id="vehicle_plate" name="vehicle_plate" type="text" t-att-value="data.get('vehicle_plate')" required="required" autocomplete="off" pattern="[A-Za-z]{3}[0-9]{2,3}" title="Formato valido: ABC123 para vehiculo/carga o ABC12 para motocicleta"/>
+            <input id="vehicle_plate" name="vehicle_plate" type="text" t-att-value="data.get('vehicle_plate')" required="required" autocomplete="off" pattern="[A-Za-z]{3}[0-9]{2,3}" title="Formato valido: ABC123 para vehiculo/carga o ABC12 para motocicleta" placeholder="Ej: ABC123"/>
         </div>
         <div class="risk-field risk-field-full">
             <label for="semi_trailer_plate">Semi/Remolque</label>
-            <input id="semi_trailer_plate" name="semi_trailer_plate" type="text" t-att-value="data.get('semi_trailer_plate')" autocomplete="off" pattern="[A-Za-z]{3}[0-9]{2,3}" title="Formato valido: ABC123 o ABC12"/>
+            <input id="semi_trailer_plate" name="semi_trailer_plate" type="text" t-att-value="data.get('semi_trailer_plate')" autocomplete="off" pattern="[A-Za-z][0-9]{5}" title="Formato valido: A12345 (una letra y cinco numeros)" placeholder="Ej: A12345"/>
         </div>
         <div class="risk-field">
             <label for="satellite_company">Empresa satelital</label>
-            <input id="satellite_company" name="satellite_company" type="text" t-att-value="data.get('satellite_company')" maxlength="80" autocomplete="off"/>
+            <input id="satellite_company" name="satellite_company" type="text" t-att-value="data.get('satellite_company')" maxlength="80" autocomplete="off" placeholder="Nombre de la empresa de rastreo"/>
         </div>
         <div class="risk-field">
             <label for="satellite_user">Usuario</label>
-            <input id="satellite_user" name="satellite_user" type="text" t-att-value="data.get('satellite_user')" maxlength="80" autocomplete="off"/>
+            <input id="satellite_user" name="satellite_user" type="text" t-att-value="data.get('satellite_user')" maxlength="80" autocomplete="off" placeholder="Usuario de la cuenta satelital"/>
         </div>
         <div class="risk-field risk-field-full">
             <label for="satellite_password">Clave</label>
-            <input id="satellite_password" name="satellite_password" type="password" t-att-value="data.get('satellite_password')" maxlength="80" autocomplete="off"/>
+            <input id="satellite_password" name="satellite_password" type="password" t-att-value="data.get('satellite_password')" maxlength="80" autocomplete="off" placeholder="Contraseña de la cuenta satelital"/>
         </div>
     </template>
 </odoo>

@@ -42,22 +42,23 @@
                             <field name="vehicle_plate" placeholder="Placa del vehículo"/>
                         </h1>
                         <h2>
-                            <field name="name" placeholder="Referencia"/>
+                            <field name="name" placeholder="Referencia interna o número de solicitud"/>
                         </h2>
                     </div>
 
                     <group>
                         <group string="Información General">
                             <field name="form_date"/>
-                            <field name="semi_trailer_plate"/>
+                            <field name="semi_trailer_plate" placeholder="Placa del semirremolque"/>
                             <field name="partner_id" readonly="1"/>
                             <field name="portal_user_id" readonly="1"/>
                             <field name="submitted_by_id" readonly="1"/>
+                            <field name="risk_reviewer_id" readonly="1"/>
                         </group>
                         <group string="Información Satelital">
-                            <field name="satellite_company"/>
-                            <field name="satellite_user"/>
-                            <field name="satellite_password" password="True"/>
+                            <field name="satellite_company" placeholder="Empresa satelital"/>
+                            <field name="satellite_user" placeholder="Usuario satelital"/>
+                            <field name="satellite_password" password="True" placeholder="Contraseña satelital"/>
                         </group>
                     </group>
 
@@ -66,29 +67,29 @@
                         <page string="Propietario / Tenedor" name="owner_page">
                             <group string="Datos del Propietario / Tenedor / Poseedor">
                                 <group>
-                                    <field name="owner_name"/>
+                                    <field name="owner_name" placeholder="Nombre completo del propietario"/>
                                     <field name="owner_document_type"/>
-                                    <field name="owner_document_number"/>
-                                    <field name="owner_address"/>
-                                    <field name="owner_neighborhood"/>
+                                    <field name="owner_document_number" placeholder="Número del documento"/>
+                                    <field name="owner_address" placeholder="Dirección completa"/>
+                                    <field name="owner_neighborhood" placeholder="Barrio o zona"/>
                                 </group>
                                 <group>
-                                    <field name="owner_city"/>
-                                    <field name="owner_phone"/>
-                                    <field name="owner_email"/>
-                                    <field name="advance_payment_to"/>
-                                    <field name="same_owner_on_license"/>
+                                    <field name="owner_city" placeholder="Ciudad"/>
+                                    <field name="owner_phone" placeholder="Teléfono principal"/>
+                                    <field name="owner_email" placeholder="Correo electrónico"/>
+                                    <field name="advance_payment_to" placeholder="Persona o cuenta de pago"/>
+                                    <field name="same_owner_on_license" widget="boolean_button"/>
                                 </group>
                             </group>
                             <group string="Propietario Registrado en Licencia"
                                    invisible="same_owner_on_license != 'no'">
                                 <group>
                                     <field name="registered_owner_document_type"/>
-                                    <field name="registered_owner_document_number"/>
+                                    <field name="registered_owner_document_number" placeholder="Documento del propietario registrado"/>
                                 </group>
                                 <group>
-                                    <field name="registered_owner_name"/>
-                                    <field name="registered_owner_phone"/>
+                                    <field name="registered_owner_name" placeholder="Nombre registrado en la licencia"/>
+                                    <field name="registered_owner_phone" placeholder="Teléfono del propietario registrado"/>
                                 </group>
                             </group>
                         </page>
@@ -97,29 +98,29 @@
                         <page string="Conductor" name="driver_page">
                             <group string="Datos del Conductor">
                                 <group>
-                                    <field name="driver_name"/>
-                                    <field name="driver_document_number"/>
-                                    <field name="driver_address"/>
-                                    <field name="driver_neighborhood"/>
-                                    <field name="driver_city"/>
+                                    <field name="driver_name" placeholder="Nombre completo del conductor"/>
+                                    <field name="driver_document_number" placeholder="Documento del conductor"/>
+                                    <field name="driver_address" placeholder="Dirección del conductor"/>
+                                    <field name="driver_neighborhood" placeholder="Barrio del conductor"/>
+                                    <field name="driver_city" placeholder="Ciudad del conductor"/>
                                 </group>
                                 <group>
-                                    <field name="driver_phone"/>
-                                    <field name="driver_optional_phone"/>
-                                    <field name="driver_email"/>
-                                    <field name="driver_is_fit"/>
-                                    <field name="driver_is_trained"/>
+                                    <field name="driver_phone" placeholder="Teléfono principal"/>
+                                    <field name="driver_optional_phone" placeholder="Teléfono secundario (opcional)"/>
+                                    <field name="driver_email" placeholder="Correo electrónico del conductor"/>
+                                    <field name="driver_is_fit" widget="boolean_button"/>
+                                    <field name="driver_is_trained" widget="boolean_button"/>
                                 </group>
                             </group>
                             <group string="Referencias del Conductor">
                                 <group>
-                                    <field name="family_reference_name"/>
-                                    <field name="family_reference_relationship"/>
-                                    <field name="family_reference_phone"/>
+                                    <field name="family_reference_name" placeholder="Nombre de referencia familiar"/>
+                                    <field name="family_reference_relationship" placeholder="Parentesco"/>
+                                    <field name="family_reference_phone" placeholder="Teléfono referencia familiar"/>
                                 </group>
                                 <group>
-                                    <field name="cargo_reference_name"/>
-                                    <field name="cargo_reference_phone"/>
+                                    <field name="cargo_reference_name" placeholder="Nombre referencia laboral"/>
+                                    <field name="cargo_reference_phone" placeholder="Teléfono referencia laboral"/>
                                 </group>
                             </group>
                         </page>
@@ -128,9 +129,9 @@
                         <page string="Firmas y Términos" name="signatures_page">
                             <group string="Aceptación de Términos">
                                 <group>
-                                    <field name="banking_info_accepted"/>
-                                    <field name="compensation_accepted"/>
-                                    <field name="personal_data_accepted"/>
+                                    <field name="banking_info_accepted" widget="boolean_button"/>
+                                    <field name="compensation_accepted" widget="boolean_button"/>
+                                    <field name="personal_data_accepted" widget="boolean_button"/>
                                 </group>
                                 <group>
                                     <field name="terms_accepted_at"/>
@@ -138,8 +139,8 @@
                             </group>
                             <group string="Firma Propietario">
                                 <group>
-                                    <field name="owner_has_valid_study"/>
-                                    <field name="owner_signature_document"/>
+                                    <field name="owner_has_valid_study" widget="boolean_button"/>
+                                    <field name="owner_signature_document" placeholder="Documento que respalda la firma"/>
                                     <field name="owner_signed_at"/>
                                 </group>
                                 <group>
@@ -148,8 +149,8 @@
                             </group>
                             <group string="Firma Conductor">
                                 <group>
-                                    <field name="driver_has_valid_study"/>
-                                    <field name="driver_signature_document"/>
+                                    <field name="driver_has_valid_study" widget="boolean_button"/>
+                                    <field name="driver_signature_document" placeholder="Documento que respalda la firma"/>
                                     <field name="driver_signed_at"/>
                                 </group>
                                 <group>
@@ -257,7 +258,7 @@
                         <!-- Pestaña 5: Observaciones -->
                         <page string="Observaciones" name="notes_page">
                             <group>
-                                <field name="message" nolabel="1"/>
+                                <field name="message" nolabel="1" placeholder="Escriba observaciones o notas adicionales"/>
                             </group>
                         </page>
                     </notebook>

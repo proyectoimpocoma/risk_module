@@ -2,35 +2,35 @@
     <template id="register_driver_step_driver" name="Registro Vehiculo Paso Conductor">
         <div class="risk-field">
             <label for="driver_name">Nombres y apellidos</label>
-            <input id="driver_name" name="driver_name" type="text" t-att-value="data.get('driver_name')" required="required" maxlength="140" minlength="3" autocomplete="off"/>
+            <input id="driver_name" name="driver_name" type="text" t-att-value="data.get('driver_name')" required="required" maxlength="140" minlength="3" autocomplete="off" placeholder="Ej: Luis Gomez"/>
         </div>
         <div class="risk-field">
             <label for="driver_document_number">Numero de cedula</label>
-            <input id="driver_document_number" name="driver_document_number" type="text" t-att-value="data.get('driver_document_number')" required="required" inputmode="numeric" pattern="[0-9]{6,10}" title="Cedula de 6 a 10 digitos numericos" autocomplete="off"/>
+            <input id="driver_document_number" name="driver_document_number" type="text" t-att-value="data.get('driver_document_number')" required="required" inputmode="numeric" pattern="[0-9]{6,10}" title="Cedula de 6 a 10 digitos numericos" autocomplete="off" placeholder="Solo numeros"/>
         </div>
         <div class="risk-field">
             <label for="driver_address">Direccion</label>
-            <input id="driver_address" name="driver_address" type="text" t-att-value="data.get('driver_address')" maxlength="140" autocomplete="off"/>
+            <input id="driver_address" name="driver_address" type="text" t-att-value="data.get('driver_address')" maxlength="140" autocomplete="off" placeholder="Calle 123 #45-67"/>
         </div>
         <div class="risk-field">
             <label for="driver_neighborhood">Barrio</label>
-            <input id="driver_neighborhood" name="driver_neighborhood" type="text" t-att-value="data.get('driver_neighborhood')" maxlength="80" autocomplete="off"/>
+            <input id="driver_neighborhood" name="driver_neighborhood" type="text" t-att-value="data.get('driver_neighborhood')" maxlength="80" autocomplete="off" placeholder="Barrio"/>
         </div>
         <div class="risk-field">
             <label for="driver_city">Ciudad</label>
-            <input id="driver_city" name="driver_city" type="text" t-att-value="data.get('driver_city')" maxlength="80" autocomplete="off"/>
+            <input id="driver_city" name="driver_city" type="text" t-att-value="data.get('driver_city')" maxlength="80" autocomplete="off" placeholder="Ciudad"/>
         </div>
         <div class="risk-field">
             <label for="driver_phone">Numero de celular para notificaciones y autorizaciones electronicas</label>
-            <input id="driver_phone" name="driver_phone" type="tel" t-att-value="data.get('driver_phone')" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off"/>
+            <input id="driver_phone" name="driver_phone" type="tel" t-att-value="data.get('driver_phone')" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
         </div>
         <div class="risk-field">
             <label for="driver_optional_phone">Telefono opcional</label>
-            <input id="driver_optional_phone" name="driver_optional_phone" type="tel" t-att-value="data.get('driver_optional_phone')" inputmode="numeric" pattern="[0-9 ()+-]{7,16}" title="Telefono de 7 digitos o 10 digitos iniciando por 3 o 6" autocomplete="off"/>
+            <input id="driver_optional_phone" name="driver_optional_phone" type="tel" t-att-value="data.get('driver_optional_phone')" inputmode="numeric" pattern="[0-9 ()+-]{7,16}" title="Telefono de 7 digitos o 10 digitos iniciando por 3 o 6" autocomplete="off" placeholder="Ej: 3123456789"/>
         </div>
         <div class="risk-field risk-field-full">
             <label for="driver_email">Correo electronico de autorizacion para notificaciones</label>
-            <input id="driver_email" name="driver_email" type="email" t-att-value="data.get('driver_email')" maxlength="120" autocomplete="off"/>
+            <input id="driver_email" name="driver_email" type="email" t-att-value="data.get('driver_email')" maxlength="120" autocomplete="off" placeholder="ejemplo@dominio.com"/>
         </div>
 
         <div class="risk-choice-row">
@@ -58,23 +58,23 @@
 
         <div class="risk-field">
             <label for="family_reference_name">Referencia familiar</label>
-            <input id="family_reference_name" name="family_reference_name" type="text" t-att-value="data.get('family_reference_name')" maxlength="140" autocomplete="off"/>
+            <input id="family_reference_name" name="family_reference_name" type="text" t-att-value="data.get('family_reference_name')" maxlength="140" autocomplete="off" placeholder="Nombre de la persona de confianza"/>
         </div>
         <div class="risk-field">
             <label for="family_reference_relationship">Parentesco</label>
-            <input id="family_reference_relationship" name="family_reference_relationship" type="text" t-att-value="data.get('family_reference_relationship')" maxlength="80" autocomplete="off"/>
+            <input id="family_reference_relationship" name="family_reference_relationship" type="text" t-att-value="data.get('family_reference_relationship')" maxlength="80" autocomplete="off" placeholder="Ej: Hermano, Padre, Amigo"/>
         </div>
         <div class="risk-field">
             <label for="family_reference_phone">Celular</label>
-            <input id="family_reference_phone" name="family_reference_phone" type="tel" t-att-value="data.get('family_reference_phone')" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off"/>
+            <input id="family_reference_phone" name="family_reference_phone" type="tel" t-att-value="data.get('family_reference_phone')" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
         </div>
         <div class="risk-field">
             <label for="cargo_reference_name">Referencia transporte de carga</label>
-            <input id="cargo_reference_name" name="cargo_reference_name" type="text" t-att-value="data.get('cargo_reference_name')" maxlength="140" autocomplete="off"/>
+            <input id="cargo_reference_name" name="cargo_reference_name" type="text" t-att-value="data.get('cargo_reference_name')" maxlength="140" autocomplete="off" placeholder="Nombre de la referencia laboral"/>
         </div>
         <div class="risk-field">
             <label for="cargo_reference_phone">Celular</label>
-            <input id="cargo_reference_phone" name="cargo_reference_phone" type="tel" t-att-value="data.get('cargo_reference_phone')" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off"/>
+            <input id="cargo_reference_phone" name="cargo_reference_phone" type="tel" t-att-value="data.get('cargo_reference_phone')" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
         </div>
     </template>
 </odoo>
