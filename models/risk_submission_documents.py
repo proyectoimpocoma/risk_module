@@ -18,6 +18,7 @@ class RiskSubmissionDocuments(models.Model):
             if created_count:
                 body = "%s Se generaron %s documentos requeridos." % (body, created_count)
             record.message_post(body=body)
+            record.action_send_documents_requested_email()
             _logger.info(
                 "Documents requested submission_id=%s created_count=%s total_documents=%s",
                 record.id,
