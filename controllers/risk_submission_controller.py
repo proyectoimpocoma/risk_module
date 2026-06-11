@@ -1,3 +1,4 @@
+import logging
 from datetime import date
 
 from odoo import fields, http
@@ -8,6 +9,8 @@ from .risk_submission_form_schema import CC_REGEX, STEP_FIELDS, STEP_SESSION_KEY
 from .risk_submission_form_session import RiskSubmissionFormSessionMixin
 from .risk_submission_form_signatures import RiskSubmissionFormSignatureMixin
 from .risk_submission_form_validation import RiskSubmissionFormValidationMixin
+
+_logger = logging.getLogger(__name__)
 
 
 class RiskSubmissionController(
@@ -29,7 +32,13 @@ class RiskSubmissionController(
         Si el usuario ya está autenticado, reinicia la sesión de registro y muestra el primer paso.
         """
         if request.env.user._is_public():
+            _logger.info("Anonymous user redirected from risk registration start")
             return self._redirect_to_signup("/registro-conductor")
+        _logger.info(
+            "Risk registration started user_id=%s partner_id=%s",
+            request.env.user.id,
+            request.env.user.partner_id.id,
+        )
         self._reset_registration_session()
         return self._render_step(1)
 
@@ -52,8 +61,20 @@ class RiskSubmissionController(
             or submission.access_token != token
             or not self._can_access_submission(submission)
         ):
+            _logger.warning(
+                "Printable risk submission denied submission_id=%s user_id=%s exists=%s token_match=%s",
+                submission_id,
+                request.env.user.id,
+                bool(submission),
+                bool(submission and submission.access_token == token),
+            )
             return request.not_found()
 
+        _logger.info(
+            "Printable risk submission opened submission_id=%s user_id=%s",
+            submission.id,
+            request.env.user.id,
+        )
         return request.render(
             "risk_module.report_risk_submission_document",
             {
@@ -74,7 +95,14 @@ class RiskSubmissionController(
         La ruta es pública, pero si el usuario es anónimo redirige al login antes de mostrar el paso.
         """
         if request.env.user._is_public():
+            _logger.info("Anonymous user redirected from risk registration step=%s", step)
             return self._redirect_to_signup("/registro-conductor/%s" % step)
+        _logger.debug(
+            "Rendering risk registration step=%s user_id=%s session_submission_id=%s",
+            step,
+            request.env.user.id,
+            request.session.get("risk_submission_id"),
+        )
         return self._render_step(step)
 
     @http.route(
@@ -93,6 +121,13 @@ class RiskSubmissionController(
         - Si step 7: procesa el envío final con observaciones.
         """
         data = request.session.get("risk_vehicle_form", {})
+        _logger.info(
+            "Risk registration POST step=%s user_id=%s posted_fields=%s session_submission_id=%s",
+            step,
+            request.env.user.id,
+            sorted(post.keys()),
+            request.session.get("risk_submission_id"),
+        )
 
         if step == 4:
             return self._post_terms_step(data, post)
@@ -107,10 +142,17 @@ class RiskSubmissionController(
         self._normalize_step_data(step, data)
         validation_error = self._validate_step(step, data)
         if validation_error:
+            _logger.warning(
+                "Risk registration validation failed step=%s user_id=%s error=%s",
+                step,
+                request.env.user.id,
+                validation_error,
+            )
             data["step_error"] = validation_error
             request.session["risk_vehicle_form"] = data
             return self._render_step(step)
 
+        _logger.debug("Risk registration step=%s validated user_id=%s", step, request.env.user.id)
         data.pop("step_error", None)
         self._persist_step_data(step, data)
         request.session["risk_vehicle_form"] = data
@@ -127,10 +169,12 @@ class RiskSubmissionController(
         Si la aceptación falta, vuelve a renderizar el paso 4 con un mensaje de error.
         """
         if post.get("terms_accepted") != "1":
+            _logger.warning("Risk registration terms not accepted user_id=%s", request.env.user.id)
             data["terms_error"] = "Debes leer y aceptar los terminos para continuar."
             request.session["risk_vehicle_form"] = data
             return self._render_step(4)
 
+        _logger.info("Risk registration terms accepted user_id=%s", request.env.user.id)
         data.update(
             {
                 "terms_accepted": "1",
@@ -159,10 +203,16 @@ class RiskSubmissionController(
 
         validation_error = self._validate_owner_signature_step(data)
         if validation_error:
+            _logger.warning(
+                "Owner signature validation failed user_id=%s error=%s",
+                request.env.user.id,
+                validation_error,
+            )
             data["signature_error"] = validation_error
             request.session["risk_vehicle_form"] = data
             return self._render_step(5)
 
+        _logger.info("Owner signature step completed user_id=%s", request.env.user.id)
         self._stamp_owner_signature_metadata(data)
         self._persist_step_data(5, data)
         request.session["risk_vehicle_form"] = data
@@ -175,16 +225,33 @@ class RiskSubmissionController(
 
         validation_error = self._validate_driver_signature_step(data)
         if validation_error:
+            _logger.warning(
+                "Driver signature validation failed user_id=%s error=%s",
+                request.env.user.id,
+                validation_error,
+            )
             data["signature_error"] = validation_error
             request.session["risk_vehicle_form"] = data
             return self._render_step(6)
 
+        _logger.info("Driver signature step completed user_id=%s", request.env.user.id)
         self._stamp_driver_signature_metadata(data)
         self._persist_step_data(6, data)
         submission = self._create_or_update_submission(data, state="draft")
         if not submission:
+            _logger.warning(
+                "Risk submission draft blocked by ownership user_id=%s session_submission_id=%s",
+                request.env.user.id,
+                request.session.get("risk_submission_id"),
+            )
             return request.not_found()
 
+        _logger.info(
+            "Risk submission draft saved submission_id=%s user_id=%s plate=%s",
+            submission.id,
+            request.env.user.id,
+            submission.vehicle_plate,
+        )
         data["submission_id"] = submission.id
         data["submission_token"] = submission.access_token
         request.session["risk_vehicle_form"] = data
@@ -201,11 +268,17 @@ class RiskSubmissionController(
             data.get("terms_accepted") != "1"
             and request.session.get("risk_terms_accepted") != "1"
         ):
+            _logger.warning("Risk submission final blocked by missing terms user_id=%s", request.env.user.id)
             data["terms_error"] = "Debes leer y aceptar los terminos para continuar."
             request.session["risk_vehicle_form"] = data
             return self._render_step(4)
 
         if not self._signatures_are_valid(data):
+            _logger.warning(
+                "Risk submission final blocked by invalid signatures user_id=%s first_invalid_step=%s",
+                request.env.user.id,
+                self._first_invalid_signature_step(data),
+            )
             data["signature_error"] = self._signature_error_message(data)
             request.session["risk_vehicle_form"] = data
             return self._render_step(self._first_invalid_signature_step(data))
@@ -213,7 +286,18 @@ class RiskSubmissionController(
         self._merge_persisted_step_data(data)
         submission = self._create_or_update_submission(data, state="submitted")
         if not submission:
+            _logger.warning(
+                "Risk submission final blocked by ownership user_id=%s session_submission_id=%s",
+                request.env.user.id,
+                request.session.get("risk_submission_id"),
+            )
             return request.not_found()
+        _logger.info(
+            "Risk submission submitted submission_id=%s user_id=%s plate=%s",
+            submission.id,
+            request.env.user.id,
+            submission.vehicle_plate,
+        )
         self._reset_registration_session()
         return request.render(
             "risk_module.register_driver_success",
@@ -253,6 +337,7 @@ class RiskSubmissionController(
         especiales de los pasos de términos, firmas y revisión antes de renderizar.
         """
         if step not in STEP_SESSION_KEYS:
+            _logger.warning("Invalid risk registration step requested step=%s user_id=%s", step, request.env.user.id)
             return request.redirect("/registro-conductor")
 
         data = request.session.get("risk_vehicle_form", {})
@@ -265,14 +350,30 @@ class RiskSubmissionController(
             and data.get("terms_accepted") != "1"
             and request.session.get("risk_terms_accepted") != "1"
         ):
+            _logger.warning(
+                "Risk registration step=%s redirected to terms user_id=%s",
+                step,
+                request.env.user.id,
+            )
             data["terms_error"] = "Debes leer y aceptar los terminos para continuar."
             request.session["risk_vehicle_form"] = data
             return self._render_step(4)
         if step == 7 and not self._signatures_are_valid(data):
+            _logger.warning(
+                "Risk registration review redirected to invalid signature step=%s user_id=%s",
+                self._first_invalid_signature_step(data),
+                request.env.user.id,
+            )
             data["signature_error"] = self._signature_error_message(data)
             request.session["risk_vehicle_form"] = data
             return self._render_step(self._first_invalid_signature_step(data))
 
+        _logger.debug(
+            "Risk registration render step=%s user_id=%s data_keys=%s",
+            step,
+            request.env.user.id,
+            sorted(data.keys()),
+        )
         return request.render(
             "risk_module.register_driver",
             {
@@ -290,12 +391,25 @@ class RiskSubmissionController(
         """
         user = request.env.user
         if user.has_group("risk_module.group_risk_user"):
+            _logger.debug(
+                "Risk submission access granted by internal group user_id=%s submission_id=%s",
+                user.id,
+                submission.id,
+            )
             return True
-        return submission._portal_is_owned_by(user)
+        allowed = submission._portal_is_owned_by(user)
+        _logger.debug(
+            "Risk submission portal ownership checked user_id=%s submission_id=%s allowed=%s",
+            user.id,
+            submission.id,
+            allowed,
+        )
+        return allowed
 
     def _redirect_to_signup(self, redirect_url):
         """Redirige al usuario al login de Odoo con destino final configurado.
 
         Actualmente redirige a /web/login?redirect=/mis-solicitudes-riesgo.
         """
+        _logger.info("Redirecting user to login/signup target=%s", redirect_url)
         return request.redirect("/web/login?redirect=/mis-solicitudes-riesgo")

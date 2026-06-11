@@ -1,4 +1,8 @@
+import logging
+
 from odoo import fields, models
+
+_logger = logging.getLogger(__name__)
 
 
 class RiskSubmissionValiditi(models.Model):
@@ -7,6 +11,12 @@ class RiskSubmissionValiditi(models.Model):
     def action_mark_external_validation_pending(self):
         for record in self:
             validation = record._ensure_validiti_validation()
+            _logger.info(
+                "Marking external validation pending submission_id=%s validation_id=%s user_id=%s",
+                record.id,
+                validation.id,
+                self.env.user.id,
+            )
             record.write({"state": "external_validation_pending"})
             record.message_post(
                 body="Validacion externa pendiente con %s." % validation.provider.title()
@@ -15,11 +25,23 @@ class RiskSubmissionValiditi(models.Model):
     def action_send_external_validation(self):
         for record in self:
             validation = record._ensure_validiti_validation()
+            _logger.info(
+                "Sending external validation submission_id=%s validation_id=%s user_id=%s",
+                record.id,
+                validation.id,
+                self.env.user.id,
+            )
             validation.action_send_to_validiti()
 
     def action_register_external_validation_result(self):
         self.ensure_one()
         validation = self._ensure_validiti_validation()
+        _logger.info(
+            "Opening external validation result wizard submission_id=%s validation_id=%s user_id=%s",
+            self.id,
+            validation.id,
+            self.env.user.id,
+        )
         return validation.action_open_result_wizard()
 
     def _ensure_validiti_validation(self):
@@ -28,16 +50,20 @@ class RiskSubmissionValiditi(models.Model):
             lambda item: item.provider == "validiti" and item.status in ("pending", "sent", "error")
         )[:1]
         if validation:
+            _logger.debug("Reusing Validiti validation submission_id=%s validation_id=%s status=%s", self.id, validation.id, validation.status)
             return validation
-        return self.env["risk.external.validation"].create({
+        validation = self.env["risk.external.validation"].create({
             "submission_id": self.id,
             "provider": "validiti",
             "profile": "transport_driver_vehicle",
             "status": "pending",
         })
+        _logger.info("Created Validiti validation submission_id=%s validation_id=%s", self.id, validation.id)
+        return validation
 
     def _prepare_validiti_payload(self):
         self.ensure_one()
+        _logger.debug("Preparing Validiti payload submission_id=%s plate=%s", self.id, self.vehicle_plate)
         return {
             "provider": "validiti",
             "profile": "transport_driver_vehicle",

@@ -1,5 +1,9 @@
+import logging
+
 from odoo import fields, models
 from odoo.exceptions import ValidationError
+
+_logger = logging.getLogger(__name__)
 
 
 class RiskExternalValidationResultWizard(models.TransientModel):
@@ -26,7 +30,19 @@ class RiskExternalValidationResultWizard(models.TransientModel):
     def action_confirm(self):
         self.ensure_one()
         if not (self.summary or "").strip():
+            _logger.warning(
+                "External validation result wizard blocked missing summary validation_id=%s user_id=%s",
+                self.validation_id.id,
+                self.env.user.id,
+            )
             raise ValidationError("Debes escribir un resumen del resultado.")
+        _logger.info(
+            "External validation result wizard confirmed validation_id=%s submission_id=%s decision=%s user_id=%s",
+            self.validation_id.id,
+            self.validation_id.submission_id.id,
+            self.decision,
+            self.env.user.id,
+        )
         self.validation_id.apply_manual_result(
             self.decision,
             self.summary.strip(),

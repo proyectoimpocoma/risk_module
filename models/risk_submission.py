@@ -1,6 +1,9 @@
+import logging
 import uuid
 
 from odoo import api, fields, models
+
+_logger = logging.getLogger(__name__)
 
 
 class RiskSubmission(models.Model):
@@ -197,20 +200,45 @@ class RiskSubmission(models.Model):
     def _portal_document_upload_allowed(self, document, user=None):
         self.ensure_one()
         if user and not self._portal_is_owned_by(user):
+            _logger.warning(
+                "Portal document upload ownership denied submission_id=%s document_id=%s user_id=%s",
+                self.id,
+                document.id if document else None,
+                user.id,
+            )
             return False
-        return (
+        allowed = (
             self.state == "documents_requested"
             and document
             and document.submission_id == self
             and document.state in ("pending", "rejected")
         )
+        _logger.debug(
+            "Portal document upload rule evaluated submission_id=%s document_id=%s submission_state=%s document_state=%s allowed=%s",
+            self.id,
+            document.id if document else None,
+            self.state,
+            document.state if document else None,
+            allowed,
+        )
+        return allowed
 
     def _portal_is_owned_by(self, user):
         self.ensure_one()
-        return bool(self.partner_id and self.partner_id == user.partner_id)
+        owned = bool(self.partner_id and self.partner_id == user.partner_id)
+        _logger.debug(
+            "Portal ownership evaluated submission_id=%s user_id=%s partner_id=%s owner_partner_id=%s owned=%s",
+            self.id,
+            user.id,
+            user.partner_id.id,
+            self.partner_id.id,
+            owned,
+        )
+        return owned
 
     @api.model
     def _portal_ownership_values(self, user):
+        _logger.debug("Preparing portal ownership values user_id=%s partner_id=%s", user.id, user.partner_id.id)
         return {
             "partner_id": user.partner_id.id,
             "portal_user_id": user.id,
@@ -221,7 +249,9 @@ class RiskSubmission(models.Model):
         """Abre la hoja de vida imprimible desde la vista interna."""
         self.ensure_one()
         if not self.access_token:
+            _logger.info("Generating printable access token submission_id=%s", self.id)
             self.access_token = uuid.uuid4().hex
+        _logger.info("Opening printable action submission_id=%s user_id=%s", self.id, self.env.user.id)
         return {
             "type": "ir.actions.act_url",
             "name": "Hoja de Vida Imprimible",
@@ -232,6 +262,7 @@ class RiskSubmission(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         """Normaliza placas y ciudad del propietario antes de crear."""
+        _logger.info("Creating risk submissions count=%s user_id=%s", len(vals_list), self.env.user.id)
         for vals in vals_list:
             if vals.get("vehicle_plate"):
                 vals["vehicle_plate"] = self._normalize_plate(vals["vehicle_plate"])
@@ -239,14 +270,40 @@ class RiskSubmission(models.Model):
                 vals["semi_trailer_plate"] = self._normalize_plate(vals["semi_trailer_plate"])
             if vals.get("owner_city"):
                 vals["owner_city"] = self._normalize_city(vals["owner_city"])
-        return super().create(vals_list)
+        records = super().create(vals_list)
+        for record in records:
+            _logger.info(
+                "Risk submission created submission_id=%s plate=%s state=%s partner_id=%s",
+                record.id,
+                record.vehicle_plate,
+                record.state,
+                record.partner_id.id,
+            )
+        return records
 
     def write(self, vals):
         """Normaliza placas y ciudad del propietario antes de escribir."""
+        old_states = {record.id: record.state for record in self}
+        _logger.debug(
+            "Writing risk submissions ids=%s user_id=%s fields=%s",
+            self.ids,
+            self.env.user.id,
+            sorted(vals.keys()),
+        )
         if vals.get("vehicle_plate"):
             vals["vehicle_plate"] = self._normalize_plate(vals["vehicle_plate"])
         if vals.get("semi_trailer_plate"):
             vals["semi_trailer_plate"] = self._normalize_plate(vals["semi_trailer_plate"])
         if vals.get("owner_city"):
             vals["owner_city"] = self._normalize_city(vals["owner_city"])
-        return super().write(vals)
+        result = super().write(vals)
+        if "state" in vals:
+            for record in self:
+                _logger.info(
+                    "Risk submission state changed submission_id=%s old_state=%s new_state=%s user_id=%s",
+                    record.id,
+                    old_states.get(record.id),
+                    record.state,
+                    self.env.user.id,
+                )
+        return result

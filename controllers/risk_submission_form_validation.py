@@ -1,3 +1,4 @@
+import logging
 import re
 from datetime import date
 
@@ -11,9 +12,13 @@ from .risk_submission_form_schema import (
     TEXT_LIMITS,
 )
 
+_logger = logging.getLogger(__name__)
+
 
 class RiskSubmissionFormValidationMixin:
     def _normalize_step_data(self, step, data):
+        before_plate = data.get("vehicle_plate")
+        before_semi = data.get("semi_trailer_plate")
         if step == 1:
             for field in ("vehicle_plate", "semi_trailer_plate"):
                 if data.get(field):
@@ -22,10 +27,19 @@ class RiskSubmissionFormValidationMixin:
             for field in ("owner_city", "driver_city"):
                 if data.get(field):
                     data[field] = data[field].strip().title()
+        if before_plate != data.get("vehicle_plate") or before_semi != data.get("semi_trailer_plate"):
+            _logger.debug(
+                "Normalized vehicle data step=%s plate=%s semi_present=%s",
+                step,
+                data.get("vehicle_plate"),
+                bool(data.get("semi_trailer_plate")),
+            )
 
     def _validate_step(self, step, data):
+        _logger.debug("Validating risk registration step=%s", step)
         length_error = self._validate_text_lengths(data)
         if length_error:
+            _logger.warning("Risk registration length/choice validation failed step=%s error=%s", step, length_error)
             return length_error
 
         if step == 1:

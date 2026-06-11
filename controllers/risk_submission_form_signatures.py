@@ -1,7 +1,11 @@
+import logging
+
 from odoo import fields
 from odoo.http import request
 
 from .risk_submission_form_schema import CC_REGEX
+
+_logger = logging.getLogger(__name__)
 
 
 class RiskSubmissionFormSignatureMixin:
@@ -36,13 +40,24 @@ class RiskSubmissionFormSignatureMixin:
                 or data.get("driver_document_number"),
             }
         )
+        _logger.debug(
+            "Updated signature data user_id=%s owner_signature_present=%s driver_signature_present=%s owner_study=%s driver_study=%s",
+            request.env.user.id,
+            bool(data.get("owner_signature")),
+            bool(data.get("driver_signature")),
+            data.get("owner_has_valid_study"),
+            data.get("driver_has_valid_study"),
+        )
 
     def _validate_signature_step(self, data):
         if data.get("owner_has_valid_study") not in ("yes", "no"):
+            _logger.warning("Signature validation missing owner study flag user_id=%s", request.env.user.id)
             return "Debes indicar si el propietario cuenta con estudio vigente."
         if data.get("driver_has_valid_study") not in ("yes", "no"):
+            _logger.warning("Signature validation missing driver study flag user_id=%s", request.env.user.id)
             return "Debes indicar si el conductor cuenta con estudio vigente."
         if not self._signatures_are_valid(data):
+            _logger.warning("Combined signature validation failed user_id=%s", request.env.user.id)
             return self._signature_error_message(data)
         return None
 
@@ -51,6 +66,7 @@ class RiskSubmissionFormSignatureMixin:
         remote_addr = request.httprequest.remote_addr
         user_agent = request.httprequest.user_agent.string
         if data.get("owner_has_valid_study") != "yes":
+            _logger.info("Owner signature metadata stamped user_id=%s ip=%s", request.env.user.id, remote_addr)
             data.update(
                 {
                     "owner_signed_at": now,
@@ -59,6 +75,7 @@ class RiskSubmissionFormSignatureMixin:
                 }
             )
         if data.get("driver_has_valid_study") != "yes":
+            _logger.info("Driver signature metadata stamped user_id=%s ip=%s", request.env.user.id, remote_addr)
             data.update(
                 {
                     "driver_signed_at": now,
@@ -72,6 +89,7 @@ class RiskSubmissionFormSignatureMixin:
         remote_addr = request.httprequest.remote_addr
         user_agent = request.httprequest.user_agent.string
         if data.get("owner_has_valid_study") != "yes":
+            _logger.info("Owner signature metadata stamped user_id=%s ip=%s", request.env.user.id, remote_addr)
             data.update(
                 {
                     "owner_signed_at": now,
@@ -85,6 +103,7 @@ class RiskSubmissionFormSignatureMixin:
         remote_addr = request.httprequest.remote_addr
         user_agent = request.httprequest.user_agent.string
         if data.get("driver_has_valid_study") != "yes":
+            _logger.info("Driver signature metadata stamped user_id=%s ip=%s", request.env.user.id, remote_addr)
             data.update(
                 {
                     "driver_signed_at": now,
@@ -108,31 +127,45 @@ class RiskSubmissionFormSignatureMixin:
         driver_ok = not driver_required or (
             data.get("driver_signature") and driver_document_ok
         )
+        _logger.debug(
+            "Signature validity evaluated user_id=%s owner_required=%s owner_ok=%s driver_required=%s driver_ok=%s",
+            request.env.user.id,
+            owner_required,
+            bool(owner_ok),
+            driver_required,
+            bool(driver_ok),
+        )
         return owner_ok and driver_ok
 
     def _validate_owner_signature_step(self, data):
         """Valida únicamente los datos de firma del propietario."""
         if data.get("owner_has_valid_study") not in ("yes", "no"):
+            _logger.warning("Owner signature validation missing study flag user_id=%s", request.env.user.id)
             return "Debes indicar si el propietario cuenta con estudio vigente."
         if data.get("owner_has_valid_study") != "yes":
             if not data.get("owner_signature"):
+                _logger.warning("Owner signature validation missing signature user_id=%s", request.env.user.id)
                 return "Debes firmar como propietario."
             if not data.get("owner_signature_document") or not CC_REGEX.match(
                 data.get("owner_signature_document")
             ):
+                _logger.warning("Owner signature validation invalid document user_id=%s", request.env.user.id)
                 return "Debes ingresar una cédula válida del propietario."
         return None
 
     def _validate_driver_signature_step(self, data):
         """Valida únicamente los datos de firma del conductor."""
         if data.get("driver_has_valid_study") not in ("yes", "no"):
+            _logger.warning("Driver signature validation missing study flag user_id=%s", request.env.user.id)
             return "Debes indicar si el conductor cuenta con estudio vigente."
         if data.get("driver_has_valid_study") != "yes":
             if not data.get("driver_signature"):
+                _logger.warning("Driver signature validation missing signature user_id=%s", request.env.user.id)
                 return "Debes firmar como conductor."
             if not data.get("driver_signature_document") or not CC_REGEX.match(
                 data.get("driver_signature_document")
             ):
+                _logger.warning("Driver signature validation invalid document user_id=%s", request.env.user.id)
                 return "Debes ingresar una cédula válida del conductor."
         return None
 
@@ -153,5 +186,6 @@ class RiskSubmissionFormSignatureMixin:
             ):
                 missing.append("cedula del conductor valida")
         if missing:
+            _logger.warning("Signature error message generated user_id=%s missing=%s", request.env.user.id, missing)
             return "Debes completar: %s." % ", ".join(missing)
         return "Debes completar la firma y cedula cuando el propietario o conductor no cuenta con estudio vigente."

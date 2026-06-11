@@ -1,8 +1,11 @@
 import json
+import logging
 
 from markupsafe import escape
 
 from odoo import fields, models
+
+_logger = logging.getLogger(__name__)
 
 
 class RiskExternalValidation(models.Model):
@@ -55,6 +58,13 @@ class RiskExternalValidation(models.Model):
     def action_send_to_validiti(self):
         for record in self:
             payload = record.submission_id._prepare_validiti_payload()
+            _logger.info(
+                "External validation prepared provider=%s validation_id=%s submission_id=%s user_id=%s",
+                record.provider,
+                record.id,
+                record.submission_id.id,
+                self.env.user.id,
+            )
             record.write({
                 "status": "sent",
                 "request_payload": json.dumps(payload, ensure_ascii=False, indent=2),
@@ -65,9 +75,16 @@ class RiskExternalValidation(models.Model):
             record.submission_id.message_post(
                 body="Validacion externa enviada a Validiti en modo preparado/manual."
             )
+            _logger.info(
+                "External validation sent/manual-ready validation_id=%s submission_id=%s status=%s",
+                record.id,
+                record.submission_id.id,
+                record.status,
+            )
 
     def action_open_result_wizard(self):
         self.ensure_one()
+        _logger.info("Opening external validation result wizard validation_id=%s submission_id=%s", self.id, self.submission_id.id)
         return {
             "type": "ir.actions.act_window",
             "name": "Registrar resultado Validiti",
@@ -84,6 +101,12 @@ class RiskExternalValidation(models.Model):
 
     def action_skip(self):
         for record in self:
+            _logger.info(
+                "Skipping external validation validation_id=%s submission_id=%s user_id=%s",
+                record.id,
+                record.submission_id.id,
+                self.env.user.id,
+            )
             record.write({
                 "status": "skipped",
                 "decision": "skipped",
@@ -93,9 +116,18 @@ class RiskExternalValidation(models.Model):
             })
             record.submission_id.action_skip_external_validation()
             record.submission_id.message_post(body="Validacion externa omitida manualmente.")
+            _logger.info("External validation skipped validation_id=%s", record.id)
 
     def apply_manual_result(self, decision, summary, risk_score=0.0, response_payload=False, external_reference=False):
         for record in self:
+            _logger.info(
+                "Applying external validation manual result validation_id=%s submission_id=%s decision=%s risk_score=%s user_id=%s",
+                record.id,
+                record.submission_id.id,
+                decision,
+                risk_score,
+                self.env.user.id,
+            )
             values = {
                 "status": decision,
                 "decision": decision,
@@ -111,6 +143,12 @@ class RiskExternalValidation(models.Model):
 
     def _apply_result_to_submission(self, summary):
         self.ensure_one()
+        _logger.info(
+            "Applying external validation decision to submission validation_id=%s submission_id=%s decision=%s",
+            self.id,
+            self.submission_id.id,
+            self.decision,
+        )
         body = (
             "Resultado Validiti registrado: <strong>%s</strong>.<br/><br/>%s"
             % (dict(self._fields["decision"].selection).get(self.decision), escape(summary))
@@ -121,6 +159,11 @@ class RiskExternalValidation(models.Model):
         elif self.decision == "manual_review":
             self.submission_id.action_skip_external_validation()
         elif self.decision == "rejected":
+            _logger.warning(
+                "External validation rejected submission submission_id=%s validation_id=%s",
+                self.submission_id.id,
+                self.id,
+            )
             self.submission_id.write({
                 "state": "rejected",
                 "rejection_user_id": self.env.user.id,
@@ -128,4 +171,9 @@ class RiskExternalValidation(models.Model):
                 "rejection_reason": summary,
             })
         elif self.decision == "error":
+            _logger.warning(
+                "External validation result error submission_id=%s validation_id=%s",
+                self.submission_id.id,
+                self.id,
+            )
             self.submission_id.write({"state": "external_validation_pending"})

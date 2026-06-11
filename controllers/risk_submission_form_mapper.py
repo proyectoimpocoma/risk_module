@@ -1,4 +1,8 @@
+import logging
+
 from odoo.http import request
+
+_logger = logging.getLogger(__name__)
 
 
 class RiskSubmissionFormMapperMixin:
@@ -68,12 +72,34 @@ class RiskSubmissionFormMapperMixin:
         submission_id = data.get("submission_id") or request.session.get("risk_submission_id")
         submission = request.env["risk.module"].sudo().browse(int(submission_id or 0)).exists()
         if submission and submission.partner_id and not submission._portal_is_owned_by(request.env.user):
+            _logger.warning(
+                "Risk submission create/update denied by ownership submission_id=%s user_id=%s partner_id=%s owner_partner_id=%s",
+                submission.id,
+                request.env.user.id,
+                request.env.user.partner_id.id,
+                submission.partner_id.id,
+            )
             return False
         values = self._submission_values(data, state)
         if submission:
+            _logger.info(
+                "Updating risk submission submission_id=%s state=%s user_id=%s fields=%s",
+                submission.id,
+                state,
+                request.env.user.id,
+                sorted(values.keys()),
+            )
             submission.write(values)
         else:
+            _logger.info(
+                "Creating risk submission state=%s user_id=%s partner_id=%s plate=%s",
+                state,
+                request.env.user.id,
+                request.env.user.partner_id.id,
+                values.get("vehicle_plate"),
+            )
             submission = request.env["risk.module"].sudo().create(values)
         data["submission_id"] = submission.id
         data["submission_token"] = submission.access_token
+        _logger.debug("Risk submission mapped submission_id=%s token_present=%s", submission.id, bool(submission.access_token))
         return submission

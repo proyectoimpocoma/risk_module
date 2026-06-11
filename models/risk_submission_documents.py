@@ -1,5 +1,9 @@
+import logging
+
 from odoo import models
 from odoo.exceptions import ValidationError
+
+_logger = logging.getLogger(__name__)
 
 
 class RiskSubmissionDocuments(models.Model):
@@ -7,12 +11,19 @@ class RiskSubmissionDocuments(models.Model):
 
     def action_request_documents(self):
         for record in self:
+            _logger.info("Requesting documents submission_id=%s user_id=%s", record.id, self.env.user.id)
             created_count = record._ensure_required_documents()
             record.state = "documents_requested"
             body = "Documentos solicitados."
             if created_count:
                 body = "%s Se generaron %s documentos requeridos." % (body, created_count)
             record.message_post(body=body)
+            _logger.info(
+                "Documents requested submission_id=%s created_count=%s total_documents=%s",
+                record.id,
+                created_count,
+                len(record.document_ids),
+            )
 
     def action_start_document_review(self):
         for record in self:
@@ -20,9 +31,15 @@ class RiskSubmissionDocuments(models.Model):
                 lambda doc: doc.required and doc.state == "pending"
             )
             if missing:
+                _logger.warning(
+                    "Document review blocked submission_id=%s missing_document_ids=%s",
+                    record.id,
+                    missing.ids,
+                )
                 raise ValidationError(
                     "No puedes iniciar la revision documental mientras existan documentos obligatorios pendientes."
                 )
+        _logger.info("Starting document review submission_ids=%s user_id=%s", self.ids, self.env.user.id)
         self.write({"state": "documents_review"})
 
     def _required_document_templates(self):
@@ -57,6 +74,7 @@ class RiskSubmissionDocuments(models.Model):
                 "semi_trailer",
                 100,
             ))
+        _logger.debug("Required document templates submission_id=%s count=%s", self.id, len(templates))
         return templates
 
     def _ensure_required_documents(self):
@@ -75,12 +93,20 @@ class RiskSubmissionDocuments(models.Model):
                 "required": True,
             })
         if values:
+            _logger.info(
+                "Creating required documents submission_id=%s document_types=%s",
+                self.id,
+                [value["document_type"] for value in values],
+            )
             self.env["risk.module.document"].create(values)
+        else:
+            _logger.debug("No required documents to create submission_id=%s", self.id)
         return len(values)
 
     def _check_documents_ready_for_approval(self):
         self.ensure_one()
         if not self.document_ids:
+            _logger.warning("Approval blocked without documents submission_id=%s", self.id)
             raise ValidationError(
                 "No puedes aprobar la solicitud sin generar y revisar los documentos requeridos."
             )
@@ -89,6 +115,12 @@ class RiskSubmissionDocuments(models.Model):
         )
         if blocking_documents:
             names = ", ".join(blocking_documents.mapped("name"))
+            _logger.warning(
+                "Approval blocked by documents submission_id=%s blocking_document_ids=%s",
+                self.id,
+                blocking_documents.ids,
+            )
             raise ValidationError(
                 "No puedes aprobar la solicitud hasta aprobar todos los documentos obligatorios: %s" % names
             )
+        _logger.debug("Documents ready for approval submission_id=%s", self.id)
