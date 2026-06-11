@@ -36,5 +36,51 @@
 </div>
             </field>
         </record>
+
+        <record id="email_template_owner_signature_code" model="mail.template">
+            <field name="name">Codigo de verificacion firma propietario</field>
+            <field name="model_id" ref="risk_module.model_risk_module"/>
+            <field name="subject">Codigo de verificacion para firma del propietario</field>
+            <field name="email_from">reporte@impocoma.com</field>
+            <field name="email_to">{{ object.owner_email }}</field>
+            <field name="auto_delete" eval="False"/>
+            <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-size: 13px;">
+    <p>Hola <t t-out="ctx.get('signature_person_name') or object.owner_name or 'propietario'"/>,</p>
+    <p>Tu codigo de verificacion para firmar la solicitud es:</p>
+    <p style="font-size: 24px; font-weight: 700; letter-spacing: 4px;">
+        <t t-out="ctx.get('signature_code') or ''">123456</t>
+    </p>
+    <p>
+        Este codigo vence en
+        <strong><t t-out="ctx.get('signature_code_ttl_minutes') or 15">15</t> minutos</strong>.
+    </p>
+    <p>Si no solicitaste este codigo, ignora este correo.</p>
+</div>
+            </field>
+        </record>
+
+        <record id="email_template_driver_signature_code" model="mail.template">
+            <field name="name">Codigo de verificacion firma conductor</field>
+            <field name="model_id" ref="risk_module.model_risk_module"/>
+            <field name="subject">Codigo de verificacion para firma del conductor</field>
+            <field name="email_from">reporte@impocoma.com</field>
+            <field name="email_to">{{ object.driver_email }}</field>
+            <field name="auto_delete" eval="False"/>
+            <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-size: 13px;">
+    <p>Hola <t t-out="ctx.get('signature_person_name') or object.driver_name or 'conductor'"/>,</p>
+    <p>Tu codigo de verificacion para firmar la solicitud es:</p>
+    <p style="font-size: 24px; font-weight: 700; letter-spacing: 4px;">
+        <t t-out="ctx.get('signature_code') or ''">123456</t>
+    </p>
+    <p>
+        Este codigo vence en
+        <strong><t t-out="ctx.get('signature_code_ttl_minutes') or 15">15</t> minutos</strong>.
+    </p>
+    <p>Si no solicitaste este codigo, ignora este correo.</p>
+</div>
+            </field>
+        </record>
     </data>
 </odoo>

@@ -145,6 +145,9 @@
                                     <field name="owner_has_valid_study" widget="boolean_button"/>
                                     <field name="owner_signature_document" placeholder="Documento que respalda la firma"/>
                                     <field name="owner_signed_at"/>
+                                    <field name="owner_signature_verification_state" readonly="1"/>
+                                    <field name="owner_signature_email" readonly="1"/>
+                                    <field name="owner_signature_verified_at" readonly="1"/>
                                 </group>
                                 <group>
                                     <field name="owner_signature" widget="image" nolabel="1"/>
@@ -155,6 +158,9 @@
                                     <field name="driver_has_valid_study" widget="boolean_button"/>
                                     <field name="driver_signature_document" placeholder="Documento que respalda la firma"/>
                                     <field name="driver_signed_at"/>
+                                    <field name="driver_signature_verification_state" readonly="1"/>
+                                    <field name="driver_signature_email" readonly="1"/>
+                                    <field name="driver_signature_verified_at" readonly="1"/>
                                 </group>
                                 <group>
                                     <field name="driver_signature" widget="image" nolabel="1"/>
@@ -251,10 +257,18 @@
                             <group string="Trazabilidad de Firma Propietario">
                                 <field name="owner_signature_ip"/>
                                 <field name="owner_signature_user_agent"/>
+                                <field name="owner_signature_code_sent_at"/>
+                                <field name="owner_signature_code_expires_at"/>
+                                <field name="owner_signature_verified_ip"/>
+                                <field name="owner_signature_code_attempts"/>
                             </group>
                             <group string="Trazabilidad de Firma Conductor">
                                 <field name="driver_signature_ip"/>
                                 <field name="driver_signature_user_agent"/>
+                                <field name="driver_signature_code_sent_at"/>
+                                <field name="driver_signature_code_expires_at"/>
+                                <field name="driver_signature_verified_ip"/>
+                                <field name="driver_signature_code_attempts"/>
                             </group>
                         </page>
 

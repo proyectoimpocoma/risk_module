@@ -1,3 +1,6 @@
+from datetime import timedelta
+
+from odoo import fields
 from odoo.fields import Command
 from odoo.exceptions import ValidationError
 from odoo.tests.common import TransactionCase, tagged
@@ -78,6 +81,41 @@ class TestRiskSubmission(TransactionCase):
         self.assertEqual(mail.reply_to, "reporte@impocoma.com")
         self.assertEqual(mail.email_to, "portal-a@example.com")
         self.assertFalse(mail.recipient_ids)
+
+    def test_owner_signature_code_email_is_queued(self):
+        result = self.submission.send_owner_signature_code()
+
+        self.assertTrue(result["ok"])
+        self.assertEqual(self.submission.owner_signature_verification_state, "sent")
+        self.assertEqual(self.submission.owner_signature_email, "operaciones@example.com")
+        self.assertTrue(self.submission.owner_signature_code_hash)
+        self.assertTrue(self.submission.owner_signature_code_expires_at)
+        mail = self.env["mail.mail"].search([
+            ("subject", "=", "Codigo de verificacion para firma del propietario"),
+        ], limit=1)
+        self.assertEqual(mail.email_from, "reporte@impocoma.com")
+        self.assertEqual(mail.reply_to, "reporte@impocoma.com")
+        self.assertEqual(mail.email_to, "operaciones@example.com")
+
+    def test_driver_signature_code_verification(self):
+        code = "123456"
+        self.submission.write({
+            "driver_signature_email": "conductor@example.com",
+            "driver_signature_code_hash": self.submission._signature_code_hash("driver", code),
+            "driver_signature_code_expires_at": fields.Datetime.now() + timedelta(minutes=5),
+            "driver_signature_verification_state": "sent",
+        })
+
+        wrong = self.submission.verify_driver_signature_code("000000", ip_address="127.0.0.1")
+        self.assertFalse(wrong["ok"])
+        self.assertEqual(self.submission.driver_signature_code_attempts, 1)
+        self.assertEqual(self.submission.driver_signature_verification_state, "sent")
+
+        result = self.submission.verify_driver_signature_code(code, ip_address="127.0.0.1")
+        self.assertTrue(result["ok"])
+        self.assertEqual(self.submission.driver_signature_verification_state, "verified")
+        self.assertEqual(self.submission.driver_signature_verified_ip, "127.0.0.1")
+        self.assertTrue(self.submission._signature_email_verified_for("driver", "conductor@example.com"))
 
     def test_request_documents_generates_required_templates(self):
         self.submission.action_request_documents()

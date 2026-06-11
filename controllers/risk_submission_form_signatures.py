@@ -9,6 +9,38 @@ _logger = logging.getLogger(__name__)
 
 
 class RiskSubmissionFormSignatureMixin:
+    def _signature_verification_config(self, party):
+        configs = {
+            "owner": {
+                "label": "propietario",
+                "email_field": "owner_email",
+                "verified_email": "owner_signature_email",
+                "verified_at": "owner_signature_verified_at",
+                "state": "owner_signature_verification_state",
+            },
+            "driver": {
+                "label": "conductor",
+                "email_field": "driver_email",
+                "verified_email": "driver_signature_email",
+                "verified_at": "driver_signature_verified_at",
+                "state": "driver_signature_verification_state",
+            },
+        }
+        return configs[party]
+
+    def _signature_email_verification_error(self, data, party):
+        config = self._signature_verification_config(party)
+        email = (data.get(config["email_field"]) or "").strip()
+        if not email:
+            return "Debes ingresar el correo del %s antes de firmar." % config["label"]
+        if (
+            data.get(config["state"]) != "verified"
+            or not data.get(config["verified_at"])
+            or data.get(config["verified_email"]) != email
+        ):
+            return "Debes verificar el correo del %s con el codigo enviado antes de continuar." % config["label"]
+        return None
+
     def _clean_signature_data(self, signature):
         if not signature:
             return ""
@@ -127,18 +159,26 @@ class RiskSubmissionFormSignatureMixin:
         driver_ok = not driver_required or (
             data.get("driver_signature") and driver_document_ok
         )
+        owner_email_ok = not self._signature_email_verification_error(data, "owner")
+        driver_email_ok = not self._signature_email_verification_error(data, "driver")
         _logger.debug(
-            "Signature validity evaluated user_id=%s owner_required=%s owner_ok=%s driver_required=%s driver_ok=%s",
+            "Signature validity evaluated user_id=%s owner_required=%s owner_ok=%s owner_email_ok=%s driver_required=%s driver_ok=%s driver_email_ok=%s",
             request.env.user.id,
             owner_required,
             bool(owner_ok),
+            owner_email_ok,
             driver_required,
             bool(driver_ok),
+            driver_email_ok,
         )
-        return owner_ok and driver_ok
+        return owner_ok and driver_ok and owner_email_ok and driver_email_ok
 
     def _validate_owner_signature_step(self, data):
         """Valida únicamente los datos de firma del propietario."""
+        verification_error = self._signature_email_verification_error(data, "owner")
+        if verification_error:
+            _logger.warning("Owner signature email verification missing user_id=%s", request.env.user.id)
+            return verification_error
         if data.get("owner_has_valid_study") not in ("yes", "no"):
             _logger.warning("Owner signature validation missing study flag user_id=%s", request.env.user.id)
             return "Debes indicar si el propietario cuenta con estudio vigente."
@@ -155,6 +195,10 @@ class RiskSubmissionFormSignatureMixin:
 
     def _validate_driver_signature_step(self, data):
         """Valida únicamente los datos de firma del conductor."""
+        verification_error = self._signature_email_verification_error(data, "driver")
+        if verification_error:
+            _logger.warning("Driver signature email verification missing user_id=%s", request.env.user.id)
+            return verification_error
         if data.get("driver_has_valid_study") not in ("yes", "no"):
             _logger.warning("Driver signature validation missing study flag user_id=%s", request.env.user.id)
             return "Debes indicar si el conductor cuenta con estudio vigente."
@@ -188,4 +232,10 @@ class RiskSubmissionFormSignatureMixin:
         if missing:
             _logger.warning("Signature error message generated user_id=%s missing=%s", request.env.user.id, missing)
             return "Debes completar: %s." % ", ".join(missing)
-        return "Debes completar la firma y cedula cuando el propietario o conductor no cuenta con estudio vigente."
+        owner_verification_error = self._signature_email_verification_error(data, "owner")
+        if owner_verification_error:
+            return owner_verification_error
+        driver_verification_error = self._signature_email_verification_error(data, "driver")
+        if driver_verification_error:
+            return driver_verification_error
+        return "Debes completar la firma, cedula y verificacion de correo cuando corresponda."

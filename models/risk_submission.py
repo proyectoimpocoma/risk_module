@@ -1,9 +1,17 @@
+import hashlib
+import hmac
 import logging
+import secrets
 import uuid
+from datetime import timedelta
 
 from odoo import api, fields, models
 
 _logger = logging.getLogger(__name__)
+
+SIGNATURE_CODE_TTL_MINUTES = 15
+SIGNATURE_CODE_RESEND_SECONDS = 60
+SIGNATURE_CODE_MAX_ATTEMPTS = 5
 
 
 class RiskSubmission(models.Model):
@@ -138,6 +146,26 @@ class RiskSubmission(models.Model):
     owner_signed_at = fields.Datetime(string="Fecha firma propietario")
     owner_signature_ip = fields.Char(string="IP firma propietario")
     owner_signature_user_agent = fields.Text(string="Navegador firma propietario")
+    owner_signature_email = fields.Char(string="Correo verificado propietario", readonly=True, copy=False)
+    owner_signature_code_hash = fields.Char(string="Hash codigo propietario", readonly=True, copy=False)
+    owner_signature_code_sent_at = fields.Datetime(string="Codigo propietario enviado", readonly=True, copy=False)
+    owner_signature_code_expires_at = fields.Datetime(string="Codigo propietario vence", readonly=True, copy=False)
+    owner_signature_verified_at = fields.Datetime(string="Correo propietario verificado", readonly=True, copy=False)
+    owner_signature_verified_ip = fields.Char(string="IP verificacion propietario", readonly=True, copy=False)
+    owner_signature_code_attempts = fields.Integer(string="Intentos codigo propietario", readonly=True, copy=False)
+    owner_signature_verification_state = fields.Selection(
+        [
+            ("not_sent", "No enviado"),
+            ("sent", "Enviado"),
+            ("verified", "Verificado"),
+            ("expired", "Vencido"),
+            ("blocked", "Bloqueado"),
+        ],
+        string="Estado verificacion propietario",
+        default="not_sent",
+        readonly=True,
+        copy=False,
+    )
     driver_has_valid_study = fields.Selection([
         ("yes", "Si"),
         ("no", "No"),
@@ -147,6 +175,26 @@ class RiskSubmission(models.Model):
     driver_signed_at = fields.Datetime(string="Fecha firma conductor")
     driver_signature_ip = fields.Char(string="IP firma conductor")
     driver_signature_user_agent = fields.Text(string="Navegador firma conductor")
+    driver_signature_email = fields.Char(string="Correo verificado conductor", readonly=True, copy=False)
+    driver_signature_code_hash = fields.Char(string="Hash codigo conductor", readonly=True, copy=False)
+    driver_signature_code_sent_at = fields.Datetime(string="Codigo conductor enviado", readonly=True, copy=False)
+    driver_signature_code_expires_at = fields.Datetime(string="Codigo conductor vence", readonly=True, copy=False)
+    driver_signature_verified_at = fields.Datetime(string="Correo conductor verificado", readonly=True, copy=False)
+    driver_signature_verified_ip = fields.Char(string="IP verificacion conductor", readonly=True, copy=False)
+    driver_signature_code_attempts = fields.Integer(string="Intentos codigo conductor", readonly=True, copy=False)
+    driver_signature_verification_state = fields.Selection(
+        [
+            ("not_sent", "No enviado"),
+            ("sent", "Enviado"),
+            ("verified", "Verificado"),
+            ("expired", "Vencido"),
+            ("blocked", "Bloqueado"),
+        ],
+        string="Estado verificacion conductor",
+        default="not_sent",
+        readonly=True,
+        copy=False,
+    )
     message = fields.Text(string="Observaciones")
     risk_reviewer_id = fields.Many2one(
         "res.users",
@@ -343,6 +391,238 @@ class RiskSubmission(models.Model):
             )
             sent = True
         return sent
+
+    def _signature_party_config(self, party):
+        configs = {
+            "owner": {
+                "label": "propietario",
+                "email_field": "owner_email",
+                "name_field": "owner_name",
+                "template": "risk_module.email_template_owner_signature_code",
+                "email": "owner_signature_email",
+                "hash": "owner_signature_code_hash",
+                "sent_at": "owner_signature_code_sent_at",
+                "expires_at": "owner_signature_code_expires_at",
+                "verified_at": "owner_signature_verified_at",
+                "verified_ip": "owner_signature_verified_ip",
+                "attempts": "owner_signature_code_attempts",
+                "state": "owner_signature_verification_state",
+            },
+            "driver": {
+                "label": "conductor",
+                "email_field": "driver_email",
+                "name_field": "driver_name",
+                "template": "risk_module.email_template_driver_signature_code",
+                "email": "driver_signature_email",
+                "hash": "driver_signature_code_hash",
+                "sent_at": "driver_signature_code_sent_at",
+                "expires_at": "driver_signature_code_expires_at",
+                "verified_at": "driver_signature_verified_at",
+                "verified_ip": "driver_signature_verified_ip",
+                "attempts": "driver_signature_code_attempts",
+                "state": "driver_signature_verification_state",
+            },
+        }
+        if party not in configs:
+            raise ValueError("Invalid signature verification party: %s" % party)
+        return configs[party]
+
+    def _signature_code_hash(self, party, code):
+        self.ensure_one()
+        salt = "%s:%s:%s" % (self._name, self.id, self.access_token or "")
+        payload = "%s:%s" % (party, code)
+        return hmac.new(
+            salt.encode("utf-8"),
+            payload.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+
+    def _signature_email_verified_for(self, party, email):
+        self.ensure_one()
+        config = self._signature_party_config(party)
+        return bool(
+            email
+            and self[config["state"]] == "verified"
+            and self[config["verified_at"]]
+            and self[config["email"]] == email
+        )
+
+    def _send_signature_code(self, party):
+        self.ensure_one()
+        config = self._signature_party_config(party)
+        email = (self[config["email_field"]] or "").strip()
+        if not email:
+            _logger.warning(
+                "Signature code send blocked without email submission_id=%s party=%s",
+                self.id,
+                party,
+            )
+            return {
+                "ok": False,
+                "message": "Debes ingresar un correo para el %s antes de enviar el codigo." % config["label"],
+            }
+
+        now = fields.Datetime.now()
+        sent_at = self[config["sent_at"]]
+        if sent_at and (now - sent_at).total_seconds() < SIGNATURE_CODE_RESEND_SECONDS:
+            _logger.warning(
+                "Signature code resend throttled submission_id=%s party=%s email=%s",
+                self.id,
+                party,
+                email,
+            )
+            return {
+                "ok": False,
+                "message": "Espera un minuto antes de solicitar otro codigo.",
+            }
+
+        code = "%06d" % secrets.randbelow(1000000)
+        expires_at = now + timedelta(minutes=SIGNATURE_CODE_TTL_MINUTES)
+        self.write({
+            config["email"]: email,
+            config["hash"]: self._signature_code_hash(party, code),
+            config["sent_at"]: now,
+            config["expires_at"]: expires_at,
+            config["verified_at"]: False,
+            config["verified_ip"]: False,
+            config["attempts"]: 0,
+            config["state"]: "sent",
+        })
+
+        template = self.env.ref(config["template"], raise_if_not_found=False)
+        if not template:
+            _logger.warning("Signature code template not found party=%s", party)
+            return {
+                "ok": False,
+                "message": "No se encontro la plantilla de correo para enviar el codigo.",
+            }
+
+        try:
+            template.with_context(
+                signature_code=code,
+                signature_party_label=config["label"],
+                signature_person_name=self[config["name_field"]] or config["label"],
+                signature_code_ttl_minutes=SIGNATURE_CODE_TTL_MINUTES,
+            ).sudo().send_mail(
+                self.id,
+                force_send=False,
+                email_values={
+                    "email_from": "reporte@impocoma.com",
+                    "reply_to": "reporte@impocoma.com",
+                    "email_to": email,
+                    "recipient_ids": [(5, 0, 0)],
+                },
+            )
+        except Exception:
+            _logger.exception(
+                "Signature code email failed submission_id=%s party=%s email=%s",
+                self.id,
+                party,
+                email,
+            )
+            return {
+                "ok": False,
+                "message": "No pudimos enviar el codigo. Intenta nuevamente.",
+            }
+
+        self.message_post(body="Codigo de verificacion de firma enviado al %s: %s." % (config["label"], email))
+        _logger.info(
+            "Signature code email queued submission_id=%s party=%s email=%s expires_at=%s",
+            self.id,
+            party,
+            email,
+            expires_at,
+        )
+        return {
+            "ok": True,
+            "message": "Enviamos un codigo al correo del %s." % config["label"],
+        }
+
+    def _verify_signature_code(self, party, code, ip_address=None):
+        self.ensure_one()
+        config = self._signature_party_config(party)
+        clean_code = (code or "").strip()
+        now = fields.Datetime.now()
+
+        if self[config["state"]] == "blocked":
+            return {
+                "ok": False,
+                "message": "El codigo esta bloqueado por demasiados intentos. Solicita uno nuevo.",
+            }
+        if not self[config["hash"]]:
+            return {
+                "ok": False,
+                "message": "Primero debes solicitar un codigo de verificacion.",
+            }
+        if not clean_code or len(clean_code) != 6 or not clean_code.isdigit():
+            return {
+                "ok": False,
+                "message": "Ingresa un codigo de 6 digitos.",
+            }
+        if self[config["expires_at"]] and now > self[config["expires_at"]]:
+            self.write({config["state"]: "expired"})
+            return {
+                "ok": False,
+                "message": "El codigo vencio. Solicita uno nuevo.",
+            }
+
+        attempts = self[config["attempts"]] + 1
+        if not hmac.compare_digest(
+            self[config["hash"]],
+            self._signature_code_hash(party, clean_code),
+        ):
+            state = "blocked" if attempts >= SIGNATURE_CODE_MAX_ATTEMPTS else "sent"
+            self.write({
+                config["attempts"]: attempts,
+                config["state"]: state,
+            })
+            _logger.warning(
+                "Signature code verification failed submission_id=%s party=%s attempts=%s state=%s",
+                self.id,
+                party,
+                attempts,
+                state,
+            )
+            if state == "blocked":
+                return {
+                    "ok": False,
+                    "message": "Codigo bloqueado por demasiados intentos. Solicita uno nuevo.",
+                }
+            return {
+                "ok": False,
+                "message": "Codigo incorrecto. Revisa el correo e intenta nuevamente.",
+            }
+
+        self.write({
+            config["verified_at"]: now,
+            config["verified_ip"]: ip_address,
+            config["attempts"]: attempts,
+            config["state"]: "verified",
+        })
+        self.message_post(body="Correo de firma verificado para el %s: %s." % (config["label"], self[config["email"]]))
+        _logger.info(
+            "Signature code verified submission_id=%s party=%s email=%s ip=%s",
+            self.id,
+            party,
+            self[config["email"]],
+            ip_address,
+        )
+        return {
+            "ok": True,
+            "message": "Correo del %s verificado correctamente." % config["label"],
+        }
+
+    def send_owner_signature_code(self):
+        return self._send_signature_code("owner")
+
+    def verify_owner_signature_code(self, code, ip_address=None):
+        return self._verify_signature_code("owner", code, ip_address=ip_address)
+
+    def send_driver_signature_code(self):
+        return self._send_signature_code("driver")
+
+    def verify_driver_signature_code(self, code, ip_address=None):
+        return self._verify_signature_code("driver", code, ip_address=ip_address)
 
     def action_open_printable(self):
         """Abre la hoja de vida imprimible desde la vista interna."""

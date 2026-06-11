@@ -1,9 +1,47 @@
 <odoo>
     <template id="register_driver_step_signatures" name="Registro Vehiculo Paso Firmas">
         <div t-if="data.get('signature_error')" class="risk-error" t-esc="data.get('signature_error')"/>
+        <div t-if="data.get('signature_info')" class="risk-info" t-esc="data.get('signature_info')"/>
 
         <div t-if="step == 5" class="risk-signature-card">
             <h3>Propietario / Tenedor / Representante Legal</h3>
+            <div class="risk-verification-box">
+                <div>
+                    <strong>Verificacion de correo</strong>
+                    <p>
+                        Correo:
+                        <span t-esc="data.get('owner_email') or 'No registrado'"/>
+                    </p>
+                    <p t-if="data.get('owner_signature_verification_state') == 'verified' and data.get('owner_signature_email') == data.get('owner_email')" class="risk-verification-ok">
+                        Correo verificado.
+                    </p>
+                    <p t-else="" class="risk-verification-pending">
+                        Debes verificar el correo del propietario antes de continuar.
+                    </p>
+                </div>
+                <button type="submit"
+                        class="btn btn-secondary"
+                        formmethod="post"
+                        formaction="/registro-conductor/firma/owner/enviar-codigo">
+                    Enviar codigo
+                </button>
+                <div class="risk-verification-code">
+                    <label for="owner_signature_verification_code">Codigo recibido</label>
+                    <input id="owner_signature_verification_code"
+                           name="owner_signature_verification_code"
+                           type="text"
+                           inputmode="numeric"
+                           pattern="[0-9]{6}"
+                           maxlength="6"
+                           autocomplete="one-time-code"/>
+                    <button type="submit"
+                            class="btn btn-primary"
+                            formmethod="post"
+                            formaction="/registro-conductor/firma/owner/verificar-codigo">
+                        Verificar
+                    </button>
+                </div>
+            </div>
             <p>Si el propietario cuenta con estudio vigente, no debe diligenciar el siguiente espacio.</p>
             <div class="risk-choice-row">
                 <span>Cuenta con estudio vigente?</span>
@@ -34,6 +72,43 @@
 
         <div t-if="step == 6" class="risk-signature-card">
             <h3>Conductor</h3>
+            <div class="risk-verification-box">
+                <div>
+                    <strong>Verificacion de correo</strong>
+                    <p>
+                        Correo:
+                        <span t-esc="data.get('driver_email') or 'No registrado'"/>
+                    </p>
+                    <p t-if="data.get('driver_signature_verification_state') == 'verified' and data.get('driver_signature_email') == data.get('driver_email')" class="risk-verification-ok">
+                        Correo verificado.
+                    </p>
+                    <p t-else="" class="risk-verification-pending">
+                        Debes verificar el correo del conductor antes de continuar.
+                    </p>
+                </div>
+                <button type="submit"
+                        class="btn btn-secondary"
+                        formmethod="post"
+                        formaction="/registro-conductor/firma/driver/enviar-codigo">
+                    Enviar codigo
+                </button>
+                <div class="risk-verification-code">
+                    <label for="driver_signature_verification_code">Codigo recibido</label>
+                    <input id="driver_signature_verification_code"
+                           name="driver_signature_verification_code"
+                           type="text"
+                           inputmode="numeric"
+                           pattern="[0-9]{6}"
+                           maxlength="6"
+                           autocomplete="one-time-code"/>
+                    <button type="submit"
+                            class="btn btn-primary"
+                            formmethod="post"
+                            formaction="/registro-conductor/firma/driver/verificar-codigo">
+                        Verificar
+                    </button>
+                </div>
+            </div>
             <p>Si el conductor cuenta con estudio vigente, no debe diligenciar el siguiente espacio.</p>
             <div class="risk-choice-row">
                 <span>Cuenta con estudio vigente?</span>

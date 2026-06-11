@@ -164,6 +164,105 @@ class RiskSubmissionController(
 
         return self._submit_final_step(data)
 
+    @http.route(
+        "/registro-conductor/firma/<string:party>/enviar-codigo",
+        type="http",
+        auth="user",
+        website=True,
+        methods=["POST"],
+    )
+    def send_signature_code(self, party, **post):
+        if party not in ("owner", "driver"):
+            return request.not_found()
+        data = request.session.get("risk_vehicle_form", {})
+        self._update_signature_data(data, post)
+        step = 5 if party == "owner" else 6
+        self._persist_step_data(step, data)
+        request.session["risk_vehicle_form"] = data
+
+        submission, error_response = self._safe_create_or_update_submission(
+            data,
+            state="draft",
+            error_step=step,
+        )
+        if error_response:
+            return error_response
+        if not submission:
+            return request.not_found()
+
+        result = (
+            submission.sudo().send_owner_signature_code()
+            if party == "owner"
+            else submission.sudo().send_driver_signature_code()
+        )
+        self._sync_signature_verification_data(data, submission, party)
+        self._persist_step_data(step, data)
+        data["signature_info"] = result["message"] if result.get("ok") else ""
+        data["signature_error"] = "" if result.get("ok") else result["message"]
+        request.session["risk_vehicle_form"] = data
+        request.session["risk_submission_id"] = submission.id
+        _logger.info(
+            "Signature code request processed submission_id=%s party=%s ok=%s user_id=%s",
+            submission.id,
+            party,
+            result.get("ok"),
+            request.env.user.id,
+        )
+        return self._render_step(step)
+
+    @http.route(
+        "/registro-conductor/firma/<string:party>/verificar-codigo",
+        type="http",
+        auth="user",
+        website=True,
+        methods=["POST"],
+    )
+    def verify_signature_code(self, party, **post):
+        if party not in ("owner", "driver"):
+            return request.not_found()
+        data = request.session.get("risk_vehicle_form", {})
+        self._update_signature_data(data, post)
+        step = 5 if party == "owner" else 6
+        self._persist_step_data(step, data)
+        request.session["risk_vehicle_form"] = data
+
+        submission, error_response = self._safe_create_or_update_submission(
+            data,
+            state="draft",
+            error_step=step,
+        )
+        if error_response:
+            return error_response
+        if not submission:
+            return request.not_found()
+
+        code = post.get("%s_signature_verification_code" % party, "")
+        result = (
+            submission.sudo().verify_owner_signature_code(
+                code,
+                ip_address=request.httprequest.remote_addr,
+            )
+            if party == "owner"
+            else submission.sudo().verify_driver_signature_code(
+                code,
+                ip_address=request.httprequest.remote_addr,
+            )
+        )
+        self._sync_signature_verification_data(data, submission, party)
+        self._persist_step_data(step, data)
+        data["signature_info"] = result["message"] if result.get("ok") else ""
+        data["signature_error"] = "" if result.get("ok") else result["message"]
+        request.session["risk_vehicle_form"] = data
+        request.session["risk_submission_id"] = submission.id
+        _logger.info(
+            "Signature code verification processed submission_id=%s party=%s ok=%s user_id=%s",
+            submission.id,
+            party,
+            result.get("ok"),
+            request.env.user.id,
+        )
+        return self._render_step(step)
+
     def _post_terms_step(self, data, post):
         """Procesa el paso de aceptación de términos del formulario.
 
@@ -266,12 +365,39 @@ class RiskSubmissionController(
         request.session["risk_submission_id"] = submission.id
         return request.redirect("/registro-conductor/7")
 
+    def _sync_signature_verification_data(self, data, submission, party=None):
+        parties = (party,) if party else ("owner", "driver")
+        for item in parties:
+            prefix = "owner" if item == "owner" else "driver"
+            for field in (
+                "signature_email",
+                "signature_code_sent_at",
+                "signature_code_expires_at",
+                "signature_verified_at",
+                "signature_verified_ip",
+                "signature_code_attempts",
+                "signature_verification_state",
+            ):
+                model_field = "%s_%s" % (prefix, field)
+                value = submission[model_field]
+                if field.endswith("_at") and value:
+                    value = fields.Datetime.to_string(value)
+                data[model_field] = value or ""
+
     def _submit_final_step(self, data):
         """Finaliza el registro y crea la solicitud en estado submitted.
 
         Valida la aceptación de términos y la validez de las firmas antes de crear
         la solicitud final. Si falla alguna validación, redirige de nuevo al paso correspondiente.
         """
+        self._merge_persisted_step_data(data)
+        submission_id = data.get("submission_id") or request.session.get("risk_submission_id")
+        if submission_id:
+            submission = request.env["risk.module"].sudo().browse(int(submission_id)).exists()
+            if submission and submission._portal_is_owned_by(request.env.user):
+                self._sync_signature_verification_data(data, submission)
+                request.session["risk_vehicle_form"] = data
+
         if (
             data.get("terms_accepted") != "1"
             and request.session.get("risk_terms_accepted") != "1"
@@ -291,7 +417,6 @@ class RiskSubmissionController(
             request.session["risk_vehicle_form"] = data
             return self._render_step(self._first_invalid_signature_step(data))
 
-        self._merge_persisted_step_data(data)
         submission, error_response = self._safe_create_or_update_submission(
             data,
             state="submitted",
@@ -322,9 +447,15 @@ class RiskSubmissionController(
 
     def _first_invalid_signature_step(self, data):
         """Devuelve el primer paso de firma que presenta datos inválidos."""
-        if not self._is_owner_signature_valid(data):
+        if (
+            not self._is_owner_signature_valid(data)
+            or self._signature_email_verification_error(data, "owner")
+        ):
             return 5
-        if not self._is_driver_signature_valid(data):
+        if (
+            not self._is_driver_signature_valid(data)
+            or self._signature_email_verification_error(data, "driver")
+        ):
             return 6
         return 7
 
@@ -359,6 +490,12 @@ class RiskSubmissionController(
             data = dict(data, form_date=date.today().isoformat())
         if step >= 3:
             self._merge_persisted_step_data(data)
+        submission_id = data.get("submission_id") or request.session.get("risk_submission_id")
+        if submission_id:
+            submission = request.env["risk.module"].sudo().browse(int(submission_id)).exists()
+            if submission and submission._portal_is_owned_by(request.env.user):
+                self._sync_signature_verification_data(data, submission)
+                request.session["risk_vehicle_form"] = data
         if (
             step >= 5
             and data.get("terms_accepted") != "1"

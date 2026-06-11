@@ -1,13 +1,34 @@
 <odoo>
     <template id="register_driver_success" name="Registro Vehiculo Exitoso">
         <t t-call="website.layout">
-            <main class="container py-5">
-                <div class="alert alert-success" role="status">
-                    Solicitud registrada para el vehiculo <strong t-esc="submission.vehicle_plate"/>.
-                </div>
-                <a t-attf-href="/registro-conductor/imprimir/#{submission.id}?token=#{submission.access_token}" target="_blank" class="btn btn-secondary">Abrir vista imprimible</a>
-                <a t-attf-href="/mis-solicitudes-riesgo/#{submission.id}" class="btn btn-secondary">Ver estado</a>
-                <a href="/registro-conductor" class="btn btn-primary">Crear otra solicitud</a>
+            <main class="risk-success-page">
+                <section class="risk-brand-header risk-brand-header-compact" aria-label="Impocoma Riesgos">
+                    <div class="risk-brand-mark">
+                        <img src="/risk_module/static/src/img/impocoma_logo.jpeg" alt="Impocoma"/>
+                    </div>
+                    <div class="risk-brand-copy">
+                        <p>Departamento de Riesgo</p>
+                        <h1>Solicitud recibida</h1>
+                        <span>Tu registro fue enviado correctamente para revision documental y validacion interna.</span>
+                    </div>
+                </section>
+
+                <section class="risk-success-card">
+                    <div class="risk-success-status" role="status">
+                        <span class="risk-success-kicker">Radicacion completada</span>
+                        <h2>Solicitud registrada para el vehiculo <strong t-esc="submission.vehicle_plate"/>.</h2>
+                        <p>
+                            El equipo de Riesgo revisara la informacion suministrada. Puedes consultar el estado,
+                            abrir la vista imprimible o registrar una nueva solicitud.
+                        </p>
+                    </div>
+
+                    <div class="risk-success-actions">
+                        <a t-attf-href="/registro-conductor/imprimir/#{submission.id}?token=#{submission.access_token}" target="_blank" class="btn btn-outline-secondary">Abrir vista imprimible</a>
+                        <a t-attf-href="/mis-solicitudes-riesgo/#{submission.id}" class="btn btn-secondary">Ver estado</a>
+                        <a href="/registro-conductor" class="btn btn-primary">Crear otra solicitud</a>
+                    </div>
+                </section>
             </main>
         </t>
     </template>

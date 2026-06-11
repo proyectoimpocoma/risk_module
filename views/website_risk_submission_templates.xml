@@ -2,6 +2,17 @@
     <template id="register_driver" name="Registro Vehiculo">
         <t t-call="website.layout">
             <main class="risk-step-page">
+                <section class="risk-brand-header" aria-label="Impocoma Riesgos">
+                    <div class="risk-brand-mark">
+                        <img src="/risk_module/static/src/img/impocoma_logo.jpeg" alt="Impocoma"/>
+                    </div>
+                    <div class="risk-brand-copy">
+                        <p>Departamento de Riesgo</p>
+                        <h1>Registro y habilitacion de terceros</h1>
+                        <span>Complete la informacion del vehiculo, propietario y conductor para iniciar la validacion documental.</span>
+                    </div>
+                </section>
+
                 <section class="risk-step-header">
                     <div class="risk-step-title">Hoja de Vida Habilitacion Terceros</div>
                     <div class="risk-step-meta">
