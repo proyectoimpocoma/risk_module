@@ -65,6 +65,20 @@ class TestRiskSubmission(TransactionCase):
             self.submission.state = state
             self.assertEqual(self.submission.portal_state_label, label)
 
+    def test_submission_confirmation_email_is_queued_when_submitted(self):
+        self.submission.write({"state": "submitted"})
+
+        self.assertEqual(self.submission.submission_email_status, "sent")
+        self.assertEqual(self.submission.submission_email_sent_to, "portal-a@example.com")
+        self.assertTrue(self.submission.submission_email_sent_at)
+        mail = self.env["mail.mail"].search([
+            ("subject", "=", "Solicitud recibida - ABC123"),
+        ], limit=1)
+        self.assertEqual(mail.email_from, "reporte@impocoma.com")
+        self.assertEqual(mail.reply_to, "reporte@impocoma.com")
+        self.assertEqual(mail.email_to, "portal-a@example.com")
+        self.assertFalse(mail.recipient_ids)
+
     def test_request_documents_generates_required_templates(self):
         self.submission.action_request_documents()
 

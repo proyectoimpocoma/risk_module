@@ -53,6 +53,9 @@
                             <field name="partner_id" readonly="1"/>
                             <field name="portal_user_id" readonly="1"/>
                             <field name="submitted_by_id" readonly="1"/>
+                            <field name="submission_email_status" readonly="1"/>
+                            <field name="submission_email_sent_to" readonly="1"/>
+                            <field name="submission_email_sent_at" readonly="1"/>
                             <field name="risk_reviewer_id" readonly="1"/>
                         </group>
                         <group string="Información Satelital">

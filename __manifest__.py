@@ -10,6 +10,7 @@
         "data/risk_signup_config.xml",
         "security/groups.xml",
         "security/ir.model.access.csv",
+        "views/risk_submission_mail_templates.xml",
         "views/risk_submission_report_actions.xml",
         "views/risk_submission_report_styles.xml",
         "views/risk_submission_report_templates.xml",

@@ -47,6 +47,27 @@ class RiskSubmission(models.Model):
         copy=False,
         tracking=True,
     )
+    submission_email_sent_at = fields.Datetime(
+        string="Correo de confirmacion enviado",
+        readonly=True,
+        copy=False,
+    )
+    submission_email_sent_to = fields.Char(
+        string="Correo de confirmacion destinatario",
+        readonly=True,
+        copy=False,
+    )
+    submission_email_status = fields.Selection(
+        [
+            ("pending", "Pendiente"),
+            ("sent", "Enviado"),
+            ("failed", "Fallido"),
+            ("skipped", "Omitido"),
+        ],
+        string="Estado correo de confirmacion",
+        readonly=True,
+        copy=False,
+    )
     portal_state_label = fields.Char(
         string="Estado portal",
         compute="_compute_portal_state_label",
@@ -245,6 +266,84 @@ class RiskSubmission(models.Model):
             "submitted_by_id": user.id,
         }
 
+    def _submission_confirmation_email_to(self):
+        self.ensure_one()
+        return (
+            self.partner_id.email
+            or self.owner_email
+            or self.portal_user_id.email
+            or self.submitted_by_id.email
+            or self.driver_email
+        )
+
+    def _portal_submission_absolute_url(self):
+        self.ensure_one()
+        base_url = self.env["ir.config_parameter"].sudo().get_param("web.base.url", "")
+        return "%s/mis-solicitudes-riesgo/%s" % (base_url.rstrip("/"), self.id)
+
+    def action_send_submission_received_email(self):
+        template = self.env.ref(
+            "risk_module.email_template_risk_submission_confirmation",
+            raise_if_not_found=False,
+        )
+        if not template:
+            _logger.warning("Risk submission confirmation template not found")
+            return False
+
+        sent = False
+        for record in self:
+            recipient = record._submission_confirmation_email_to()
+            if not recipient:
+                _logger.warning(
+                    "Risk submission confirmation email skipped without recipient submission_id=%s",
+                    record.id,
+                )
+                record.write({
+                    "submission_email_status": "skipped",
+                    "submission_email_sent_to": False,
+                })
+                continue
+
+            email_values = {
+                "email_from": "reporte@impocoma.com",
+                "reply_to": "reporte@impocoma.com",
+                "email_to": recipient,
+                "recipient_ids": [(5, 0, 0)],
+            }
+            try:
+                template.sudo().send_mail(
+                    record.id,
+                    force_send=False,
+                    email_values=email_values,
+                )
+            except Exception:
+                _logger.exception(
+                    "Risk submission confirmation email failed submission_id=%s recipient=%s",
+                    record.id,
+                    recipient,
+                )
+                record.write({
+                    "submission_email_status": "failed",
+                    "submission_email_sent_to": recipient,
+                })
+                continue
+
+            record.write({
+                "submission_email_status": "sent",
+                "submission_email_sent_to": recipient,
+                "submission_email_sent_at": fields.Datetime.now(),
+            })
+            record.message_post(
+                body="Correo de confirmacion de solicitud enviado a %s." % recipient
+            )
+            _logger.info(
+                "Risk submission confirmation email queued submission_id=%s recipient=%s",
+                record.id,
+                recipient,
+            )
+            sent = True
+        return sent
+
     def action_open_printable(self):
         """Abre la hoja de vida imprimible desde la vista interna."""
         self.ensure_one()
@@ -279,6 +378,9 @@ class RiskSubmission(models.Model):
                 record.state,
                 record.partner_id.id,
             )
+        submitted_records = records.filtered(lambda record: record.state == "submitted")
+        if submitted_records:
+            submitted_records.action_send_submission_received_email()
         return records
 
     def write(self, vals):
@@ -306,4 +408,11 @@ class RiskSubmission(models.Model):
                     record.state,
                     self.env.user.id,
                 )
+        submitted_records = self.filtered(
+            lambda record: vals.get("state") == "submitted"
+            and old_states.get(record.id) != "submitted"
+            and record.submission_email_status != "sent"
+        )
+        if submitted_records:
+            submitted_records.action_send_submission_received_email()
         return result
