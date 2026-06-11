@@ -571,6 +571,61 @@ class RiskSubmission(models.Model):
 
         return sent
 
+    def _submission_rejected_email_to(self):
+        """Return the best available email address for submission rejection notifications."""
+        self.ensure_one()
+        return (
+            self.partner_id.email
+            or self.owner_email
+            or self.portal_user_id.email
+            or self.submitted_by_id.email
+            or self.driver_email
+        )
+
+    def action_send_submission_rejected_email(self):
+        template = self.env.ref(
+            "risk_module.email_template_risk_submission_rejected",
+            raise_if_not_found=False,
+        )
+        if not template:
+            _logger.warning("Risk submission rejected template not found")
+            return False
+
+        sent = False
+        for record in self:
+            recipient = record._submission_rejected_email_to()
+            if not recipient:
+                _logger.warning(
+                    "Risk submission rejected email skipped without recipient submission_id=%s",
+                    record.id,
+                )
+                continue
+
+            record._queue_mail_after_commit(
+                template=template,
+                record_id=record.id,
+                email_values={
+                    "email_from": "reporte@impocoma.com",
+                    "reply_to": "reporte@impocoma.com",
+                    "email_to": recipient,
+                    "recipient_ids": [(5, 0, 0)],
+                },
+                force_send=True,
+                success_message="Correo de rechazo de solicitud enviado a %s."
+                % recipient,
+                failure_message="No fue posible enviar el correo de rechazo de solicitud a %s."
+                % recipient,
+            )
+
+            _logger.info(
+                "Risk submission rejected email scheduled after commit submission_id=%s recipient=%s",
+                record.id,
+                recipient,
+            )
+            sent = True
+
+        return sent
+
     def _documents_requested_email_to(self):
         """Return the best available email address for documents-requested notifications."""
         self.ensure_one()
