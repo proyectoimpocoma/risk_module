@@ -2,7 +2,9 @@ import logging
 from datetime import date
 
 from odoo import fields, http
+from odoo.exceptions import UserError, ValidationError
 from odoo.http import request
+from werkzeug.urls import url_encode
 
 from .risk_submission_form_mapper import RiskSubmissionFormMapperMixin
 from .risk_submission_form_schema import CC_REGEX, STEP_FIELDS, STEP_SESSION_KEYS
@@ -237,7 +239,13 @@ class RiskSubmissionController(
         _logger.info("Driver signature step completed user_id=%s", request.env.user.id)
         self._stamp_driver_signature_metadata(data)
         self._persist_step_data(6, data)
-        submission = self._create_or_update_submission(data, state="draft")
+        submission, error_response = self._safe_create_or_update_submission(
+            data,
+            state="draft",
+            error_step=6,
+        )
+        if error_response:
+            return error_response
         if not submission:
             _logger.warning(
                 "Risk submission draft blocked by ownership user_id=%s session_submission_id=%s",
@@ -284,7 +292,13 @@ class RiskSubmissionController(
             return self._render_step(self._first_invalid_signature_step(data))
 
         self._merge_persisted_step_data(data)
-        submission = self._create_or_update_submission(data, state="submitted")
+        submission, error_response = self._safe_create_or_update_submission(
+            data,
+            state="submitted",
+            error_step=7,
+        )
+        if error_response:
+            return error_response
         if not submission:
             _logger.warning(
                 "Risk submission final blocked by ownership user_id=%s session_submission_id=%s",
@@ -407,9 +421,34 @@ class RiskSubmissionController(
         return allowed
 
     def _redirect_to_signup(self, redirect_url):
-        """Redirige al usuario al login de Odoo con destino final configurado.
-
-        Actualmente redirige a /web/login?redirect=/mis-solicitudes-riesgo.
-        """
+        """Redirige al usuario al registro de Odoo conservando el destino final."""
         _logger.info("Redirecting user to login/signup target=%s", redirect_url)
-        return request.redirect("/web/login?redirect=/mis-solicitudes-riesgo")
+        return request.redirect("/web/signup?%s" % url_encode({"redirect": redirect_url}))
+
+    def _safe_create_or_update_submission(self, data, state, error_step):
+        try:
+            return self._create_or_update_submission(data, state), None
+        except (ValidationError, UserError) as error:
+            _logger.warning(
+                "Risk submission save validation failed state=%s user_id=%s error=%s",
+                state,
+                request.env.user.id,
+                error,
+            )
+            return None, self._render_submission_save_error(data, str(error), error_step)
+        except Exception:
+            _logger.exception(
+                "Unexpected risk submission save failure state=%s user_id=%s",
+                state,
+                request.env.user.id,
+            )
+            return None, self._render_submission_save_error(
+                data,
+                "No pudimos guardar la solicitud en este momento. Intenta nuevamente.",
+                error_step,
+            )
+
+    def _render_submission_save_error(self, data, message, step):
+        data["step_error"] = message
+        request.session["risk_vehicle_form"] = data
+        return self._render_step(step)

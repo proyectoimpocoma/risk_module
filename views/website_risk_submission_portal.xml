@@ -50,6 +50,15 @@
                 <div t-if="request.params.get('upload_error') == 'missing'" class="alert alert-danger">
                     Debes seleccionar un archivo para cargar.
                 </div>
+                <div t-if="request.params.get('upload_error') == 'not_allowed'" class="alert alert-warning">
+                    La carga no esta habilitada para este documento en este momento.
+                </div>
+                <div t-if="request.params.get('upload_error') == 'too_large'" class="alert alert-danger">
+                    El archivo supera el tamano maximo permitido de 10 MB.
+                </div>
+                <div t-if="request.params.get('upload_error') == 'invalid_type'" class="alert alert-danger">
+                    Solo puedes cargar archivos PDF, JPG o PNG.
+                </div>
 
                 <section class="mb-4">
                     <h2 class="h5">Estado</h2>

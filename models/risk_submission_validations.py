@@ -1,12 +1,13 @@
-import re
-
 from odoo import api, models
 from odoo.exceptions import ValidationError
 
-
-PLATE_REGEX = re.compile(r"^[A-Z]{3}[0-9]{2,3}$")
-SEMI_TRAILER_PLATE_REGEX = re.compile(r"^[A-Z][0-9]{5}$")
-EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$")
+from ..risk_validation_rules import (
+    CC_REGEX,
+    EMAIL_REGEX,
+    NIT_REGEX,
+    PLATE_REGEX,
+    SEMI_TRAILER_PLATE_REGEX,
+)
 
 
 class RiskSubmissionValidations(models.Model):
@@ -43,12 +44,12 @@ class RiskSubmissionValidations(models.Model):
                 continue
             num = num.strip()
             if record.owner_document_type == "cc":
-                if not re.fullmatch(r"[0-9]{6,10}", num):
+                if not CC_REGEX.fullmatch(num):
                     raise ValidationError(
                         f'La cedula "{num}" debe contener entre 6 y 10 digitos numericos.'
                     )
             elif record.owner_document_type == "nit":
-                if not re.fullmatch(r"[0-9]{9}(-[0-9])?", num):
+                if not NIT_REGEX.fullmatch(num):
                     raise ValidationError(
                         f'El NIT "{num}" debe tener el formato: 123456789 o 123456789-0'
                     )
@@ -57,9 +58,7 @@ class RiskSubmissionValidations(models.Model):
     def _check_driver_document_number(self):
         """Valida la cedula del conductor."""
         for record in self:
-            if record.driver_document_number and not re.fullmatch(
-                r"[0-9]{6,10}", record.driver_document_number.strip()
-            ):
+            if record.driver_document_number and not CC_REGEX.fullmatch(record.driver_document_number.strip()):
                 raise ValidationError(
                     f'La cedula del conductor "{record.driver_document_number}" debe contener entre 6 y 10 digitos numericos.'
                 )

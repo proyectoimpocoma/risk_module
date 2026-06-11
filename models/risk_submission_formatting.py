@@ -1,6 +1,6 @@
-import re
-
 from odoo import api, models
+
+from ..risk_validation_rules import is_valid_mobile_phone, is_valid_phone, phone_digits
 
 
 class RiskSubmissionFormatting(models.Model):
@@ -10,7 +10,7 @@ class RiskSubmissionFormatting(models.Model):
         """Formatea un numero de telefono segun el estandar colombiano."""
         if not phone:
             return ""
-        digits = re.sub(r"\D", "", phone)
+        digits = phone_digits(phone)
         if len(digits) == 10 and digits.startswith("3"):
             return f"{digits[0:3]} {digits[3:6]} {digits[6:10]}"
         if len(digits) == 10 and digits.startswith("6"):
@@ -21,21 +21,19 @@ class RiskSubmissionFormatting(models.Model):
 
     @staticmethod
     def _phone_digits(phone):
-        return re.sub(r"\D", "", phone or "")
+        return phone_digits(phone)
 
     @classmethod
     def _is_valid_mobile_phone(cls, phone):
         if not phone:
             return True
-        digits = cls._phone_digits(phone)
-        return len(digits) == 10 and digits.startswith("3")
+        return is_valid_mobile_phone(phone)
 
     @classmethod
     def _is_valid_phone(cls, phone):
         if not phone:
             return True
-        digits = cls._phone_digits(phone)
-        return len(digits) == 7 or (len(digits) == 10 and digits[0] in ("3", "6"))
+        return is_valid_phone(phone)
 
     @staticmethod
     def _normalize_city(city):

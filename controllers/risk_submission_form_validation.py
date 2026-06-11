@@ -1,7 +1,7 @@
 import logging
-import re
 from datetime import date
 
+from ..risk_validation_rules import is_valid_mobile_phone, is_valid_phone, phone_digits
 from .risk_submission_form_schema import (
     CC_REGEX,
     CHOICE_VALUES,
@@ -192,13 +192,10 @@ class RiskSubmissionFormValidationMixin:
         return None
 
     def _phone_digits(self, phone):
-        return re.sub(r"\D", "", phone or "")
+        return phone_digits(phone)
 
     def _validate_mobile_phone(self, phone, label):
-        if not phone:
-            return None
-        digits = self._phone_digits(phone)
-        if len(digits) != 10 or not digits.startswith("3"):
+        if phone and not is_valid_mobile_phone(phone):
             return (
                 "El %s debe ser un celular colombiano de 10 digitos que inicia por 3."
                 % label
@@ -206,11 +203,6 @@ class RiskSubmissionFormValidationMixin:
         return None
 
     def _validate_phone(self, phone, label):
-        if not phone:
-            return None
-        digits = self._phone_digits(phone)
-        if len(digits) == 7:
-            return None
-        if len(digits) == 10 and digits[0] in ("3", "6"):
+        if not phone or is_valid_phone(phone):
             return None
         return "El %s debe tener 7 digitos o 10 digitos iniciando por 3 o 6." % label

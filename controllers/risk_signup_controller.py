@@ -2,8 +2,6 @@ import logging
 import werkzeug
 from werkzeug.urls import url_encode
 
-from markupsafe import Markup
-
 from odoo import http, _
 from odoo.addons.auth_signup.controllers.main import AuthSignupHome
 from odoo.addons.auth_signup.models.res_users import SignupError
@@ -106,9 +104,9 @@ class RiskSignupController(AuthSignupHome):
                         "Another user is already registered using this email address."
                     )
                 else:
-                    _logger.warning("Signup failed login=%s error=%s", qcontext.get("login"), e)
-                    qcontext["error"] = (
-                        _("Could not create a new account.") + Markup("<br/>") + str(e)
+                    _logger.exception("Signup failed login=%s", qcontext.get("login"))
+                    qcontext["error"] = _(
+                        "Could not create a new account. Please contact support."
                     )
 
         elif "signup_email" in qcontext:

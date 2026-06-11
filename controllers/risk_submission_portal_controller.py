@@ -6,6 +6,14 @@ from odoo.http import request
 
 _logger = logging.getLogger(__name__)
 
+MAX_PORTAL_UPLOAD_SIZE = 10 * 1024 * 1024
+ALLOWED_PORTAL_UPLOAD_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png"}
+ALLOWED_PORTAL_UPLOAD_MIMETYPES = {
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+}
+
 
 class RiskSubmissionPortalController(http.Controller):
     def _get_portal_submission(self, submission_id):
@@ -78,16 +86,19 @@ class RiskSubmissionPortalController(http.Controller):
             return request.not_found()
 
         document = self._get_portal_document(submission, document_id)
-        if not document or not submission._portal_document_upload_allowed(document, request.env.user):
+        if not document:
+            return request.not_found()
+
+        if not submission._portal_document_upload_allowed(document, request.env.user):
             _logger.warning(
                 "Portal document upload denied submission_id=%s document_id=%s user_id=%s submission_state=%s document_state=%s",
                 submission.id,
-                document_id,
+                document.id,
                 request.env.user.id,
                 submission.state,
-                document.state if document else None,
+                document.state,
             )
-            return request.not_found()
+            return self._redirect_upload_error(submission, "not_allowed")
 
         upload = request.httprequest.files.get("document_file")
         if not upload or not upload.filename:
@@ -97,7 +108,21 @@ class RiskSubmissionPortalController(http.Controller):
                 document.id,
                 request.env.user.id,
             )
-            return request.redirect("/mis-solicitudes-riesgo/%s?upload_error=missing" % submission.id)
+            return self._redirect_upload_error(submission, "missing")
+
+        upload_error = self._validate_portal_upload(upload)
+        if upload_error:
+            _logger.warning(
+                "Portal document upload rejected submission_id=%s document_id=%s user_id=%s filename=%s error=%s mimetype=%s content_length=%s",
+                submission.id,
+                document.id,
+                request.env.user.id,
+                upload.filename,
+                upload_error,
+                upload.mimetype,
+                request.httprequest.content_length,
+            )
+            return self._redirect_upload_error(submission, upload_error)
 
         _logger.info(
             "Portal document upload received submission_id=%s document_id=%s user_id=%s filename=%s content_length=%s",
@@ -116,3 +141,21 @@ class RiskSubmissionPortalController(http.Controller):
             body="Documento cargado desde portal: %s" % document.name,
         )
         return request.redirect("/mis-solicitudes-riesgo/%s?upload_success=1" % submission.id)
+
+    def _validate_portal_upload(self, upload):
+        content_length = request.httprequest.content_length or 0
+        if content_length > MAX_PORTAL_UPLOAD_SIZE:
+            return "too_large"
+
+        filename = upload.filename or ""
+        extension = "." + filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+        if extension not in ALLOWED_PORTAL_UPLOAD_EXTENSIONS:
+            return "invalid_type"
+        if upload.mimetype and upload.mimetype not in ALLOWED_PORTAL_UPLOAD_MIMETYPES:
+            return "invalid_type"
+        return None
+
+    def _redirect_upload_error(self, submission, error_code):
+        return request.redirect(
+            "/mis-solicitudes-riesgo/%s?upload_error=%s" % (submission.id, error_code)
+        )
