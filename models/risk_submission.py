@@ -7,6 +7,7 @@ import odoo
 from datetime import timedelta
 from odoo.orm.registry import Registry
 from odoo import api, fields, models, SUPERUSER_ID
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -21,6 +22,63 @@ class RiskSubmission(models.Model):
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _rec_name = "vehicle_plate"
     _order = "create_date desc"
+
+    _FORM_LOCKED_FIELDS = frozenset(
+        {
+            "form_date",
+            "vehicle_plate",
+            "semi_trailer_plate",
+            "satellite_company",
+            "satellite_user",
+            "satellite_password",
+            "owner_name",
+            "owner_document_type",
+            "owner_document_number",
+            "owner_address",
+            "owner_neighborhood",
+            "owner_city",
+            "owner_phone",
+            "owner_email",
+            "advance_payment_to",
+            "same_owner_on_license",
+            "registered_owner_document_type",
+            "registered_owner_document_number",
+            "registered_owner_name",
+            "registered_owner_phone",
+            "driver_name",
+            "driver_document_number",
+            "driver_address",
+            "driver_neighborhood",
+            "driver_city",
+            "driver_phone",
+            "driver_optional_phone",
+            "driver_email",
+            "driver_is_fit",
+            "driver_is_trained",
+            "family_reference_name",
+            "family_reference_relationship",
+            "family_reference_phone",
+            "cargo_reference_name",
+            "cargo_reference_phone",
+            "banking_info_accepted",
+            "compensation_accepted",
+            "personal_data_accepted",
+            "terms_accepted_at",
+            "owner_has_valid_study",
+            "owner_signature",
+            "owner_signature_document",
+            "owner_signed_at",
+            "owner_signature_ip",
+            "owner_signature_user_agent",
+            "driver_has_valid_study",
+            "driver_signature",
+            "driver_signature_document",
+            "driver_signed_at",
+            "driver_signature_ip",
+            "driver_signature_user_agent",
+            "message",
+        }
+    )
 
     name = fields.Char(string="Referencia")
     state = fields.Selection(
@@ -318,6 +376,28 @@ class RiskSubmission(models.Model):
         string="Validaciones externas",
         copy=False,
     )
+
+    def _is_risk_analyst_without_leader_rights(self):
+        user = self.env.user
+        return (
+            user.id != SUPERUSER_ID
+            and user.has_group("risk_module.group_risk_user")
+            and not user.has_group("risk_module.group_risk_manager")
+        )
+
+    def _check_form_locked_fields_for_risk_analyst(self, vals):
+        if self._is_risk_analyst_without_leader_rights():
+            locked_fields = self._FORM_LOCKED_FIELDS.intersection(vals)
+            if locked_fields:
+                labels = [
+                    self._fields[field].string
+                    for field in sorted(locked_fields)
+                    if field in self._fields
+                ]
+                raise UserError(
+                    "El Analista de Riesgo puede gestionar el flujo, pero no puede modificar datos registrados en el formulario: %s."
+                    % ", ".join(labels)
+                )
 
     @api.depends("state")
     def _compute_portal_state_label(self):
@@ -1078,6 +1158,7 @@ class RiskSubmission(models.Model):
             self.env.user.id,
             sorted(vals.keys()),
         )
+        self._check_form_locked_fields_for_risk_analyst(vals)
         if vals.get("vehicle_plate"):
             vals["vehicle_plate"] = self._normalize_plate(vals["vehicle_plate"])
         if vals.get("semi_trailer_plate"):

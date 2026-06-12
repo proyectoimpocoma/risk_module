@@ -14,24 +14,24 @@
                             invisible="state != 'external_validation_pending'"/>
                     <button name="action_register_external_validation_result" type="object" string="Registrar resultado Validiti"
                             invisible="state != 'external_validation_pending'"
-                            groups="risk_module.group_risk_manager"/>
+                            groups="risk_module.group_risk_user"/>
                     <button name="action_skip_external_validation" type="object" string="Continuar a aprobacion manual"
                             invisible="state not in ('risk_review', 'external_validation_pending')"
-                            groups="risk_module.group_risk_manager"/>
+                            groups="risk_module.group_risk_user"/>
                     <button name="action_request_documents" type="object" string="Solicitar documentos"
                             invisible="state != 'manual_approval_pending'"
-                            groups="risk_module.group_risk_manager"/>
+                            groups="risk_module.group_risk_user"/>
                     <button name="action_start_document_review" type="object" string="Revisar documentos"
                             invisible="state != 'documents_requested'"/>
                     <button name="action_approve" type="object" string="Aprobar" class="btn-primary"
                             invisible="state != 'documents_review'"
-                            groups="risk_module.group_risk_manager"/>
+                            groups="risk_module.group_risk_user"/>
                     <button name="action_reject" type="object" string="Rechazar"
                             invisible="state in ('approved', 'rejected')"
-                            groups="risk_module.group_risk_manager"/>
+                            groups="risk_module.group_risk_user"/>
                     <button name="action_reset_to_submitted" type="object" string="Reabrir"
                             invisible="state not in ('approved', 'rejected')"
-                            groups="risk_module.group_risk_manager"/>
+                            groups="risk_module.group_risk_user"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,submitted,risk_review,external_validation_pending,manual_approval_pending,documents_requested,documents_review,approved,rejected"/>
                 </header>
