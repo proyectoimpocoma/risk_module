@@ -315,8 +315,30 @@ class RiskSubmissionController(
 
         _logger.info("Owner signature step completed user_id=%s", request.env.user.id)
         self._stamp_owner_signature_metadata(data)
+        if data.get("single_owner_driver_signature") == "yes":
+            self._apply_single_owner_driver_signature(data)
+            self._persist_step_data(6, data)
+            submission, error_response = self._safe_create_or_update_submission(
+                data,
+                state="draft",
+                error_step=5,
+            )
+            if error_response:
+                return error_response
+            if not submission:
+                _logger.warning(
+                    "Risk submission draft blocked by ownership user_id=%s session_submission_id=%s",
+                    request.env.user.id,
+                    request.session.get("risk_submission_id"),
+                )
+                return request.not_found()
+            data["submission_id"] = submission.id
+            data["submission_token"] = submission.access_token
+            request.session["risk_submission_id"] = submission.id
         self._persist_step_data(5, data)
         request.session["risk_vehicle_form"] = data
+        if data.get("single_owner_driver_signature") == "yes":
+            return request.redirect("/registro-conductor/7")
         return request.redirect("/registro-conductor/6")
 
     def _post_driver_signatures_step(self, data, post):
@@ -509,6 +531,13 @@ class RiskSubmissionController(
             data["terms_error"] = "Debes leer y aceptar los terminos para continuar."
             request.session["risk_vehicle_form"] = data
             return self._render_step(4)
+        if step == 6 and data.get("single_owner_driver_signature") == "yes":
+            self._apply_single_owner_driver_signature(data)
+            self._persist_step_data(6, data)
+            request.session["risk_vehicle_form"] = data
+            if self._signatures_are_valid(data):
+                return request.redirect("/registro-conductor/7")
+            return request.redirect("/registro-conductor/5")
         if step == 7 and not self._signatures_are_valid(data):
             _logger.warning(
                 "Risk registration review redirected to invalid signature step=%s user_id=%s",

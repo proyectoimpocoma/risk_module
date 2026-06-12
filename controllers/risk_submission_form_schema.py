@@ -16,6 +16,7 @@ CHOICE_VALUES = {
     "driver_is_trained": ("yes", "no"),
     "owner_has_valid_study": ("yes", "no"),
     "driver_has_valid_study": ("yes", "no"),
+    "single_owner_driver_signature": ("yes", "no"),
 }
 
 TEXT_LIMITS = {
@@ -88,6 +89,7 @@ STEP_FIELDS = {
         "terms_accepted_at",
     ),
     5: (
+        "single_owner_driver_signature",
         "owner_has_valid_study",
         "owner_signature",
         "owner_signature_document",

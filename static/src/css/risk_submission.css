@@ -482,6 +482,20 @@
     line-height: 1.35;
     background: var(--risk-fill);
 }
+.risk-single-signature-note {
+    grid-column: 1 / -1;
+    margin-bottom: 14px;
+    padding: 14px;
+    border: 1px solid #d8b46a;
+    border-radius: 8px;
+    background: #fffaf0;
+    color: var(--risk-ink);
+    font-weight: 700;
+    line-height: 1.4;
+}
+.risk-single-signature-note.is-disabled {
+    display: none;
+}
 .risk-print-toolbar {
     display: flex;
     flex-wrap: wrap;

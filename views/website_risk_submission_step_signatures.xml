@@ -5,6 +5,22 @@
 
         <div t-if="step == 5" class="risk-signature-card">
             <h3>Propietario / Tenedor / Representante Legal</h3>
+            <div class="risk-field risk-field-full risk-switch-card">
+                <div>
+                    <span class="risk-switch-title">Firma unica propietario/conductor</span>
+                    <span class="risk-switch-help">Usa esta opcion solo si propietario/tenedor y conductor son la misma persona.</span>
+                </div>
+                <label class="risk-switch" for="single_owner_driver_signature_toggle">
+                    <span>No</span>
+                    <input id="single_owner_driver_signature_toggle" type="checkbox" t-att-checked="'checked' if data.get('single_owner_driver_signature') == 'yes' else None"/>
+                    <span class="risk-switch-track" aria-hidden="true"></span>
+                    <span>Si</span>
+                </label>
+                <input id="single_owner_driver_signature" name="single_owner_driver_signature" type="hidden" t-att-value="data.get('single_owner_driver_signature') or 'no'"/>
+            </div>
+            <div t-attf-class="risk-single-signature-note #{'' if data.get('single_owner_driver_signature') == 'yes' else 'is-disabled'}" data-single-signature-note="1">
+                Declaro que actuo como propietario/tenedor y conductor, y autorizo que esta firma aplique para ambas responsabilidades dentro de esta solicitud.
+            </div>
             <div class="risk-verification-box">
                 <div>
                     <strong>Verificacion de correo</strong>

@@ -1,7 +1,29 @@
 (function () {
+    function initSingleSignatureSwitch() {
+        var valueInput = document.getElementById("single_owner_driver_signature");
+        var toggle = document.getElementById("single_owner_driver_signature_toggle");
+        var note = document.querySelector("[data-single-signature-note='1']");
+
+        if (!valueInput || !toggle) {
+            return;
+        }
+
+        function syncState() {
+            var enabled = toggle.checked;
+            valueInput.value = enabled ? "yes" : "no";
+            if (note) {
+                note.classList.toggle("is-disabled", !enabled);
+            }
+        }
+
+        toggle.addEventListener("change", syncState);
+        syncState();
+    }
+
     function initRiskSignaturePads() {
         var pads = document.querySelectorAll("[data-signature-pad]");
         if (!pads.length) {
+            initSingleSignatureSwitch();
             return;
         }
 
@@ -123,6 +145,7 @@
         }
 
         Array.prototype.forEach.call(pads, createPad);
+        initSingleSignatureSwitch();
     }
 
     if (document.readyState === "loading") {

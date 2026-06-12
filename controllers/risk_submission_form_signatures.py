@@ -29,6 +29,8 @@ class RiskSubmissionFormSignatureMixin:
         return configs[party]
 
     def _signature_email_verification_error(self, data, party):
+        if party == "driver" and data.get("single_owner_driver_signature") == "yes":
+            party = "owner"
         config = self._signature_verification_config(party)
         email = (data.get(config["email_field"]) or "").strip()
         if not email:
@@ -56,6 +58,10 @@ class RiskSubmissionFormSignatureMixin:
         driver_signature = self._clean_signature_data(post.get("driver_signature", ""))
         data.update(
             {
+                "single_owner_driver_signature": post.get(
+                    "single_owner_driver_signature",
+                    data.get("single_owner_driver_signature") or "no",
+                ).strip(),
                 "owner_has_valid_study": post.get(
                     "owner_has_valid_study", data.get("owner_has_valid_study") or ""
                 ).strip(),
@@ -72,6 +78,8 @@ class RiskSubmissionFormSignatureMixin:
                 or data.get("driver_document_number"),
             }
         )
+        if data.get("single_owner_driver_signature") not in ("yes", "no"):
+            data["single_owner_driver_signature"] = "no"
         _logger.debug(
             "Updated signature data user_id=%s owner_signature_present=%s driver_signature_present=%s owner_study=%s driver_study=%s",
             request.env.user.id,
@@ -80,6 +88,30 @@ class RiskSubmissionFormSignatureMixin:
             data.get("owner_has_valid_study"),
             data.get("driver_has_valid_study"),
         )
+
+    def _apply_single_owner_driver_signature(self, data):
+        if data.get("single_owner_driver_signature") != "yes":
+            return
+        data.update(
+            {
+                "driver_has_valid_study": data.get("owner_has_valid_study") or "no",
+                "driver_signature": data.get("owner_signature"),
+                "driver_signature_document": data.get("owner_signature_document")
+                or data.get("owner_document_number")
+                or data.get("driver_document_number"),
+                "driver_signed_at": data.get("owner_signed_at"),
+                "driver_signature_ip": data.get("owner_signature_ip"),
+                "driver_signature_user_agent": data.get("owner_signature_user_agent"),
+                "driver_signature_email": data.get("owner_signature_email"),
+                "driver_signature_code_sent_at": data.get("owner_signature_code_sent_at"),
+                "driver_signature_code_expires_at": data.get("owner_signature_code_expires_at"),
+                "driver_signature_verified_at": data.get("owner_signature_verified_at"),
+                "driver_signature_verified_ip": data.get("owner_signature_verified_ip"),
+                "driver_signature_code_attempts": data.get("owner_signature_code_attempts"),
+                "driver_signature_verification_state": data.get("owner_signature_verification_state"),
+            }
+        )
+        _logger.info("Single owner/driver signature applied user_id=%s", request.env.user.id)
 
     def _validate_signature_step(self, data):
         if data.get("owner_has_valid_study") not in ("yes", "no"):
@@ -145,6 +177,7 @@ class RiskSubmissionFormSignatureMixin:
             )
 
     def _signatures_are_valid(self, data):
+        self._apply_single_owner_driver_signature(data)
         owner_required = data.get("owner_has_valid_study") != "yes"
         driver_required = data.get("driver_has_valid_study") != "yes"
         owner_document_ok = data.get("owner_signature_document") and CC_REGEX.match(
@@ -195,6 +228,9 @@ class RiskSubmissionFormSignatureMixin:
 
     def _validate_driver_signature_step(self, data):
         """Valida únicamente los datos de firma del conductor."""
+        if data.get("single_owner_driver_signature") == "yes":
+            self._apply_single_owner_driver_signature(data)
+            return None
         verification_error = self._signature_email_verification_error(data, "driver")
         if verification_error:
             _logger.warning("Driver signature email verification missing user_id=%s", request.env.user.id)
