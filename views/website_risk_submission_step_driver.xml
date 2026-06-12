@@ -1,5 +1,23 @@
 <odoo>
     <template id="register_driver_step_driver" name="Registro Vehiculo Paso Conductor">
+        <div id="risk-owner-data"
+             class="d-none"
+             t-att-data-owner-name="data.get('owner_name') or ''"
+             t-att-data-owner-document-number="data.get('owner_document_number') or ''"
+             t-att-data-owner-address="data.get('owner_address') or ''"
+             t-att-data-owner-neighborhood="data.get('owner_neighborhood') or ''"
+             t-att-data-owner-city="data.get('owner_city') or ''"
+             t-att-data-owner-phone="data.get('owner_phone') or ''"
+             t-att-data-owner-email="data.get('owner_email') or ''"/>
+        <div class="risk-copy-owner-card">
+            <div>
+                <span class="risk-switch-title">Conductor igual al propietario</span>
+                <span class="risk-switch-help">Puedes copiar los datos del propietario y ajustarlos si el conductor tiene informacion diferente.</span>
+            </div>
+            <button type="button" class="btn btn-outline-secondary" id="risk-copy-owner-to-driver">Usar datos del propietario</button>
+            <div class="risk-copy-owner-feedback" id="risk-copy-owner-feedback" role="status"></div>
+        </div>
+
         <div class="risk-field">
             <label for="driver_name">Nombres y apellidos</label>
             <input id="driver_name" name="driver_name" type="text" t-att-value="data.get('driver_name')" required="required" maxlength="140" minlength="3" autocomplete="off" placeholder="Ej: Luis Gomez"/>

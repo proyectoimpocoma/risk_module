@@ -239,6 +239,35 @@
     font-size: 14px;
     line-height: 1.35;
 }
+.risk-copy-owner-card {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px 18px;
+    align-items: center;
+    padding: 16px 18px;
+    border: 1px solid #dce5db;
+    border-radius: 8px;
+    background: var(--risk-fill);
+}
+.risk-copy-owner-card .btn {
+    border-radius: 6px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.risk-copy-owner-feedback {
+    grid-column: 1 / -1;
+    min-height: 20px;
+    color: var(--risk-primary-dark);
+    font-size: 14px;
+    font-weight: 700;
+}
+.risk-copy-owner-feedback:empty {
+    display: none;
+}
+.risk-copy-owner-feedback.is-error {
+    color: #991b1b;
+}
 .risk-switch {
     display: inline-flex;
     align-items: center;
@@ -708,6 +737,12 @@
     .risk-switch-card {
         align-items: flex-start;
         flex-direction: column;
+    }
+    .risk-copy-owner-card {
+        grid-template-columns: 1fr;
+    }
+    .risk-copy-owner-card .btn {
+        width: 100%;
     }
     .risk-step-title {
         font-size: 20px;

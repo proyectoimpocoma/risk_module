@@ -40,6 +40,7 @@
             "risk_module/static/src/css/risk_submission.css",
             "risk_module/static/src/js/risk_submission_vehicle.js",
             "risk_module/static/src/js/risk_submission_owner.js",
+            "risk_module/static/src/js/risk_submission_driver.js",
             "risk_module/static/src/js/risk_submission_terms.js",
             "risk_module/static/src/js/risk_submission_signatures.js",
             "risk_module/static/src/js/risk_submission_print.js",
