@@ -85,6 +85,14 @@
         </field>
     </record>
 
+    <record id="action_risk_module_document_form_modal" model="ir.actions.act_window">
+        <field name="name">Documento - Vista ampliada</field>
+        <field name="res_model">risk.module.document</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_risk_module_document_form"/>
+        <field name="target">new</field>
+    </record>
+
     <record id="action_risk_module_document" model="ir.actions.act_window">
         <field name="name">Documentos</field>
         <field name="res_model">risk.module.document</field>

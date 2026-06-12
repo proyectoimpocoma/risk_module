@@ -170,12 +170,11 @@
 
                         <page string="Documentos" name="documents_page">
                             <field name="document_ids" context="{'default_submission_id': id}">
-                                <list editable="bottom"
+                                <tree string="Documentos"
                                       decoration-success="state == 'approved'"
                                       decoration-danger="state == 'rejected'"
                                       decoration-info="state == 'received'"
                                       decoration-warning="state == 'pending'">
-                                    <field name="sequence" widget="handle"/>
                                     <field name="state" widget="badge"
                                            decoration-success="state == 'approved'"
                                            decoration-danger="state == 'rejected'"
@@ -185,17 +184,42 @@
                                     <field name="document_type"/>
                                     <field name="party"/>
                                     <field name="required"/>
-                                    <field name="file" filename="filename"/>
-                                    <field name="filename" optional="hide"/>
+                                    <field name="filename"/>
                                     <field name="expiration_date"/>
-                                    <field name="observations"/>
-                                    <button name="action_mark_received" type="object" string="Recibido"
-                                            invisible="state != 'pending'"/>
-                                    <button name="action_approve" type="object" string="Aprobar"
-                                            invisible="state not in ('received', 'rejected')"/>
-                                    <button name="action_reject" type="object" string="Rechazar"
-                                            invisible="state not in ('received', 'approved')"/>
-                                </list>
+                                </tree>
+                                <form string="Documento">
+                                    <header>
+                                        <button name="%(action_risk_module_document_form_modal)d" type="action"
+                                                string="Vista ampliada" class="btn-secondary"
+                                                attrs="{'invisible': [('id', '=', False)]}"/>
+                                        <button name="action_mark_received" type="object" string="Marcar recibido"
+                                                invisible="state != 'pending'"/>
+                                        <button name="action_approve" type="object" string="Aprobar" class="btn-primary"
+                                                invisible="state not in ('received', 'rejected')"/>
+                                        <button name="action_reject" type="object" string="Rechazar"
+                                                invisible="state not in ('received', 'approved')"/>
+                                        <field name="state" widget="statusbar"
+                                               statusbar_visible="pending,received,approved,rejected"/>
+                                    </header>
+                                    <sheet>
+                                        <group>
+                                            <group>
+                                                <field name="name"/>
+                                                <field name="document_type"/>
+                                                <field name="party"/>
+                                                <field name="required"/>
+                                                <field name="expiration_date"/>
+                                            </group>
+                                            <group>
+                                                <field name="filename"/>
+                                                <field name="file" filename="filename" nolabel="1"/>
+                                            </group>
+                                        </group>
+                                        <group string="Observaciones">
+                                            <field name="observations" nolabel="1" colspan="2"/>
+                                        </group>
+                                    </sheet>
+                                </form>
                             </field>
                         </page>
 
