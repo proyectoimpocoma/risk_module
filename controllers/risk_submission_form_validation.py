@@ -23,10 +23,25 @@ class RiskSubmissionFormValidationMixin:
             for field in ("vehicle_plate", "semi_trailer_plate"):
                 if data.get(field):
                     data[field] = data[field].strip().upper()
+            if data.get("has_semi_trailer") not in ("yes", "no"):
+                data["has_semi_trailer"] = "yes" if data.get("semi_trailer_plate") else "no"
+            if data.get("has_semi_trailer") != "yes":
+                data["semi_trailer_plate"] = ""
         if step in (2, 3):
             for field in ("owner_city", "driver_city"):
                 if data.get(field):
                     data[field] = data[field].strip().title()
+        if step == 2:
+            if data.get("same_owner_on_license") not in ("yes", "no"):
+                data["same_owner_on_license"] = "yes"
+            if data.get("same_owner_on_license") == "yes":
+                for field in (
+                    "registered_owner_document_type",
+                    "registered_owner_document_number",
+                    "registered_owner_name",
+                    "registered_owner_phone",
+                ):
+                    data[field] = ""
         if before_plate != data.get("vehicle_plate") or before_semi != data.get("semi_trailer_plate"):
             _logger.debug(
                 "Normalized vehicle data step=%s plate=%s semi_present=%s",
@@ -52,6 +67,7 @@ class RiskSubmissionFormValidationMixin:
 
     def _validate_vehicle_step(self, data):
         vehicle_plate = data.get("vehicle_plate")
+        has_semi_trailer = data.get("has_semi_trailer")
         semi_trailer_plate = data.get("semi_trailer_plate")
         form_date = data.get("form_date")
         if not form_date:
@@ -69,6 +85,10 @@ class RiskSubmissionFormValidationMixin:
                 "La placa del vehiculo debe tener formato colombiano valido: "
                 "ABC123 para vehiculo/carga o ABC12 para motocicleta."
             )
+        if has_semi_trailer not in ("yes", "no"):
+            return "Debes indicar si el vehiculo tiene semi/remolque."
+        if has_semi_trailer == "yes" and not semi_trailer_plate:
+            return "Debes diligenciar la placa del semi/remolque."
         if semi_trailer_plate and not SEMI_TRAILER_PLATE_REGEX.match(
             semi_trailer_plate
         ):
@@ -97,15 +117,21 @@ class RiskSubmissionFormValidationMixin:
         )
         if phone_error:
             return phone_error
+        if data.get("same_owner_on_license") not in ("yes", "no"):
+            return "Debes indicar si el propietario registrado en licencia es el mismo."
 
         registered_owner_document_error = self._validate_document(
             data.get("registered_owner_document_type"),
             data.get("registered_owner_document_number"),
             "documento del propietario registrado",
-            required=False,
+            required=data.get("same_owner_on_license") == "no",
         )
         if registered_owner_document_error:
             return registered_owner_document_error
+        if data.get("same_owner_on_license") == "no" and not data.get("registered_owner_name"):
+            return "Debes diligenciar los nombres y apellidos del propietario registrado."
+        if data.get("same_owner_on_license") == "no" and not data.get("registered_owner_phone"):
+            return "Debes diligenciar el celular del propietario registrado."
 
         return self._validate_mobile_phone(
             data.get("registered_owner_phone"),
@@ -154,12 +180,12 @@ class RiskSubmissionFormValidationMixin:
             return "Debes indicar si el conductor es apto fisica, mental y psicotecnicamente."
         if data.get("driver_is_fit") != "yes":
             return (
-                "El conductor debe declararse apto fisica, mental y psicotecnicamente."
+                "Para continuar, el conductor debe confirmar que se encuentra apto fisica, mental y psicotecnicamente para prestar el servicio."
             )
         if data.get("driver_is_trained") not in ("yes", "no"):
             return "Debes indicar si el conductor esta capacitado y entrenado."
         if data.get("driver_is_trained") != "yes":
-            return "El conductor debe declarar estar capacitado y entrenado."
+            return "Para continuar, el conductor debe confirmar que esta capacitado y entrenado para contingencias y prevencion de accidentes en carretera."
         return None
 
     def _validate_text_lengths(self, data):

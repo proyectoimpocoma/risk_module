@@ -215,6 +215,83 @@
     height: 22px;
     accent-color: var(--risk-primary);
 }
+.risk-switch-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 16px 18px;
+    border: 1px solid #dce5db;
+    border-radius: 8px;
+    background: var(--risk-fill);
+}
+.risk-switch-title {
+    display: block;
+    color: var(--risk-ink);
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+.risk-switch-help {
+    display: block;
+    margin-top: 4px;
+    color: var(--risk-muted);
+    font-size: 14px;
+    line-height: 1.35;
+}
+.risk-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    color: var(--risk-ink);
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.risk-switch input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+.risk-switch-track {
+    position: relative;
+    width: 58px;
+    height: 32px;
+    border: 1px solid #c8d3c7;
+    border-radius: 999px;
+    background: #eef3ef;
+    transition: background 160ms ease, border-color 160ms ease;
+}
+.risk-switch-track::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(23, 32, 42, 0.22);
+    transition: transform 160ms ease;
+}
+.risk-switch input:checked + .risk-switch-track {
+    border-color: var(--risk-primary);
+    background: var(--risk-primary);
+}
+.risk-switch input:checked + .risk-switch-track::after {
+    transform: translateX(26px);
+}
+.risk-semi-field,
+.risk-registered-owner-field {
+    transition: opacity 160ms ease, transform 160ms ease;
+}
+.risk-semi-field.is-disabled,
+.risk-registered-owner-field.is-disabled {
+    display: none;
+}
 .risk-inline-doc {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto auto minmax(220px, 1fr);
@@ -627,6 +704,10 @@
     }
     .risk-choice {
         justify-self: start;
+    }
+    .risk-switch-card {
+        align-items: flex-start;
+        flex-direction: column;
     }
     .risk-step-title {
         font-size: 20px;

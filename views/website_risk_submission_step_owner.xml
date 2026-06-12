@@ -52,41 +52,44 @@
             </label>
         </div>
 
-        <div class="risk-choice-row">
-            <span>La informacion del tenedor o poseedor corresponde al mismo o unico propietario, registrado en la Licencia de Transito?</span>
-            <label class="risk-choice">
-                <span>SI</span>
-                <input type="radio" name="same_owner_on_license" value="yes" t-att-checked="'checked' if data.get('same_owner_on_license') == 'yes' else None"/>
+        <t t-set="registered_owner_required" t-value="data.get('same_owner_on_license') == 'no'"/>
+        <div class="risk-field risk-field-full risk-switch-card">
+            <div>
+                <span class="risk-switch-title">Propietario registrado en licencia</span>
+                <span class="risk-switch-help">La informacion del tenedor o poseedor corresponde al mismo o unico propietario registrado en la Licencia de Transito?</span>
+            </div>
+            <label class="risk-switch" for="same_owner_on_license_toggle">
+                <span>No</span>
+                <input id="same_owner_on_license_toggle" type="checkbox" t-att-checked="'checked' if data.get('same_owner_on_license') != 'no' else None"/>
+                <span class="risk-switch-track" aria-hidden="true"></span>
+                <span>Si</span>
             </label>
-            <label class="risk-choice">
-                <span>NO</span>
-                <input type="radio" name="same_owner_on_license" value="no" t-att-checked="'checked' if data.get('same_owner_on_license') == 'no' else None"/>
-            </label>
+            <input id="same_owner_on_license" name="same_owner_on_license" type="hidden" t-att-value="data.get('same_owner_on_license') or 'yes'"/>
         </div>
 
-        <p class="risk-section-note">En caso de que su respuesta sea NO, por favor diligenciar la siguiente informacion del propietario:</p>
-        <div class="risk-inline-doc">
+        <p t-attf-class="risk-section-note risk-registered-owner-field #{'' if registered_owner_required else 'is-disabled'}" data-registered-owner-field="1">En caso de que su respuesta sea NO, por favor diligenciar la siguiente informacion del propietario:</p>
+        <div t-attf-class="risk-inline-doc risk-registered-owner-field #{'' if registered_owner_required else 'is-disabled'}" data-registered-owner-field="1">
             <div></div>
             <label class="risk-choice">
                 <span>CC</span>
-                <input type="radio" name="registered_owner_document_type" value="cc" t-att-checked="'checked' if data.get('registered_owner_document_type') == 'cc' else None"/>
+                <input type="radio" name="registered_owner_document_type" value="cc" t-att-disabled="None if registered_owner_required else 'disabled'" t-att-required="'required' if registered_owner_required else None" t-att-checked="'checked' if data.get('registered_owner_document_type') == 'cc' else None"/>
             </label>
             <label class="risk-choice">
                 <span>Nit</span>
-                <input type="radio" name="registered_owner_document_type" value="nit" t-att-checked="'checked' if data.get('registered_owner_document_type') == 'nit' else None"/>
+                <input type="radio" name="registered_owner_document_type" value="nit" t-att-disabled="None if registered_owner_required else 'disabled'" t-att-checked="'checked' if data.get('registered_owner_document_type') == 'nit' else None"/>
             </label>
             <div class="risk-field">
                 <label for="registered_owner_document_number">Numero</label>
-                <input id="registered_owner_document_number" name="registered_owner_document_number" type="text" t-att-value="data.get('registered_owner_document_number')" maxlength="11" pattern="[0-9]{6,10}|[0-9]{9}-[0-9]" title="CC: 6 a 10 digitos. NIT: 123456789 o 123456789-0" autocomplete="off" placeholder="Documento registrado"/>
+                <input id="registered_owner_document_number" name="registered_owner_document_number" type="text" t-att-value="data.get('registered_owner_document_number')" t-att-disabled="None if registered_owner_required else 'disabled'" t-att-required="'required' if registered_owner_required else None" maxlength="11" pattern="[0-9]{6,10}|[0-9]{9}-[0-9]" title="CC: 6 a 10 digitos. NIT: 123456789 o 123456789-0" autocomplete="off" placeholder="Documento registrado"/>
             </div>
         </div>
-        <div class="risk-field">
+        <div t-attf-class="risk-field risk-registered-owner-field #{'' if registered_owner_required else 'is-disabled'}" data-registered-owner-field="1">
             <label for="registered_owner_name">Nombres y apellidos</label>
-            <input id="registered_owner_name" name="registered_owner_name" type="text" t-att-value="data.get('registered_owner_name')" maxlength="140" autocomplete="off" placeholder="Nombres y apellidos del propietario registrado"/>
+            <input id="registered_owner_name" name="registered_owner_name" type="text" t-att-value="data.get('registered_owner_name')" t-att-disabled="None if registered_owner_required else 'disabled'" t-att-required="'required' if registered_owner_required else None" maxlength="140" autocomplete="off" placeholder="Nombres y apellidos del propietario registrado"/>
         </div>
-        <div class="risk-field">
+        <div t-attf-class="risk-field risk-registered-owner-field #{'' if registered_owner_required else 'is-disabled'}" data-registered-owner-field="1">
             <label for="registered_owner_phone">Celular</label>
-            <input id="registered_owner_phone" name="registered_owner_phone" type="tel" t-att-value="data.get('registered_owner_phone')" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
+            <input id="registered_owner_phone" name="registered_owner_phone" type="tel" t-att-value="data.get('registered_owner_phone')" t-att-disabled="None if registered_owner_required else 'disabled'" t-att-required="'required' if registered_owner_required else None" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
         </div>
     </template>
 </odoo>

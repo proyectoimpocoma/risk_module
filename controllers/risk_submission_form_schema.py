@@ -7,6 +7,7 @@ from ..risk_validation_rules import (
 )
 
 CHOICE_VALUES = {
+    "has_semi_trailer": ("yes", "no"),
     "owner_document_type": ("cc", "nit"),
     "advance_payment_to": ("driver", "owner"),
     "same_owner_on_license": ("yes", "no"),
@@ -40,6 +41,7 @@ STEP_FIELDS = {
     1: (
         "form_date",
         "vehicle_plate",
+        "has_semi_trailer",
         "semi_trailer_plate",
         "satellite_company",
         "satellite_user",
