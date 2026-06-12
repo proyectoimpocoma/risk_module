@@ -70,7 +70,7 @@ class TestRiskSubmission(TransactionCase):
             "external_validation_pending": "En revision",
             "manual_approval_pending": "En revision",
             "documents_requested": "Documentos solicitados",
-            "documents_review": "Documentos en revision",
+            "documents_review": "Documentos enviados",
             "approved": "Aprobada",
             "rejected": "Rechazada",
         }
@@ -229,6 +229,32 @@ class TestRiskSubmission(TransactionCase):
         self.assertFalse(
             self.submission._portal_document_upload_allowed(document, self.portal_user)
         )
+
+    def test_autotransition_to_documents_review_when_last_required_document_uploaded(
+        self,
+    ):
+        self.submission.action_request_documents()
+        self.assertEqual(self.submission.state, "documents_requested")
+
+        required_docs = self.submission.document_ids.filtered(lambda doc: doc.required)
+        self.assertTrue(required_docs)
+
+        for document in required_docs[:-1]:
+            document.write(
+                {
+                    "file": "ZHVtbXk=",
+                    "filename": "documento.pdf",
+                }
+            )
+        self.assertEqual(self.submission.state, "documents_requested")
+
+        required_docs[-1].write(
+            {
+                "file": "ZHVtbXk=",
+                "filename": "documento_final.pdf",
+            }
+        )
+        self.assertEqual(self.submission.state, "documents_review")
 
     def test_cannot_approve_without_approved_documents(self):
         self.submission.action_request_documents()

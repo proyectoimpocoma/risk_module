@@ -92,25 +92,113 @@
                     <div t-if="not submission.document_ids" class="alert alert-info">
                         Aun no tienes documentos solicitados.
                     </div>
-                    <div t-if="submission.document_ids" class="list-group">
-                        <div t-foreach="submission.document_ids.sorted('sequence')" t-as="document" class="list-group-item">
-                            <div class="d-flex justify-content-between gap-3">
-                                <div>
-                                    <strong t-esc="document.name"/>
-                                    <div class="text-muted small">
-                                        Estado: <span t-esc="dict(document._fields['state'].selection).get(document.state)"/>
+                    <div t-if="submission.document_ids">
+                        <t t-set="driver_documents" t-value="submission.document_ids.filtered(lambda d: d.party == 'driver')"/>
+                        <t t-set="vehicle_documents" t-value="submission.document_ids.filtered(lambda d: d.party in ('vehicle', 'semi_trailer'))"/>
+                        <t t-set="owner_documents" t-value="submission.document_ids.filtered(lambda d: d.party == 'owner')"/>
+                        <t t-set="other_documents" t-value="submission.document_ids.filtered(lambda d: d.party not in ('driver', 'vehicle', 'semi_trailer', 'owner'))"/>
+
+                        <div t-if="driver_documents">
+                            <h3 class="h6">Conductor</h3>
+                            <div class="list-group mb-3">
+                                <div t-foreach="driver_documents.sorted('sequence')" t-as="document" class="list-group-item">
+                                    <div class="d-flex justify-content-between gap-3">
+                                        <div>
+                                            <strong t-esc="document.name"/>
+                                            <div class="text-muted small">
+                                                Estado: <span t-esc="dict(document._fields['state'].selection).get(document.state)"/>
+                                            </div>
+                                            <div t-if="document.observations" class="text-danger small" t-esc="document.observations"/>
+                                        </div>
+                                        <form t-if="submission._portal_document_upload_allowed(document)"
+                                              t-attf-action="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/subir"
+                                              method="post"
+                                              enctype="multipart/form-data"
+                                              class="d-flex align-items-center gap-2">
+                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                            <input type="file" name="document_file" class="form-control form-control-sm" required="required"/>
+                                            <button type="submit" class="btn btn-sm btn-primary">Subir</button>
+                                        </form>
                                     </div>
-                                    <div t-if="document.observations" class="text-danger small" t-esc="document.observations"/>
                                 </div>
-                                <form t-if="submission._portal_document_upload_allowed(document)"
-                                      t-attf-action="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/subir"
-                                      method="post"
-                                      enctype="multipart/form-data"
-                                      class="d-flex align-items-center gap-2">
-                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                    <input type="file" name="document_file" class="form-control form-control-sm" required="required"/>
-                                    <button type="submit" class="btn btn-sm btn-primary">Subir</button>
-                                </form>
+                            </div>
+                        </div>
+
+                        <div t-if="vehicle_documents">
+                            <h3 class="h6">Vehículo</h3>
+                            <div class="list-group mb-3">
+                                <div t-foreach="vehicle_documents.sorted('sequence')" t-as="document" class="list-group-item">
+                                    <div class="d-flex justify-content-between gap-3">
+                                        <div>
+                                            <strong t-esc="document.name"/>
+                                            <div class="text-muted small">
+                                                Estado: <span t-esc="dict(document._fields['state'].selection).get(document.state)"/>
+                                            </div>
+                                            <div t-if="document.observations" class="text-danger small" t-esc="document.observations"/>
+                                        </div>
+                                        <form t-if="submission._portal_document_upload_allowed(document)"
+                                              t-attf-action="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/subir"
+                                              method="post"
+                                              enctype="multipart/form-data"
+                                              class="d-flex align-items-center gap-2">
+                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                            <input type="file" name="document_file" class="form-control form-control-sm" required="required"/>
+                                            <button type="submit" class="btn btn-sm btn-primary">Subir</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div t-if="owner_documents">
+                            <h3 class="h6">Propietario o Tenedor (Persona natural)</h3>
+                            <div class="list-group mb-3">
+                                <div t-foreach="owner_documents.sorted('sequence')" t-as="document" class="list-group-item">
+                                    <div class="d-flex justify-content-between gap-3">
+                                        <div>
+                                            <strong t-esc="document.name"/>
+                                            <div class="text-muted small">
+                                                Estado: <span t-esc="dict(document._fields['state'].selection).get(document.state)"/>
+                                            </div>
+                                            <div t-if="document.observations" class="text-danger small" t-esc="document.observations"/>
+                                        </div>
+                                        <form t-if="submission._portal_document_upload_allowed(document)"
+                                              t-attf-action="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/subir"
+                                              method="post"
+                                              enctype="multipart/form-data"
+                                              class="d-flex align-items-center gap-2">
+                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                            <input type="file" name="document_file" class="form-control form-control-sm" required="required"/>
+                                            <button type="submit" class="btn btn-sm btn-primary">Subir</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div t-if="other_documents">
+                            <h3 class="h6">Otros documentos</h3>
+                            <div class="list-group mb-3">
+                                <div t-foreach="other_documents.sorted('sequence')" t-as="document" class="list-group-item">
+                                    <div class="d-flex justify-content-between gap-3">
+                                        <div>
+                                            <strong t-esc="document.name"/>
+                                            <div class="text-muted small">
+                                                Estado: <span t-esc="dict(document._fields['state'].selection).get(document.state)"/>
+                                            </div>
+                                            <div t-if="document.observations" class="text-danger small" t-esc="document.observations"/>
+                                        </div>
+                                        <form t-if="submission._portal_document_upload_allowed(document)"
+                                              t-attf-action="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/subir"
+                                              method="post"
+                                              enctype="multipart/form-data"
+                                              class="d-flex align-items-center gap-2">
+                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                            <input type="file" name="document_file" class="form-control form-control-sm" required="required"/>
+                                            <button type="submit" class="btn btn-sm btn-primary">Subir</button>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

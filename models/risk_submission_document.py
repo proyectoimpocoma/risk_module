@@ -88,6 +88,12 @@ class RiskSubmissionDocument(models.Model):
                 record.state,
                 record.required,
             )
+        completed_submissions = records.mapped("submission_id").filtered(
+            lambda submission: submission.state == "documents_requested"
+            and submission._all_required_documents_uploaded()
+        )
+        if completed_submissions:
+            completed_submissions.action_mark_documents_sent_if_complete()
         return records
 
     def write(self, vals):
@@ -110,6 +116,12 @@ class RiskSubmissionDocument(models.Model):
                     record.state,
                     self.env.user.id,
                 )
+        completed_submissions = self.mapped("submission_id").filtered(
+            lambda submission: submission.state == "documents_requested"
+            and submission._all_required_documents_uploaded()
+        )
+        if completed_submissions:
+            completed_submissions.action_mark_documents_sent_if_complete()
         return result
 
     def action_mark_received(self):
