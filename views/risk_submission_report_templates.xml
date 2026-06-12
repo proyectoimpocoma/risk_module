@@ -211,10 +211,15 @@
                                 t-att-src="image_data_uri(o.owner_signature)" />
                             <div
                                 t-if="not o.owner_signature" class="risk-signature-line" />
-                            <div>Firma
-                            y numero de cedula<br />Tenedor/Representante Legal</div>
-                            <strong
-                                t-esc="o.owner_signature_document or ''" />
+                            <div class="risk-signature-label">Firma Tenedor/Representante Legal</div>
+                            <div class="risk-signer-info">
+                                <strong>Nombre:</strong>
+                                <span t-esc="o.owner_name or ''"/>
+                            </div>
+                            <div class="risk-signer-info">
+                                <strong>Cedula:</strong>
+                                <span t-esc="o.owner_signature_document or o.owner_document_number or ''"/>
+                            </div>
                         </div>
                         <div class="risk-signature-box"> Si el conductor cuenta con estudio vigente,
                             no debe diligenciar<br />el siguiente espacio: <img
@@ -222,10 +227,15 @@
                                 t-att-src="image_data_uri(o.driver_signature)" />
                             <div
                                 t-if="not o.driver_signature" class="risk-signature-line" />
-                            <div>Firma
-                            y numero de cedula de Conductor</div>
-                            <strong
-                                t-esc="o.driver_signature_document or ''" />
+                            <div class="risk-signature-label">Firma Conductor</div>
+                            <div class="risk-signer-info">
+                                <strong>Nombre:</strong>
+                                <span t-esc="o.driver_name or ''"/>
+                            </div>
+                            <div class="risk-signer-info">
+                                <strong>Cedula:</strong>
+                                <span t-esc="o.driver_signature_document or o.driver_document_number or ''"/>
+                            </div>
                         </div>
                     </div>
                     <div class="risk-note">

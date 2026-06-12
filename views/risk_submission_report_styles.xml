@@ -29,6 +29,9 @@
             .risk-signature-box { display: table-cell; width: 50%; border: 1px solid #f2a978; border-radius: 14pt; height: 1.05in; text-align: center; vertical-align: top; padding: 5pt; }
             .risk-signature-img { height: 0.38in; max-width: 90%; margin: 0.08in auto 1pt; display: block; }
             .risk-signature-line { border-bottom: 1px solid #d9783f; height: 0.13in; margin: 0.22in 22pt 3pt; }
+            .risk-signature-label { font-weight: 800; margin-top: 1pt; }
+            .risk-signer-info { font-size: 6.2pt; line-height: 7pt; text-align: left; margin: 1pt 8pt 0; white-space: normal; }
+            .risk-signer-info strong { font-weight: 800; }
             .risk-note { border: 1px solid #f2a978; border-radius: 6pt; padding: 5pt; font-size: 6pt; line-height: 7pt; margin-top: 3pt; }
             @media print {
                 html, body { width: 8.5in; min-height: 11in; }
