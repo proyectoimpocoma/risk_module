@@ -85,7 +85,6 @@
                     <p><span class="badge text-bg-secondary" t-esc="submission.portal_state_label"/></p>
                     <p t-if="submission.rejection_reason" class="alert alert-danger" t-esc="submission.rejection_reason"/>
                     <p t-if="submission.message" class="alert alert-light" t-esc="submission.message"/>
-                    <a t-attf-href="/registro-conductor/imprimir/#{submission.id}?token=#{submission.access_token}" target="_blank" class="btn btn-outline-secondary">Abrir vista imprimible</a>
                 </section>
 
                 <section>

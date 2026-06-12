@@ -61,6 +61,7 @@ class RiskSubmissionController(
         if (
             not submission
             or submission.access_token != token
+            or not request.env.user.has_group("base.group_user")
             or not self._can_access_submission(submission)
         ):
             _logger.warning(
@@ -559,7 +560,7 @@ class RiskSubmissionController(
             {
                 "step": step,
                 "data": data,
-                "print_url": self._print_url(data),
+                "print_url": self._print_url(data) if request.env.user.has_group("base.group_user") else "",
             },
         )
 

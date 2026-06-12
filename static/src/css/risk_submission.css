@@ -496,6 +496,62 @@
 .risk-single-signature-note.is-disabled {
     display: none;
 }
+.risk-review-summary {
+    border: 1px solid #dce5db;
+    border-radius: 8px;
+    background: #fff;
+    overflow: hidden;
+}
+.risk-review-heading {
+    padding: 18px 20px;
+    background: var(--risk-fill);
+    border-bottom: 1px solid #dce5db;
+}
+.risk-review-heading span {
+    display: block;
+    color: var(--risk-primary-dark);
+    font-size: 20px;
+    font-weight: 800;
+}
+.risk-review-heading p {
+    margin: 6px 0 0;
+    color: var(--risk-muted);
+    line-height: 1.4;
+}
+.risk-review-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    padding: 18px;
+}
+.risk-review-card {
+    border: 1px solid #dce5db;
+    border-radius: 8px;
+    padding: 14px;
+    background: #fff;
+}
+.risk-review-card h3 {
+    margin: 0 0 12px;
+    color: var(--risk-ink);
+    font-size: 16px;
+    font-weight: 800;
+}
+.risk-review-card dl {
+    display: grid;
+    grid-template-columns: minmax(110px, 0.7fr) minmax(0, 1fr);
+    gap: 8px 12px;
+    margin: 0;
+}
+.risk-review-card dt {
+    color: var(--risk-muted);
+    font-weight: 700;
+}
+.risk-review-card dd {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+    font-weight: 700;
+}
 .risk-print-toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -757,6 +813,12 @@
     }
     .risk-copy-owner-card .btn {
         width: 100%;
+    }
+    .risk-review-grid {
+        grid-template-columns: 1fr;
+    }
+    .risk-review-card dl {
+        grid-template-columns: 1fr;
     }
     .risk-step-title {
         font-size: 20px;

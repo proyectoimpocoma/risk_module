@@ -43,7 +43,6 @@
             "risk_module/static/src/js/risk_submission_driver.js",
             "risk_module/static/src/js/risk_submission_terms.js",
             "risk_module/static/src/js/risk_submission_signatures.js",
-            "risk_module/static/src/js/risk_submission_print.js",
         ],
     },
     "installable": True,
