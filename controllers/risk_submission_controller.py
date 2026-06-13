@@ -192,9 +192,9 @@ class RiskSubmissionController(
             return request.not_found()
 
         result = (
-            submission.sudo().send_owner_signature_code()
+            submission.sudo().with_context(skip_risk_form_lock=True).send_owner_signature_code()
             if party == "owner"
-            else submission.sudo().send_driver_signature_code()
+            else submission.sudo().with_context(skip_risk_form_lock=True).send_driver_signature_code()
         )
         self._sync_signature_verification_data(data, submission, party)
         self._persist_step_data(step, data)
@@ -239,12 +239,12 @@ class RiskSubmissionController(
 
         code = post.get("%s_signature_verification_code" % party, "")
         result = (
-            submission.sudo().verify_owner_signature_code(
+            submission.sudo().with_context(skip_risk_form_lock=True).verify_owner_signature_code(
                 code,
                 ip_address=request.httprequest.remote_addr,
             )
             if party == "owner"
-            else submission.sudo().verify_driver_signature_code(
+            else submission.sudo().with_context(skip_risk_form_lock=True).verify_driver_signature_code(
                 code,
                 ip_address=request.httprequest.remote_addr,
             )

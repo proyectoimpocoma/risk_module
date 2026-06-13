@@ -9,6 +9,27 @@ _logger = logging.getLogger(__name__)
 class RiskSubmissionDocuments(models.Model):
     _inherit = "risk.module"
 
+    _GENERATED_DOCUMENT_TYPES = {
+        "driver_license",
+        "driver_id",
+        "driver_social_security",
+        "driver_photo",
+        "driver_risk_induction",
+        "owner_document",
+        "owner_bank_certificate",
+        "owner_rut",
+        "owner_chamber_commerce",
+        "owner_legal_representative_id",
+        "vehicle_registration",
+        "vehicle_photo",
+        "soat",
+        "third_party_life_sheet",
+        "owner_security_study",
+        "driver_security_study",
+        "semi_registration",
+        "semi_photo",
+    }
+
     def action_request_documents(self):
         for record in self:
             _logger.info("Requesting documents submission_id=%s user_id=%s", record.id, self.env.user.id)
@@ -45,6 +66,7 @@ class RiskSubmissionDocuments(models.Model):
 
     def _required_document_templates(self):
         self.ensure_one()
+        same_owner_driver = self._same_owner_and_driver_person()
         templates = [
             {
                 "document_type": "driver_license",
@@ -137,7 +159,7 @@ class RiskSubmissionDocuments(models.Model):
                     "instructions": "Cedula digital o contraseña del representante legal o suplente autorizado segun camara de comercio, a color.",
                 },
             ])
-        else:
+        elif not same_owner_driver:
             templates.append({
                 "document_type": "owner_document",
                 "name": "Cedula de ciudadania del propietario o tenedor",
@@ -161,14 +183,15 @@ class RiskSubmissionDocuments(models.Model):
                 "sequence": 230,
                 "instructions": "El RUT debe registrar marca de agua como copia de certificado o certificado unicamente.",
             },
-            {
+        ])
+        if not same_owner_driver:
+            templates.append({
                 "document_type": "third_party_life_sheet",
                 "name": "Formato Hoja de Vida Habilitacion de Terceros FO-RI-01",
                 "party": "owner",
                 "sequence": 240,
                 "instructions": "Debe estar completamente diligenciado y firmado.",
-            },
-        ])
+            })
         if self.semi_trailer_plate:
             templates.extend([
                 {
@@ -187,7 +210,7 @@ class RiskSubmissionDocuments(models.Model):
                     "instructions": "Tarjeta de registro del remolque o semirremolque a color.",
                 },
             ])
-        if self.owner_has_valid_study == "yes":
+        if self.owner_has_valid_study == "yes" and not same_owner_driver:
             templates.append({
                 "document_type": "owner_security_study",
                 "name": "Estudio de seguridad vigente del propietario",
@@ -208,14 +231,54 @@ class RiskSubmissionDocuments(models.Model):
         _logger.debug("Required document templates submission_id=%s count=%s", self.id, len(templates))
         return templates
 
+    def _same_owner_and_driver_person(self):
+        self.ensure_one()
+        if self.single_owner_driver_signature == "yes":
+            return True
+        owner_document_number = (self.owner_document_number or "").strip()
+        driver_document_number = (self.driver_document_number or "").strip()
+        return (
+            self.owner_document_type == "cc"
+            and owner_document_number
+            and owner_document_number == driver_document_number
+        )
+
     def _ensure_required_documents(self):
         self.ensure_one()
         existing_documents = {
             (document.document_type, document.party): document
             for document in self.document_ids
         }
+        templates = self._required_document_templates()
+        required_keys = {
+            (template["document_type"], template["party"]) for template in templates
+        }
+        obsolete_documents = self.document_ids.filtered(
+            lambda document: (
+                document.required
+                and document.document_type in self._GENERATED_DOCUMENT_TYPES
+                and (document.document_type, document.party) not in required_keys
+            )
+        )
+        if obsolete_documents:
+            removable_documents = obsolete_documents.filtered(lambda document: not document.file)
+            documents_to_keep = obsolete_documents - removable_documents
+            if removable_documents:
+                _logger.info(
+                    "Removing obsolete generated documents submission_id=%s document_ids=%s",
+                    self.id,
+                    removable_documents.ids,
+                )
+                removable_documents.unlink()
+            if documents_to_keep:
+                _logger.info(
+                    "Marking obsolete generated documents as optional submission_id=%s document_ids=%s",
+                    self.id,
+                    documents_to_keep.ids,
+                )
+                documents_to_keep.write({"required": False})
         values = []
-        for template in self._required_document_templates():
+        for template in templates:
             key = (template["document_type"], template["party"])
             existing_document = existing_documents.get(key)
             metadata = {

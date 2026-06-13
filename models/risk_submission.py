@@ -65,6 +65,7 @@ class RiskSubmission(models.Model):
             "personal_data_accepted",
             "terms_accepted_at",
             "owner_has_valid_study",
+            "single_owner_driver_signature",
             "owner_signature",
             "owner_signature_document",
             "owner_signed_at",
@@ -232,6 +233,14 @@ class RiskSubmission(models.Model):
             ("no", "No"),
         ],
         string="Propietario con estudio vigente",
+    )
+    single_owner_driver_signature = fields.Selection(
+        [
+            ("yes", "Si"),
+            ("no", "No"),
+        ],
+        string="Propietario y conductor son la misma persona",
+        default="no",
     )
     owner_signature = fields.Binary(string="Firma propietario")
     owner_signature_document = fields.Char(string="Cedula firma propietario")
@@ -402,6 +411,8 @@ class RiskSubmission(models.Model):
     )
 
     def _is_risk_analyst_without_leader_rights(self):
+        if self.env.su or self.env.context.get("skip_risk_form_lock"):
+            return False
         user = self.env.user
         return (
             user.id != SUPERUSER_ID

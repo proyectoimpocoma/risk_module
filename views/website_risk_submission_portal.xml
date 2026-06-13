@@ -89,14 +89,15 @@
 
                 <section>
                     <h2 class="h5">Documentos solicitados</h2>
-                    <div t-if="not submission.document_ids" class="alert alert-info">
+                    <t t-set="required_documents" t-value="submission.document_ids.filtered(lambda d: d.required)"/>
+                    <div t-if="not required_documents" class="alert alert-info">
                         Aun no tienes documentos solicitados.
                     </div>
-                    <div t-if="submission.document_ids">
-                        <t t-set="driver_documents" t-value="submission.document_ids.filtered(lambda d: d.party == 'driver')"/>
-                        <t t-set="vehicle_documents" t-value="submission.document_ids.filtered(lambda d: d.party in ('vehicle', 'semi_trailer'))"/>
-                        <t t-set="owner_documents" t-value="submission.document_ids.filtered(lambda d: d.party == 'owner')"/>
-                        <t t-set="other_documents" t-value="submission.document_ids.filtered(lambda d: d.party not in ('driver', 'vehicle', 'semi_trailer', 'owner'))"/>
+                    <div t-if="required_documents">
+                        <t t-set="driver_documents" t-value="required_documents.filtered(lambda d: d.party == 'driver')"/>
+                        <t t-set="vehicle_documents" t-value="required_documents.filtered(lambda d: d.party in ('vehicle', 'semi_trailer'))"/>
+                        <t t-set="owner_documents" t-value="required_documents.filtered(lambda d: d.party == 'owner')"/>
+                        <t t-set="other_documents" t-value="required_documents.filtered(lambda d: d.party not in ('driver', 'vehicle', 'semi_trailer', 'owner'))"/>
 
                         <div t-if="driver_documents">
                             <h3 class="h6">Conductor</h3>

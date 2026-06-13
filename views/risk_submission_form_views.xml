@@ -132,6 +132,7 @@
                         <page string="Firmas y Términos" name="signatures_page">
                             <group string="Aceptación de Términos">
                                 <group>
+                                    <field name="single_owner_driver_signature"/>
                                     <field name="banking_info_accepted" widget="boolean_button"/>
                                     <field name="compensation_accepted" widget="boolean_button"/>
                                     <field name="personal_data_accepted" widget="boolean_button"/>
