@@ -12,33 +12,43 @@ class TestRiskSubmission(TransactionCase):
         super().setUp()
         self.portal_group = self.env.ref("base.group_portal")
         self.portal_user = self._create_portal_user("portal-a@example.com", "Portal A")
-        self.other_portal_user = self._create_portal_user("portal-b@example.com", "Portal B")
-        self.submission = self.env["risk.module"].create({
-            "vehicle_plate": "abc123",
-            "form_date": "2026-05-09",
-            **self.env["risk.module"]._portal_ownership_values(self.portal_user),
-            "owner_name": "Transportes Demo",
-            "owner_document_type": "nit",
-            "owner_document_number": "123456789-0",
-            "owner_phone": "3001234567",
-            "owner_email": "operaciones@example.com",
-            "driver_name": "Conductor Demo",
-            "driver_document_number": "12345678",
-            "driver_phone": "3007654321",
-            "driver_email": "conductor@example.com",
-            "driver_is_fit": "yes",
-            "driver_is_trained": "yes",
-            "owner_has_valid_study": "yes",
-            "driver_has_valid_study": "yes",
-        })
+        self.other_portal_user = self._create_portal_user(
+            "portal-b@example.com", "Portal B"
+        )
+        self.submission = self.env["risk.module"].create(
+            {
+                "vehicle_plate": "abc123",
+                "form_date": "2026-05-09",
+                **self.env["risk.module"]._portal_ownership_values(self.portal_user),
+                "owner_name": "Transportes Demo",
+                "owner_document_type": "nit",
+                "owner_document_number": "123456789-0",
+                "owner_phone": "3001234567",
+                "owner_email": "operaciones@example.com",
+                "driver_name": "Conductor Demo",
+                "driver_document_number": "12345678",
+                "driver_phone": "3007654321",
+                "driver_email": "conductor@example.com",
+                "driver_is_fit": "yes",
+                "driver_is_trained": "yes",
+                "owner_has_valid_study": "yes",
+                "driver_has_valid_study": "yes",
+            }
+        )
 
     def _create_portal_user(self, login, name):
-        return self.env["res.users"].with_context(no_reset_password=True).create({
-            "name": name,
-            "login": login,
-            "email": login,
-            "group_ids": [Command.set([self.portal_group.id])],
-        })
+        return (
+            self.env["res.users"]
+            .with_context(no_reset_password=True)
+            .create(
+                {
+                    "name": name,
+                    "login": login,
+                    "email": login,
+                    "group_ids": [Command.set([self.portal_group.id])],
+                }
+            )
+        )
 
     def test_create_normalizes_plate(self):
         self.assertEqual(self.submission.vehicle_plate, "ABC123")
@@ -60,7 +70,7 @@ class TestRiskSubmission(TransactionCase):
             "external_validation_pending": "En revision",
             "manual_approval_pending": "En revision",
             "documents_requested": "Documentos solicitados",
-            "documents_review": "Documentos en revision",
+            "documents_review": "Documentos enviados",
             "approved": "Aprobada",
             "rejected": "Rechazada",
         }
@@ -72,11 +82,57 @@ class TestRiskSubmission(TransactionCase):
         self.submission.write({"state": "submitted"})
 
         self.assertEqual(self.submission.submission_email_status, "sent")
-        self.assertEqual(self.submission.submission_email_sent_to, "portal-a@example.com")
+        self.assertEqual(
+            self.submission.submission_email_sent_to, "portal-a@example.com"
+        )
         self.assertTrue(self.submission.submission_email_sent_at)
-        mail = self.env["mail.mail"].search([
-            ("subject", "=", "Solicitud recibida - ABC123"),
-        ], limit=1)
+        mail = self.env["mail.mail"].search(
+            [
+                ("subject", "=", "Solicitud recibida - ABC123"),
+            ],
+            limit=1,
+        )
+        self.assertEqual(mail.email_from, "reporte@impocoma.com")
+        self.assertEqual(mail.reply_to, "reporte@impocoma.com")
+        self.assertEqual(mail.email_to, "portal-a@example.com")
+        self.assertFalse(mail.recipient_ids)
+
+    def test_submission_rejection_email_is_queued_when_rejected(self):
+        self.submission.action_confirm_rejection("Datos incompletos")
+
+        self.assertEqual(self.submission.state, "rejected")
+        mail = self.env["mail.mail"].search(
+            [
+                ("subject", "=", "Solicitud rechazada - ABC123"),
+            ],
+            limit=1,
+        )
+        self.assertEqual(mail.email_from, "reporte@impocoma.com")
+        self.assertEqual(mail.reply_to, "reporte@impocoma.com")
+        self.assertEqual(mail.email_to, "portal-a@example.com")
+        self.assertFalse(mail.recipient_ids)
+
+    def test_document_rejection_email_is_queued_when_document_rejected(self):
+        document = self.env["risk.module.document"].create(
+            {
+                "submission_id": self.submission.id,
+                "name": "Tarjeta de propiedad",
+                "document_type": "vehicle_registration",
+                "party": "vehicle",
+                "state": "received",
+                "observations": "No es legible",
+            }
+        )
+
+        document.action_reject()
+
+        self.assertEqual(document.state, "rejected")
+        mail = self.env["mail.mail"].search(
+            [
+                ("subject", "=", "Documento rechazado - Tarjeta de propiedad"),
+            ],
+            limit=1,
+        )
         self.assertEqual(mail.email_from, "reporte@impocoma.com")
         self.assertEqual(mail.reply_to, "reporte@impocoma.com")
         self.assertEqual(mail.email_to, "portal-a@example.com")
@@ -87,35 +143,55 @@ class TestRiskSubmission(TransactionCase):
 
         self.assertTrue(result["ok"])
         self.assertEqual(self.submission.owner_signature_verification_state, "sent")
-        self.assertEqual(self.submission.owner_signature_email, "operaciones@example.com")
+        self.assertEqual(
+            self.submission.owner_signature_email, "operaciones@example.com"
+        )
         self.assertTrue(self.submission.owner_signature_code_hash)
         self.assertTrue(self.submission.owner_signature_code_expires_at)
-        mail = self.env["mail.mail"].search([
-            ("subject", "=", "Codigo de verificacion para firma del propietario"),
-        ], limit=1)
+        mail = self.env["mail.mail"].search(
+            [
+                ("subject", "=", "Codigo de verificacion para firma del propietario"),
+            ],
+            limit=1,
+        )
         self.assertEqual(mail.email_from, "reporte@impocoma.com")
         self.assertEqual(mail.reply_to, "reporte@impocoma.com")
         self.assertEqual(mail.email_to, "operaciones@example.com")
 
     def test_driver_signature_code_verification(self):
         code = "123456"
-        self.submission.write({
-            "driver_signature_email": "conductor@example.com",
-            "driver_signature_code_hash": self.submission._signature_code_hash("driver", code),
-            "driver_signature_code_expires_at": fields.Datetime.now() + timedelta(minutes=5),
-            "driver_signature_verification_state": "sent",
-        })
+        self.submission.write(
+            {
+                "driver_signature_email": "conductor@example.com",
+                "driver_signature_code_hash": self.submission._signature_code_hash(
+                    "driver", code
+                ),
+                "driver_signature_code_expires_at": fields.Datetime.now()
+                + timedelta(minutes=5),
+                "driver_signature_verification_state": "sent",
+            }
+        )
 
-        wrong = self.submission.verify_driver_signature_code("000000", ip_address="127.0.0.1")
+        wrong = self.submission.verify_driver_signature_code(
+            "000000", ip_address="127.0.0.1"
+        )
         self.assertFalse(wrong["ok"])
         self.assertEqual(self.submission.driver_signature_code_attempts, 1)
         self.assertEqual(self.submission.driver_signature_verification_state, "sent")
 
-        result = self.submission.verify_driver_signature_code(code, ip_address="127.0.0.1")
+        result = self.submission.verify_driver_signature_code(
+            code, ip_address="127.0.0.1"
+        )
         self.assertTrue(result["ok"])
-        self.assertEqual(self.submission.driver_signature_verification_state, "verified")
+        self.assertEqual(
+            self.submission.driver_signature_verification_state, "verified"
+        )
         self.assertEqual(self.submission.driver_signature_verified_ip, "127.0.0.1")
-        self.assertTrue(self.submission._signature_email_verified_for("driver", "conductor@example.com"))
+        self.assertTrue(
+            self.submission._signature_email_verified_for(
+                "driver", "conductor@example.com"
+            )
+        )
 
     def test_request_documents_generates_required_templates(self):
         self.submission.action_request_documents()
@@ -129,18 +205,56 @@ class TestRiskSubmission(TransactionCase):
 
     def test_portal_document_upload_allowed_only_when_documents_requested(self):
         self.submission.action_request_documents()
-        document = self.submission.document_ids.filtered(lambda item: item.state == "pending")[:1]
+        document = self.submission.document_ids.filtered(
+            lambda item: item.state == "pending"
+        )[:1]
 
         self.assertTrue(self.submission._portal_document_upload_allowed(document))
-        self.assertTrue(self.submission._portal_document_upload_allowed(document, self.portal_user))
-        self.assertFalse(self.submission._portal_document_upload_allowed(document, self.other_portal_user))
+        self.assertTrue(
+            self.submission._portal_document_upload_allowed(document, self.portal_user)
+        )
+        self.assertFalse(
+            self.submission._portal_document_upload_allowed(
+                document, self.other_portal_user
+            )
+        )
 
         document.state = "received"
-        self.assertFalse(self.submission._portal_document_upload_allowed(document, self.portal_user))
+        self.assertFalse(
+            self.submission._portal_document_upload_allowed(document, self.portal_user)
+        )
 
         document.state = "pending"
         self.submission.state = "documents_review"
-        self.assertFalse(self.submission._portal_document_upload_allowed(document, self.portal_user))
+        self.assertFalse(
+            self.submission._portal_document_upload_allowed(document, self.portal_user)
+        )
+
+    def test_autotransition_to_documents_review_when_last_required_document_uploaded(
+        self,
+    ):
+        self.submission.action_request_documents()
+        self.assertEqual(self.submission.state, "documents_requested")
+
+        required_docs = self.submission.document_ids.filtered(lambda doc: doc.required)
+        self.assertTrue(required_docs)
+
+        for document in required_docs[:-1]:
+            document.write(
+                {
+                    "file": "ZHVtbXk=",
+                    "filename": "documento.pdf",
+                }
+            )
+        self.assertEqual(self.submission.state, "documents_requested")
+
+        required_docs[-1].write(
+            {
+                "file": "ZHVtbXk=",
+                "filename": "documento_final.pdf",
+            }
+        )
+        self.assertEqual(self.submission.state, "documents_review")
 
     def test_cannot_approve_without_approved_documents(self):
         self.submission.action_request_documents()
@@ -150,11 +264,13 @@ class TestRiskSubmission(TransactionCase):
 
     def test_approval_after_documents_are_approved(self):
         self.submission.action_request_documents()
-        self.submission.document_ids.write({
-            "file": "ZHVtbXk=",
-            "filename": "documento.pdf",
-            "state": "approved",
-        })
+        self.submission.document_ids.write(
+            {
+                "file": "ZHVtbXk=",
+                "filename": "documento.pdf",
+                "state": "approved",
+            }
+        )
         self.submission.write({"state": "documents_review"})
 
         self.submission.action_confirm_approval("Documentos completos")

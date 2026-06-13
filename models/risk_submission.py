@@ -89,7 +89,7 @@ class RiskSubmission(models.Model):
             ("external_validation_pending", "Validacion externa pendiente"),
             ("manual_approval_pending", "Pendiente aprobacion manual"),
             ("documents_requested", "Documentos solicitados"),
-            ("documents_review", "Documentos en revision"),
+            ("documents_review", "Documentos enviados"),
             ("approved", "Aprobado"),
             ("rejected", "Rechazado"),
         ],
@@ -412,7 +412,7 @@ class RiskSubmission(models.Model):
             "external_validation_pending": "En revision",
             "manual_approval_pending": "En revision",
             "documents_requested": "Documentos solicitados",
-            "documents_review": "Documentos en revision",
+            "documents_review": "Documentos enviados",
             "approved": "Aprobada",
             "rejected": "Rechazada",
         }
@@ -450,6 +450,27 @@ class RiskSubmission(models.Model):
             allowed,
         )
         return allowed
+
+    def _all_required_documents_uploaded(self):
+        self.ensure_one()
+        remaining = self.document_ids.filtered(
+            lambda doc: doc.required and doc.state in ("pending", "rejected")
+        )
+        return not bool(remaining)
+
+    def action_mark_documents_sent_if_complete(self):
+        for record in self:
+            if record.state != "documents_requested":
+                continue
+            if record._all_required_documents_uploaded():
+                record.write({"state": "documents_review"})
+                record.message_post(
+                    body="Todos los documentos solicitados han sido cargados y la solicitud pasa a Documentos enviados."
+                )
+                _logger.info(
+                    "Submission documents uploaded and moved to documents_review submission_id=%s",
+                    record.id,
+                )
 
     def _portal_is_owned_by(self, user):
         """Return True when this submission belongs to the given portal user.

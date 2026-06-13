@@ -140,6 +140,7 @@ class RiskSubmissionPortalController(http.Controller):
         submission.message_post(
             body="Documento cargado desde portal: %s" % document.name,
         )
+        submission.action_mark_documents_sent_if_complete()
         return request.redirect("/mis-solicitudes-riesgo/%s?upload_success=1" % submission.id)
 
     def _validate_portal_upload(self, upload):
