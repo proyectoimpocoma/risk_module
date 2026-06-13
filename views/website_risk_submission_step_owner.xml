@@ -15,7 +15,7 @@
             </label>
             <div class="risk-field">
                 <label for="owner_document_number">Numero</label>
-                <input id="owner_document_number" name="owner_document_number" type="text" t-att-value="data.get('owner_document_number')" required="required" maxlength="11" pattern="[0-9]{6,10}|[0-9]{9}-[0-9]" title="CC: 6 a 10 digitos. NIT: 123456789 o 123456789-0" autocomplete="off" placeholder="Solo numeros, sin puntos"/>
+                <input id="owner_document_number" name="owner_document_number" type="text" t-att-value="data.get('owner_document_number')" required="required" maxlength="11" pattern="[0-9]{6,10}(-[0-9])?" title="CC: 6 a 10 digitos. NIT: 123456789 o 123456789-0" autocomplete="off" placeholder="Solo numeros, sin puntos"/>
             </div>
         </div>
 
@@ -80,7 +80,7 @@
             </label>
             <div class="risk-field">
                 <label for="registered_owner_document_number">Numero</label>
-                <input id="registered_owner_document_number" name="registered_owner_document_number" type="text" t-att-value="data.get('registered_owner_document_number')" t-att-disabled="None if registered_owner_required else 'disabled'" t-att-required="'required' if registered_owner_required else None" maxlength="11" pattern="[0-9]{6,10}|[0-9]{9}-[0-9]" title="CC: 6 a 10 digitos. NIT: 123456789 o 123456789-0" autocomplete="off" placeholder="Documento registrado"/>
+                <input id="registered_owner_document_number" name="registered_owner_document_number" type="text" t-att-value="data.get('registered_owner_document_number')" t-att-disabled="None if registered_owner_required else 'disabled'" t-att-required="'required' if registered_owner_required else None" maxlength="11" pattern="[0-9]{6,10}(-[0-9])?" title="CC: 6 a 10 digitos. NIT: 123456789 o 123456789-0" autocomplete="off" placeholder="Documento registrado"/>
             </div>
         </div>
         <div t-attf-class="risk-field risk-registered-owner-field #{'' if registered_owner_required else 'is-disabled'}" data-registered-owner-field="1">

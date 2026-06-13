@@ -214,7 +214,7 @@ class RiskSubmissionFormValidationMixin:
                 "La cedula del %s debe contener entre 6 y 10 digitos numericos." % label
             )
         if document_type == "nit" and not NIT_REGEX.match(document_number):
-            return "El NIT del %s debe tener formato 123456789 o 123456789-0." % label
+            return "El NIT del %s debe tener formato 123456789 o 12345678-0." % label
         return None
 
     def _phone_digits(self, phone):

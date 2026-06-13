@@ -5,7 +5,7 @@ PLATE_REGEX = re.compile(r"^[A-Z]{3}[0-9]{2,3}$")
 SEMI_TRAILER_PLATE_REGEX = re.compile(r"^[A-Z][0-9]{5}$")
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$")
 CC_REGEX = re.compile(r"^[0-9]{6,10}$")
-NIT_REGEX = re.compile(r"^[0-9]{9}(-[0-9])?$")
+NIT_REGEX = re.compile(r"^[0-9]{6,10}(-[0-9])?$")
 
 
 def phone_digits(phone):
