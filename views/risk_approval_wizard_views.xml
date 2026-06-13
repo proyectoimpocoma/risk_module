@@ -9,8 +9,10 @@
                     <field name="decision"/>
                     <field name="approval_note" invisible="decision != 'approve'"
                            placeholder="Comentario opcional para dejar trazabilidad de la aprobacion."/>
+                    <field name="rejection_reason_code" widget="selection"
+                           invisible="decision != 'reject'" required="decision == 'reject'"/>
                     <field name="rejection_reason" invisible="decision != 'reject'" required="decision == 'reject'"
-                           placeholder="Indica el motivo del rechazo."/>
+                           placeholder="Este mensaje se enviara al usuario. Puedes ajustarlo antes de confirmar."/>
                 </group>
                 <footer>
                     <button name="action_confirm" type="object" string="Confirmar" class="btn-primary"/>

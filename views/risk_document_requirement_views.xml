@@ -1,0 +1,142 @@
+<odoo>
+    <record id="view_risk_document_requirement_list" model="ir.ui.view">
+        <field name="name">risk.document.requirement.list</field>
+        <field name="model">risk.document.requirement</field>
+        <field name="arch" type="xml">
+            <list string="Catalogo de documentos" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="active"/>
+                <field name="name"/>
+                <field name="document_type"/>
+                <field name="party"/>
+                <field name="applies_when"/>
+                <field name="skip_when_owner_driver_same"/>
+                <field name="required"/>
+                <field name="validity_required"/>
+                <field name="issue_date_required"/>
+                <field name="reject_expired"/>
+                <field name="max_age_days"/>
+                <field name="max_file_size_mb"/>
+                <field name="allowed_file_extensions"/>
+                <field name="requires_color"/>
+                <field name="requires_both_sides"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_risk_document_requirement_matrix" model="ir.ui.view">
+        <field name="name">risk.document.requirement.matrix</field>
+        <field name="model">risk.document.requirement</field>
+        <field name="arch" type="xml">
+            <list string="Documentos por perfil" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="active"/>
+                <field name="name"/>
+                <field name="party"/>
+                <field name="applies_driver"/>
+                <field name="applies_vehicle"/>
+                <field name="applies_owner_natural"/>
+                <field name="applies_owner_company"/>
+                <field name="applies_semi_trailer"/>
+                <field name="applies_owner_valid_study"/>
+                <field name="applies_driver_valid_study"/>
+                <field name="applies_when"/>
+                <field name="skip_when_owner_driver_same"/>
+                <field name="validity_required"/>
+                <field name="issue_date_required"/>
+                <field name="reject_expired"/>
+                <field name="max_age_days"/>
+                <field name="max_file_size_mb"/>
+                <field name="allowed_file_extensions"/>
+                <field name="requires_color"/>
+                <field name="requires_both_sides"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_risk_document_requirement_form" model="ir.ui.view">
+        <field name="name">risk.document.requirement.form</field>
+        <field name="model">risk.document.requirement</field>
+        <field name="arch" type="xml">
+            <form string="Documento requerido">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="active"/>
+                            <field name="sequence"/>
+                            <field name="name"/>
+                            <field name="document_type"/>
+                            <field name="party"/>
+                            <field name="required"/>
+                        </group>
+                        <group string="Regla">
+                            <field name="applies_when"/>
+                            <field name="skip_when_owner_driver_same"/>
+                        </group>
+                    </group>
+                    <group string="Matriz por perfil">
+                        <field name="applies_driver"/>
+                        <field name="applies_vehicle"/>
+                        <field name="applies_owner_natural"/>
+                        <field name="applies_owner_company"/>
+                        <field name="applies_semi_trailer"/>
+                        <field name="applies_owner_valid_study"/>
+                        <field name="applies_driver_valid_study"/>
+                    </group>
+                    <group string="Validaciones del archivo">
+                        <field name="validity_required"/>
+                        <field name="issue_date_required"/>
+                        <field name="reject_expired"/>
+                        <field name="max_age_days"/>
+                        <field name="max_file_size_mb"/>
+                        <field name="allowed_file_extensions"/>
+                        <field name="requires_color"/>
+                        <field name="requires_both_sides"/>
+                    </group>
+                    <group string="Instrucciones">
+                        <field name="instructions" nolabel="1" placeholder="Mensaje que vera el tercero al cargar el documento."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_risk_document_requirement_search" model="ir.ui.view">
+        <field name="name">risk.document.requirement.search</field>
+        <field name="model">risk.document.requirement</field>
+        <field name="arch" type="xml">
+            <search string="Catalogo de documentos">
+                <field name="name"/>
+                <field name="document_type"/>
+                <field name="party"/>
+                <field name="applies_when"/>
+                <filter string="Activos" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archivados" name="inactive" domain="[('active', '=', False)]"/>
+                <filter string="Conductor" name="driver" domain="[('applies_driver', '=', True)]"/>
+                <filter string="Vehiculo" name="vehicle" domain="[('applies_vehicle', '=', True)]"/>
+                <filter string="Propietario natural" name="owner_natural" domain="[('applies_owner_natural', '=', True)]"/>
+                <filter string="Propietario juridico" name="owner_company" domain="[('applies_owner_company', '=', True)]"/>
+                <filter string="Semi/Remolque" name="semi_trailer" domain="[('applies_semi_trailer', '=', True)]"/>
+                <filter string="Relacionado con" name="group_party" context="{'group_by': 'party'}"/>
+                <filter string="Regla" name="group_rule" context="{'group_by': 'applies_when'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_risk_document_requirement" model="ir.actions.act_window">
+        <field name="name">Catalogo de documentos</field>
+        <field name="res_model">risk.document.requirement</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_risk_document_requirement_search"/>
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+
+    <record id="action_risk_document_requirement_matrix" model="ir.actions.act_window">
+        <field name="name">Documentos por perfil</field>
+        <field name="res_model">risk.document.requirement</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_risk_document_requirement_matrix"/>
+        <field name="search_view_id" ref="view_risk_document_requirement_search"/>
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+</odoo>

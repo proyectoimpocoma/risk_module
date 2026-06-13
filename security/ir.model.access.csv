@@ -3,6 +3,10 @@ access_risk_module,risk.module.analyst,model_risk_module,risk_module.group_risk_
 access_risk_module_manager,risk.module.leader,model_risk_module,risk_module.group_risk_manager,1,1,1,0
 access_risk_module_document,risk.module.document.analyst,model_risk_module_document,risk_module.group_risk_user,1,1,1,0
 access_risk_module_document_manager,risk.module.document.leader,model_risk_module_document,risk_module.group_risk_manager,1,1,1,0
+access_risk_document_requirement,risk.document.requirement.analyst,model_risk_document_requirement,risk_module.group_risk_user,1,1,1,0
+access_risk_document_requirement_manager,risk.document.requirement.leader,model_risk_document_requirement,risk_module.group_risk_manager,1,1,1,0
+access_risk_message_template,risk.message.template.analyst,model_risk_message_template,risk_module.group_risk_user,1,1,1,0
+access_risk_message_template_manager,risk.message.template.leader,model_risk_message_template,risk_module.group_risk_manager,1,1,1,0
 access_risk_external_validation,risk.external.validation.analyst,model_risk_external_validation,risk_module.group_risk_user,1,1,1,0
 access_risk_external_validation_manager,risk.external.validation.leader,model_risk_external_validation,risk_module.group_risk_manager,1,1,1,0
 access_risk_approval_wizard,risk.approval.wizard.analyst,model_risk_approval_wizard,risk_module.group_risk_user,1,1,1,0

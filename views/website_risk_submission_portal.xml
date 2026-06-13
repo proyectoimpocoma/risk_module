@@ -129,6 +129,7 @@
                                                 <span t-if="document.requires_color" class="badge text-bg-light">A color</span>
                                                 <span t-if="document.requires_both_sides" class="badge text-bg-light">Ambas caras</span>
                                                 <span t-if="document.validity_required" class="badge text-bg-light">Vigente</span>
+                                                <span t-if="document.issue_date_required" class="badge text-bg-light">Fecha expedicion</span>
                                                 <span t-if="document.max_age_days" class="badge text-bg-light">Max. <t t-esc="document.max_age_days"/> dias</span>
                                             </div>
                                             <div t-if="document.observations" class="text-danger small" t-esc="document.observations"/>
@@ -139,7 +140,7 @@
                                               enctype="multipart/form-data"
                                               class="risk-portal-upload-form d-flex align-items-end gap-2 flex-wrap">
                                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                            <label t-if="document.max_age_days" class="small text-muted mb-0">
+                                            <label t-if="document.issue_date_required or document.max_age_days" class="small text-muted mb-0">
                                                 Fecha de expedicion
                                                 <input type="date" name="issue_date" class="form-control form-control-sm" required="required" t-att-value="document.issue_date or ''"/>
                                             </label>
@@ -170,6 +171,7 @@
                                                 <span t-if="document.requires_color" class="badge text-bg-light">A color</span>
                                                 <span t-if="document.requires_both_sides" class="badge text-bg-light">Ambas caras</span>
                                                 <span t-if="document.validity_required" class="badge text-bg-light">Vigente</span>
+                                                <span t-if="document.issue_date_required" class="badge text-bg-light">Fecha expedicion</span>
                                                 <span t-if="document.max_age_days" class="badge text-bg-light">Max. <t t-esc="document.max_age_days"/> dias</span>
                                             </div>
                                             <div t-if="document.observations" class="text-danger small" t-esc="document.observations"/>
@@ -180,7 +182,7 @@
                                               enctype="multipart/form-data"
                                               class="risk-portal-upload-form d-flex align-items-end gap-2 flex-wrap">
                                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                            <label t-if="document.max_age_days" class="small text-muted mb-0">
+                                            <label t-if="document.issue_date_required or document.max_age_days" class="small text-muted mb-0">
                                                 Fecha de expedicion
                                                 <input type="date" name="issue_date" class="form-control form-control-sm" required="required" t-att-value="document.issue_date or ''"/>
                                             </label>
@@ -211,6 +213,7 @@
                                                 <span t-if="document.requires_color" class="badge text-bg-light">A color</span>
                                                 <span t-if="document.requires_both_sides" class="badge text-bg-light">Ambas caras</span>
                                                 <span t-if="document.validity_required" class="badge text-bg-light">Vigente</span>
+                                                <span t-if="document.issue_date_required" class="badge text-bg-light">Fecha expedicion</span>
                                                 <span t-if="document.max_age_days" class="badge text-bg-light">Max. <t t-esc="document.max_age_days"/> dias</span>
                                             </div>
                                             <div t-if="document.observations" class="text-danger small" t-esc="document.observations"/>
@@ -221,7 +224,7 @@
                                               enctype="multipart/form-data"
                                               class="risk-portal-upload-form d-flex align-items-end gap-2 flex-wrap">
                                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                            <label t-if="document.max_age_days" class="small text-muted mb-0">
+                                            <label t-if="document.issue_date_required or document.max_age_days" class="small text-muted mb-0">
                                                 Fecha de expedicion
                                                 <input type="date" name="issue_date" class="form-control form-control-sm" required="required" t-att-value="document.issue_date or ''"/>
                                             </label>
@@ -252,6 +255,7 @@
                                                 <span t-if="document.requires_color" class="badge text-bg-light">A color</span>
                                                 <span t-if="document.requires_both_sides" class="badge text-bg-light">Ambas caras</span>
                                                 <span t-if="document.validity_required" class="badge text-bg-light">Vigente</span>
+                                                <span t-if="document.issue_date_required" class="badge text-bg-light">Fecha expedicion</span>
                                                 <span t-if="document.max_age_days" class="badge text-bg-light">Max. <t t-esc="document.max_age_days"/> dias</span>
                                             </div>
                                             <div t-if="document.observations" class="text-danger small" t-esc="document.observations"/>
@@ -262,7 +266,7 @@
                                               enctype="multipart/form-data"
                                               class="risk-portal-upload-form d-flex align-items-end gap-2 flex-wrap">
                                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                            <label t-if="document.max_age_days" class="small text-muted mb-0">
+                                            <label t-if="document.issue_date_required or document.max_age_days" class="small text-muted mb-0">
                                                 Fecha de expedicion
                                                 <input type="date" name="issue_date" class="form-control form-control-sm" required="required" t-att-value="document.issue_date or ''"/>
                                             </label>

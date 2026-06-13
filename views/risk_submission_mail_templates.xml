@@ -48,7 +48,8 @@
 <div style="margin: 0; padding: 0; font-size: 13px;">
     <p>Hola <t t-out="object.partner_id.name or object.owner_name or 'usuario'"/>,</p>
     <p>
-        Hemos solicitado documentos adicionales para tu solicitud de riesgo del vehiculo
+        <t t-out="ctx.get('documents_requested_message') or 'Hemos solicitado documentos adicionales para tu solicitud de riesgo.'"/>
+        Vehiculo:
         <strong t-out="object.vehicle_plate or ''">ABC123</strong>.
     </p>
     <p>
@@ -90,7 +91,7 @@
     </p>
     <p>
         Motivo del rechazo:
-        <strong><t t-out="object.rejection_reason or 'No especificado'"/></strong>
+        <strong><t t-out="ctx.get('submission_rejection_reason') or object.rejection_reason or 'No especificado'"/></strong>
     </p>
     <p>
         Referencia:
@@ -120,6 +121,9 @@
             <field name="body_html" type="html">
 <div style="margin: 0; padding: 0; font-size: 13px;">
     <p>Hola <t t-out="object.partner_id.name or object.owner_name or 'usuario'"/>,</p>
+    <p>
+        <t t-out="ctx.get('document_rejected_message') or 'Uno de tus documentos requiere correccion.'"/>
+    </p>
     <p>
         El documento <strong><t t-out="ctx.get('rejected_document_name') or 'Documento'"/></strong>
         de tu solicitud de riesgo del vehiculo

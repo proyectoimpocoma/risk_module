@@ -8,8 +8,8 @@ from odoo.http import request
 
 _logger = logging.getLogger(__name__)
 
-MAX_PORTAL_UPLOAD_SIZE = 10 * 1024 * 1024
-ALLOWED_PORTAL_UPLOAD_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png"}
+DEFAULT_MAX_PORTAL_UPLOAD_SIZE = 10 * 1024 * 1024
+DEFAULT_ALLOWED_PORTAL_UPLOAD_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png"}
 ALLOWED_PORTAL_UPLOAD_MIMETYPES = {
     "application/pdf",
     "image/jpeg",
@@ -112,7 +112,7 @@ class RiskSubmissionPortalController(http.Controller):
             )
             return self._redirect_upload_error(submission, "missing")
 
-        upload_error = self._validate_portal_upload(upload)
+        upload_error = self._validate_portal_upload(upload, document)
         if upload_error:
             _logger.warning(
                 "Portal document upload rejected submission_id=%s document_id=%s user_id=%s filename=%s error=%s mimetype=%s content_length=%s",
@@ -159,14 +159,20 @@ class RiskSubmissionPortalController(http.Controller):
         submission.action_mark_documents_sent_if_complete()
         return request.redirect("/mis-solicitudes-riesgo/%s?upload_success=1" % submission.id)
 
-    def _validate_portal_upload(self, upload):
+    def _validate_portal_upload(self, upload, document):
         content_length = request.httprequest.content_length or 0
-        if content_length > MAX_PORTAL_UPLOAD_SIZE:
+        max_size = DEFAULT_MAX_PORTAL_UPLOAD_SIZE
+        if document.max_file_size_mb:
+            max_size = int(document.max_file_size_mb * 1024 * 1024)
+        if content_length > max_size:
             return "too_large"
 
         filename = upload.filename or ""
         extension = "." + filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
-        if extension not in ALLOWED_PORTAL_UPLOAD_EXTENSIONS:
+        allowed_extensions = document._allowed_file_extension_set()
+        if not allowed_extensions:
+            allowed_extensions = DEFAULT_ALLOWED_PORTAL_UPLOAD_EXTENSIONS
+        if extension not in allowed_extensions:
             return "invalid_type"
         if upload.mimetype and upload.mimetype not in ALLOWED_PORTAL_UPLOAD_MIMETYPES:
             return "invalid_type"
@@ -176,7 +182,7 @@ class RiskSubmissionPortalController(http.Controller):
         values = {}
         today = fields.Date.context_today(document)
 
-        if document.max_age_days:
+        if document.issue_date_required or document.max_age_days:
             issue_date = post.get("issue_date")
             if not issue_date:
                 return "missing_issue_date", values
@@ -187,7 +193,7 @@ class RiskSubmissionPortalController(http.Controller):
             if not parsed_issue_date:
                 return "invalid_date", values
             limit_date = today - timedelta(days=document.max_age_days)
-            if parsed_issue_date < limit_date:
+            if document.max_age_days and parsed_issue_date < limit_date:
                 return "old_issue_date", values
             values["issue_date"] = parsed_issue_date
 
@@ -201,7 +207,7 @@ class RiskSubmissionPortalController(http.Controller):
                 return "invalid_date", values
             if not parsed_expiration_date:
                 return "invalid_date", values
-            if parsed_expiration_date < today:
+            if document.reject_expired and parsed_expiration_date < today:
                 return "expired_date", values
             values["expiration_date"] = parsed_expiration_date
 

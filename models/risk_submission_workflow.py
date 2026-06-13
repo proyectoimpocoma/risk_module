@@ -137,9 +137,14 @@ class RiskSubmissionWorkflow(models.Model):
                     "approval_note": False,
                 }
             )
+            notification_body = (
+                "Tu solicitud ha sido rechazada.<br/><br/>"
+                "<strong>Motivo:</strong> %s"
+            ) % escape(reason)
             record.message_post(
-                body="Solicitud rechazada manualmente.<br/><br/><strong>Motivo:</strong> %s"
-                % escape(reason)
+                body=notification_body,
+                partner_ids=record._submission_rejection_notification_partner_ids(),
+                subtype_xmlid="mail.mt_comment",
             )
             record.action_send_submission_rejected_email()
             _logger.info(

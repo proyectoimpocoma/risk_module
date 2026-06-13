@@ -16,8 +16,10 @@
                        decoration-warning="state == 'pending'"/>
                 <field name="name" string="Documento"/>
                 <field name="party" string="Persona / Vehiculo"/>
+                <field name="source" string="Origen"/>
                 <field name="required" string="Obligatorio"/>
                 <field name="filename" string="Archivo"/>
+                <field name="uploaded_at" string="Cargado"/>
                 <field name="issue_date" string="Expedicion"/>
                 <field name="expiration_date" string="Vencimiento"/>
                 <field name="expiration_state" widget="badge" string="Vigencia"
@@ -69,12 +71,17 @@
                                 <field name="name"/>
                                 <field name="document_type"/>
                                 <field name="party"/>
+                                <field name="source"/>
                                 <field name="instructions" placeholder="Instrucciones para el tercero"/>
                                 <field name="required"/>
                                 <field name="requires_color"/>
                                 <field name="requires_both_sides"/>
                                 <field name="validity_required"/>
+                                <field name="issue_date_required"/>
+                                <field name="reject_expired"/>
                                 <field name="max_age_days"/>
+                                <field name="max_file_size_mb"/>
+                                <field name="allowed_file_extensions"/>
                                 <field name="issue_date"/>
                                 <field name="expiration_date"/>
                                 <field name="expiration_state" readonly="1"/>
@@ -83,6 +90,16 @@
                             <group string="Observaciones">
                                 <field name="rejection_reason"/>
                                 <field name="observations" nolabel="1"/>
+                            </group>
+                            <group string="Historial">
+                                <field name="uploaded_by_id"/>
+                                <field name="uploaded_at"/>
+                                <field name="approved_by_id"/>
+                                <field name="approved_at"/>
+                                <field name="rejected_by_id"/>
+                                <field name="rejected_at"/>
+                                <field name="rejection_message_sent_at"/>
+                                <field name="replacement_count"/>
                             </group>
                         </div>
                     </div>

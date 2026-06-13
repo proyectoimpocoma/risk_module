@@ -1,0 +1,230 @@
+<odoo noupdate="1">
+    <record id="msg_doc_reject_illegible" model="risk.message.template">
+        <field name="sequence">10</field>
+        <field name="category">document_rejection</field>
+        <field name="code">illegible</field>
+        <field name="name">Documento ilegible</field>
+        <field name="body">El documento cargado no se puede leer con claridad. Por favor vuelve a cargar una imagen o PDF mas nitido, procurando que toda la informacion sea visible.</field>
+    </record>
+    <record id="msg_doc_reject_incomplete" model="risk.message.template">
+        <field name="sequence">20</field>
+        <field name="category">document_rejection</field>
+        <field name="code">incomplete</field>
+        <field name="name">Documento incompleto</field>
+        <field name="body">El documento esta incompleto. Por favor carga todas las paginas o caras requeridas para que podamos continuar con la revision.</field>
+    </record>
+    <record id="msg_doc_reject_missing_back" model="risk.message.template">
+        <field name="sequence">30</field>
+        <field name="category">document_rejection</field>
+        <field name="code">missing_back</field>
+        <field name="name">Falta reverso</field>
+        <field name="body">Hace falta la parte posterior del documento. Por favor carga nuevamente el archivo incluyendo ambas caras.</field>
+    </record>
+    <record id="msg_doc_reject_expired" model="risk.message.template">
+        <field name="sequence">40</field>
+        <field name="category">document_rejection</field>
+        <field name="code">expired</field>
+        <field name="name">Documento vencido</field>
+        <field name="body">El documento cargado se encuentra vencido. Por favor adjunta una version vigente para continuar con el proceso.</field>
+    </record>
+    <record id="msg_doc_reject_wrong_driver" model="risk.message.template">
+        <field name="sequence">50</field>
+        <field name="category">document_rejection</field>
+        <field name="code">wrong_driver</field>
+        <field name="name">No corresponde al conductor</field>
+        <field name="body">El documento cargado no corresponde al conductor registrado en la solicitud. Por favor verifica la informacion y carga el documento correcto.</field>
+    </record>
+    <record id="msg_doc_reject_wrong_owner" model="risk.message.template">
+        <field name="sequence">60</field>
+        <field name="category">document_rejection</field>
+        <field name="code">wrong_owner</field>
+        <field name="name">No corresponde al propietario</field>
+        <field name="body">El documento cargado no corresponde al propietario o tenedor registrado. Por favor carga el documento correspondiente a la persona indicada en la solicitud.</field>
+    </record>
+    <record id="msg_doc_reject_wrong_vehicle" model="risk.message.template">
+        <field name="sequence">70</field>
+        <field name="category">document_rejection</field>
+        <field name="code">wrong_vehicle</field>
+        <field name="name">No corresponde al vehiculo</field>
+        <field name="body">El documento cargado no corresponde al vehiculo registrado en la solicitud. Por favor verifica la placa y adjunta el documento correcto.</field>
+    </record>
+    <record id="msg_doc_reject_wrong_file" model="risk.message.template">
+        <field name="sequence">80</field>
+        <field name="category">document_rejection</field>
+        <field name="code">wrong_file</field>
+        <field name="name">Archivo equivocado</field>
+        <field name="body">El archivo cargado no corresponde al documento solicitado. Por favor revisa el nombre del documento requerido y vuelve a cargar el archivo correcto.</field>
+    </record>
+    <record id="msg_doc_reject_not_color" model="risk.message.template">
+        <field name="sequence">90</field>
+        <field name="category">document_rejection</field>
+        <field name="code">not_color</field>
+        <field name="name">Debe estar a color</field>
+        <field name="body">El documento debe estar cargado a color para poder validarlo correctamente. Por favor adjunta una nueva version a color.</field>
+    </record>
+    <record id="msg_doc_reject_photo_requirements" model="risk.message.template">
+        <field name="sequence">100</field>
+        <field name="category">document_rejection</field>
+        <field name="code">photo_requirements</field>
+        <field name="name">Foto no cumple requisitos</field>
+        <field name="body">La foto cargada no cumple con los requisitos solicitados. Por favor adjunta una foto actualizada, clara y donde se vea la informacion requerida.</field>
+    </record>
+    <record id="msg_doc_reject_date_not_visible" model="risk.message.template">
+        <field name="sequence">110</field>
+        <field name="category">document_rejection</field>
+        <field name="code">date_not_visible</field>
+        <field name="name">Fecha no visible</field>
+        <field name="body">No es posible validar la fecha del documento porque no se ve con claridad. Por favor carga una version donde la fecha sea legible.</field>
+    </record>
+    <record id="msg_doc_reject_cropped" model="risk.message.template">
+        <field name="sequence">120</field>
+        <field name="category">document_rejection</field>
+        <field name="code">cropped</field>
+        <field name="name">Informacion cortada</field>
+        <field name="body">Parte de la informacion del documento aparece cortada. Por favor vuelve a cargarlo asegurandote de que el documento completo sea visible.</field>
+    </record>
+    <record id="msg_doc_reject_damaged" model="risk.message.template">
+        <field name="sequence">130</field>
+        <field name="category">document_rejection</field>
+        <field name="code">damaged</field>
+        <field name="name">Archivo danado</field>
+        <field name="body">No pudimos abrir correctamente el archivo cargado. Por favor intenta subirlo nuevamente en formato PDF, JPG o PNG.</field>
+    </record>
+    <record id="msg_doc_reject_invalid_rut" model="risk.message.template">
+        <field name="sequence">140</field>
+        <field name="category">document_rejection</field>
+        <field name="code">invalid_rut</field>
+        <field name="name">RUT no valido</field>
+        <field name="body">El RUT cargado no cumple con las condiciones requeridas. Por favor carga una version donde se observe la marca de agua como copia de certificado o certificado.</field>
+    </record>
+    <record id="msg_doc_reject_old_chamber" model="risk.message.template">
+        <field name="sequence">150</field>
+        <field name="category">document_rejection</field>
+        <field name="code">old_chamber</field>
+        <field name="name">Camara de Comercio vencida</field>
+        <field name="body">La Camara de Comercio debe tener una fecha de expedicion no mayor a 30 dias. Por favor carga un certificado actualizado.</field>
+    </record>
+
+    <record id="msg_submission_reject_incomplete_documents" model="risk.message.template">
+        <field name="sequence">10</field>
+        <field name="category">submission_rejection</field>
+        <field name="code">incomplete_documents</field>
+        <field name="name">Documentacion incompleta</field>
+        <field name="body">No fue posible aprobar la solicitud porque aun falta informacion o documentos requeridos para completar la revision.</field>
+    </record>
+    <record id="msg_submission_reject_documents_not_fixed" model="risk.message.template">
+        <field name="sequence">20</field>
+        <field name="category">submission_rejection</field>
+        <field name="code">documents_not_fixed</field>
+        <field name="name">Documentacion no subsanada</field>
+        <field name="body">La solicitud fue rechazada porque los documentos solicitados no fueron corregidos o cargados dentro del proceso de revision.</field>
+    </record>
+    <record id="msg_submission_reject_inconsistent_information" model="risk.message.template">
+        <field name="sequence">30</field>
+        <field name="category">submission_rejection</field>
+        <field name="code">inconsistent_information</field>
+        <field name="name">Informacion inconsistente</field>
+        <field name="body">La informacion registrada presenta diferencias entre el formulario y los documentos adjuntos. Por favor revisa los datos antes de iniciar una nueva solicitud.</field>
+    </record>
+    <record id="msg_submission_reject_identity_validation_failed" model="risk.message.template">
+        <field name="sequence">40</field>
+        <field name="category">submission_rejection</field>
+        <field name="code">identity_validation_failed</field>
+        <field name="name">Validacion de identidad no satisfactoria</field>
+        <field name="body">No fue posible validar correctamente la identidad de la persona registrada en la solicitud.</field>
+    </record>
+    <record id="msg_submission_reject_driver_not_approved" model="risk.message.template">
+        <field name="sequence">50</field>
+        <field name="category">submission_rejection</field>
+        <field name="code">driver_not_approved</field>
+        <field name="name">Validacion del conductor no aprobada</field>
+        <field name="body">El conductor registrado no cumple con los criterios requeridos para continuar con el proceso de habilitacion.</field>
+    </record>
+    <record id="msg_submission_reject_owner_not_approved" model="risk.message.template">
+        <field name="sequence">60</field>
+        <field name="category">submission_rejection</field>
+        <field name="code">owner_not_approved</field>
+        <field name="name">Validacion del propietario no aprobada</field>
+        <field name="body">El propietario o tenedor registrado no cumple con los criterios requeridos para continuar con el proceso de habilitacion.</field>
+    </record>
+    <record id="msg_submission_reject_vehicle_not_approved" model="risk.message.template">
+        <field name="sequence">70</field>
+        <field name="category">submission_rejection</field>
+        <field name="code">vehicle_not_approved</field>
+        <field name="name">Validacion del vehiculo no aprobada</field>
+        <field name="body">El vehiculo registrado no cumple con los criterios requeridos para continuar con el proceso de habilitacion.</field>
+    </record>
+    <record id="msg_submission_reject_external_validation_failed" model="risk.message.template">
+        <field name="sequence">80</field>
+        <field name="category">submission_rejection</field>
+        <field name="code">external_validation_failed</field>
+        <field name="name">Validacion externa desfavorable</field>
+        <field name="body">El resultado de la validacion externa no permite continuar con la aprobacion de la solicitud.</field>
+    </record>
+    <record id="msg_submission_reject_risk_alerts" model="risk.message.template">
+        <field name="sequence">90</field>
+        <field name="category">submission_rejection</field>
+        <field name="code">risk_alerts</field>
+        <field name="name">Antecedentes o alertas de riesgo</field>
+        <field name="body">Durante la revision se identificaron alertas que impiden aprobar la solicitud en este momento.</field>
+    </record>
+    <record id="msg_submission_reject_security_study_failed" model="risk.message.template">
+        <field name="sequence">100</field>
+        <field name="category">submission_rejection</field>
+        <field name="code">security_study_failed</field>
+        <field name="name">Estudio de seguridad no aprobado</field>
+        <field name="body">El estudio de seguridad asociado a la solicitud no fue aprobado.</field>
+    </record>
+    <record id="msg_submission_reject_internal_policy" model="risk.message.template">
+        <field name="sequence">110</field>
+        <field name="category">submission_rejection</field>
+        <field name="code">internal_policy</field>
+        <field name="name">No cumple politicas internas</field>
+        <field name="body">La solicitud no cumple con las politicas internas definidas para la habilitacion de terceros.</field>
+    </record>
+    <record id="msg_submission_reject_duplicate_or_expired" model="risk.message.template">
+        <field name="sequence">120</field>
+        <field name="category">submission_rejection</field>
+        <field name="code">duplicate_or_expired</field>
+        <field name="name">Solicitud duplicada o no vigente</field>
+        <field name="body">La solicitud fue rechazada porque existe otra solicitud activa o porque la informacion registrada ya no se encuentra vigente.</field>
+    </record>
+    <record id="msg_submission_reject_third_party_withdrawal" model="risk.message.template">
+        <field name="sequence">130</field>
+        <field name="category">submission_rejection</field>
+        <field name="code">third_party_withdrawal</field>
+        <field name="name">Desistimiento del tercero</field>
+        <field name="body">La solicitud fue rechazada porque el tercero indico que no desea continuar con el proceso.</field>
+    </record>
+    <record id="msg_submission_reject_contact_failed" model="risk.message.template">
+        <field name="sequence">140</field>
+        <field name="category">submission_rejection</field>
+        <field name="code">contact_failed</field>
+        <field name="name">No fue posible contactar</field>
+        <field name="body">No fue posible confirmar informacion necesaria para continuar con la revision de la solicitud.</field>
+    </record>
+    <record id="msg_submission_reject_other" model="risk.message.template">
+        <field name="sequence">150</field>
+        <field name="category">submission_rejection</field>
+        <field name="code">other</field>
+        <field name="name">Otro motivo</field>
+        <field name="body">La solicitud fue rechazada por un motivo especifico indicado por el equipo de riesgo.</field>
+    </record>
+
+    <record id="msg_email_documents_requested" model="risk.message.template">
+        <field name="sequence">10</field>
+        <field name="category">document_request</field>
+        <field name="code">documents_requested</field>
+        <field name="name">Correo de solicitud de documentos</field>
+        <field name="subject">Solicitud de documentos adicionales</field>
+        <field name="body">Hemos solicitado documentos adicionales para continuar con la revision de tu solicitud de riesgo.</field>
+    </record>
+    <record id="msg_email_document_rejected" model="risk.message.template">
+        <field name="sequence">10</field>
+        <field name="category">document_rejected_email</field>
+        <field name="code">document_rejected</field>
+        <field name="name">Correo de documento rechazado</field>
+        <field name="subject">Documento rechazado</field>
+        <field name="body">Uno de tus documentos requiere correccion para poder continuar con el proceso.</field>
+    </record>
+</odoo>

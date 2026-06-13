@@ -82,8 +82,25 @@ class RiskSubmissionDocument(models.Model):
         default="other",
     )
     required = fields.Boolean(string="Obligatorio", default=True)
+    source = fields.Selection(
+        [
+            ("generated", "Generado por catalogo"),
+            ("manual", "Adicional manual"),
+        ],
+        string="Origen",
+        default="manual",
+        required=True,
+        tracking=True,
+    )
     validity_required = fields.Boolean(string="Requiere vigencia")
+    issue_date_required = fields.Boolean(string="Requiere fecha de expedicion")
+    reject_expired = fields.Boolean(string="No aceptar vencidos", default=True)
     max_age_days = fields.Integer(string="Antiguedad maxima en dias")
+    max_file_size_mb = fields.Float(string="Tamano maximo MB", default=10.0)
+    allowed_file_extensions = fields.Char(
+        string="Extensiones permitidas",
+        default="pdf,jpg,jpeg,png",
+    )
     requires_color = fields.Boolean(string="Debe estar a color")
     requires_both_sides = fields.Boolean(string="Requiere ambas caras")
     instructions = fields.Text(string="Instrucciones")
@@ -134,6 +151,49 @@ class RiskSubmissionDocument(models.Model):
         string="Motivo de rechazo",
     )
     observations = fields.Text(string="Observaciones")
+    uploaded_by_id = fields.Many2one(
+        "res.users",
+        string="Cargado por",
+        readonly=True,
+        copy=False,
+    )
+    uploaded_at = fields.Datetime(
+        string="Fecha de carga",
+        readonly=True,
+        copy=False,
+    )
+    approved_by_id = fields.Many2one(
+        "res.users",
+        string="Aprobado por",
+        readonly=True,
+        copy=False,
+    )
+    approved_at = fields.Datetime(
+        string="Fecha de aprobacion",
+        readonly=True,
+        copy=False,
+    )
+    rejected_by_id = fields.Many2one(
+        "res.users",
+        string="Rechazado por",
+        readonly=True,
+        copy=False,
+    )
+    rejected_at = fields.Datetime(
+        string="Fecha de rechazo",
+        readonly=True,
+        copy=False,
+    )
+    rejection_message_sent_at = fields.Datetime(
+        string="Mensaje de rechazo enviado",
+        readonly=True,
+        copy=False,
+    )
+    replacement_count = fields.Integer(
+        string="Veces reemplazado",
+        readonly=True,
+        copy=False,
+    )
 
     @api.depends("expiration_date")
     def _compute_expiration_state(self):
@@ -165,7 +225,24 @@ class RiskSubmissionDocument(models.Model):
                 record.observations = message
 
     def _rejection_reason_message(self, reason):
-        return self._REJECTION_MESSAGES.get(reason or "")
+        default = self._REJECTION_MESSAGES.get(reason or "")
+        return self.env["risk.message.template"]._get_body(
+            "document_rejection",
+            reason,
+            default=default,
+        )
+
+    def _allowed_file_extension_set(self):
+        self.ensure_one()
+        values = []
+        for extension in (self.allowed_file_extensions or "").split(","):
+            extension = extension.strip().lower()
+            if not extension:
+                continue
+            if not extension.startswith("."):
+                extension = ".%s" % extension
+            values.append(extension)
+        return set(values)
 
     @api.constrains("state", "observations")
     def _check_rejection_observations(self):
@@ -198,16 +275,23 @@ class RiskSubmissionDocument(models.Model):
                     "Debes indicar la fecha de vencimiento para aprobar %s."
                     % record.name
                 )
-            if record.state == "approved" and record.expiration_state == "expired":
+            if (
+                record.state == "approved"
+                and record.reject_expired
+                and record.expiration_state == "expired"
+            ):
                 raise ValidationError(
                     "No puedes aprobar %s porque esta vencido." % record.name
                 )
-            if record.state == "approved" and record.max_age_days:
+            if record.state == "approved" and (
+                record.issue_date_required or record.max_age_days
+            ):
                 if not record.issue_date:
                     raise ValidationError(
                         "Debes indicar la fecha de expedicion para aprobar %s."
                         % record.name
                     )
+            if record.state == "approved" and record.max_age_days:
                 limit_date = fields.Date.context_today(record) - timedelta(
                     days=record.max_age_days
                 )
@@ -227,6 +311,9 @@ class RiskSubmissionDocument(models.Model):
         for vals in vals_list:
             if vals.get("file") and vals.get("state", "pending") == "pending":
                 vals["state"] = "received"
+            if vals.get("file"):
+                vals.setdefault("uploaded_by_id", self.env.user.id)
+                vals.setdefault("uploaded_at", fields.Datetime.now())
         records = super().create(vals_list)
         for record in records:
             _logger.info(
@@ -252,6 +339,7 @@ class RiskSubmissionDocument(models.Model):
         if vals.get("file") and not vals.get("state"):
             pending_records = self.filtered(lambda record: record.state == "pending")
         old_states = {record.id: record.state for record in self}
+        old_file_presence = {record.id: bool(record.file) for record in self}
         _logger.debug(
             "Writing risk documents ids=%s fields=%s user_id=%s",
             self.ids,
@@ -265,6 +353,44 @@ class RiskSubmissionDocument(models.Model):
                 "Risk documents auto-marked received document_ids=%s",
                 pending_records.ids,
             )
+        audit_updates = {}
+        if vals.get("file"):
+            audit_updates.update(
+                {
+                    "uploaded_by_id": self.env.user.id,
+                    "uploaded_at": fields.Datetime.now(),
+                }
+            )
+        if vals.get("state") == "approved":
+            audit_updates.update(
+                {
+                    "approved_by_id": self.env.user.id,
+                    "approved_at": fields.Datetime.now(),
+                    "rejected_by_id": False,
+                    "rejected_at": False,
+                    "rejection_message_sent_at": False,
+                }
+            )
+        elif vals.get("state") == "rejected":
+            audit_updates.update(
+                {
+                    "rejected_by_id": self.env.user.id,
+                    "rejected_at": fields.Datetime.now(),
+                    "approved_by_id": False,
+                    "approved_at": False,
+                }
+            )
+        if audit_updates:
+            for record in self:
+                record_updates = dict(audit_updates)
+                if vals.get("file") and old_file_presence.get(record.id):
+                    record_updates["replacement_count"] = record.replacement_count + 1
+                super(RiskSubmissionDocument, record).write(record_updates)
+                if vals.get("file"):
+                    action = "reemplazado" if old_file_presence.get(record.id) else "cargado"
+                    record.message_post(
+                        body="Documento %s: %s" % (action, record.name),
+                    )
         if "state" in vals:
             for record in self:
                 _logger.info(
@@ -391,3 +517,4 @@ class RiskSubmissionDocument(models.Model):
             )
             if record.submission_id:
                 record.submission_id.action_send_document_rejected_email(record)
+            record.write({"rejection_message_sent_at": fields.Datetime.now()})

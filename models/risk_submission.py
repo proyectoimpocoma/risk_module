@@ -740,6 +740,18 @@ class RiskSubmission(models.Model):
             or self.driver_email
         )
 
+    def _submission_rejection_notification_partner_ids(self):
+        self.ensure_one()
+        partners = self.env["res.partner"]
+        for partner in (
+            self.partner_id,
+            self.portal_user_id.partner_id,
+            self.submitted_by_id.partner_id,
+        ):
+            if partner:
+                partners |= partner
+        return partners.ids
+
     def action_send_submission_rejected_email(self):
         template = self.env.ref(
             "risk_module.email_template_risk_submission_rejected",
@@ -769,6 +781,9 @@ class RiskSubmission(models.Model):
                     "recipient_ids": [(5, 0, 0)],
                 },
                 force_send=True,
+                template_context={
+                    "submission_rejection_reason": record.rejection_reason or "",
+                },
                 success_message="Correo de rechazo de solicitud enviado a %s."
                 % recipient,
                 failure_message="No fue posible enviar el correo de rechazo de solicitud a %s."
@@ -793,6 +808,13 @@ class RiskSubmission(models.Model):
             or self.portal_user_id.email
             or self.submitted_by_id.email
             or self.driver_email
+        )
+
+    def _risk_message_template_body(self, category, code, default=False):
+        return self.env["risk.message.template"]._get_body(
+            category,
+            code,
+            default=default,
         )
 
     def action_send_documents_requested_email(self):
@@ -824,6 +846,15 @@ class RiskSubmission(models.Model):
                     "recipient_ids": [(5, 0, 0)],
                 },
                 force_send=True,
+                template_context={
+                    "documents_requested_message": record._risk_message_template_body(
+                        "document_request",
+                        "documents_requested",
+                        default=(
+                            "Hemos solicitado documentos adicionales para tu solicitud."
+                        ),
+                    ),
+                },
                 success_message="Correo de solicitud de documentos enviado a %s."
                 % recipient,
                 failure_message="No fue posible enviar el correo de solicitud de documentos a %s."
@@ -881,6 +912,11 @@ class RiskSubmission(models.Model):
             template_context={
                 "rejected_document_name": document.name,
                 "rejection_observations": document.observations or "",
+                "document_rejected_message": self._risk_message_template_body(
+                    "document_rejected_email",
+                    "document_rejected",
+                    default="Uno de tus documentos requiere correccion.",
+                ),
             },
             success_message="Correo de documento rechazado enviado a %s." % recipient,
             failure_message="No fue posible enviar el correo de documento rechazado a %s."

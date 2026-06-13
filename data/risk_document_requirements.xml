@@ -1,0 +1,199 @@
+<odoo noupdate="1">
+    <record id="req_driver_license" model="risk.document.requirement">
+        <field name="sequence">10</field>
+        <field name="name">Licencia de conduccion</field>
+        <field name="document_type">driver_license</field>
+        <field name="party">driver</field>
+        <field name="applies_driver">1</field>
+        <field name="validity_required">1</field>
+        <field name="requires_color">1</field>
+        <field name="requires_both_sides">1</field>
+        <field name="instructions">Debe estar vigente, a color y cargada por ambas caras.</field>
+    </record>
+
+    <record id="req_driver_id" model="risk.document.requirement">
+        <field name="sequence">20</field>
+        <field name="name">Cedula de ciudadania del conductor</field>
+        <field name="document_type">driver_id</field>
+        <field name="party">driver</field>
+        <field name="applies_driver">1</field>
+        <field name="requires_color">1</field>
+        <field name="requires_both_sides">1</field>
+        <field name="instructions">Cedula digital, fisica o contraseña. Cargar ultima modificacion si aplica, a color y por ambas caras.</field>
+    </record>
+
+    <record id="req_driver_social_security" model="risk.document.requirement">
+        <field name="sequence">30</field>
+        <field name="name">Planilla de pago de seguridad social</field>
+        <field name="document_type">driver_social_security</field>
+        <field name="party">driver</field>
+        <field name="applies_driver">1</field>
+        <field name="validity_required">1</field>
+        <field name="instructions">Periodo vigente con cuadro de novedades.</field>
+    </record>
+
+    <record id="req_driver_photo" model="risk.document.requirement">
+        <field name="sequence">40</field>
+        <field name="name">Foto actualizada del conductor</field>
+        <field name="document_type">driver_photo</field>
+        <field name="party">driver</field>
+        <field name="applies_driver">1</field>
+        <field name="instructions">Foto de hombros hacia arriba, sin gorra, gafas oscuras, tapabocas u otros accesorios.</field>
+    </record>
+
+    <record id="req_driver_life_sheet" model="risk.document.requirement">
+        <field name="sequence">50</field>
+        <field name="name">Formato Hoja de Vida Habilitacion de Terceros FO-RI-01</field>
+        <field name="document_type">third_party_life_sheet</field>
+        <field name="party">driver</field>
+        <field name="applies_driver">1</field>
+        <field name="instructions">Debe estar completamente diligenciado y firmado.</field>
+    </record>
+
+    <record id="req_driver_risk_induction" model="risk.document.requirement">
+        <field name="sequence">60</field>
+        <field name="name">Induccion y notificacion general de riesgos Impocoma</field>
+        <field name="document_type">driver_risk_induction</field>
+        <field name="party">driver</field>
+        <field name="applies_driver">1</field>
+        <field name="instructions">Cargar soporte de induccion y notificacion general de riesgos Impocoma.</field>
+    </record>
+
+    <record id="req_vehicle_registration" model="risk.document.requirement">
+        <field name="sequence">100</field>
+        <field name="name">Licencia de transito del vehiculo</field>
+        <field name="document_type">vehicle_registration</field>
+        <field name="party">vehicle</field>
+        <field name="applies_vehicle">1</field>
+        <field name="requires_color">1</field>
+        <field name="instructions">Licencia de transito del vehiculo a color.</field>
+    </record>
+
+    <record id="req_vehicle_photo" model="risk.document.requirement">
+        <field name="sequence">110</field>
+        <field name="name">Foto actualizada del vehiculo</field>
+        <field name="document_type">vehicle_photo</field>
+        <field name="party">vehicle</field>
+        <field name="applies_vehicle">1</field>
+        <field name="instructions">Foto de frente y lado izquierdo o derecho, donde se vea la placa y los ejes.</field>
+    </record>
+
+    <record id="req_soat" model="risk.document.requirement">
+        <field name="sequence">120</field>
+        <field name="name">SOAT</field>
+        <field name="document_type">soat</field>
+        <field name="party">vehicle</field>
+        <field name="applies_vehicle">1</field>
+        <field name="validity_required">1</field>
+        <field name="instructions">Seguro obligatorio de accidentes de transito vigente.</field>
+    </record>
+
+    <record id="req_owner_document_natural" model="risk.document.requirement">
+        <field name="sequence">200</field>
+        <field name="name">Cedula de ciudadania del propietario o tenedor</field>
+        <field name="document_type">owner_document</field>
+        <field name="party">owner</field>
+        <field name="applies_when">owner_natural</field>
+        <field name="skip_when_owner_driver_same">1</field>
+        <field name="applies_owner_natural">1</field>
+        <field name="requires_color">1</field>
+        <field name="instructions">Cedula digital, fisica o contraseña. Cargar ultima modificacion si aplica, a color.</field>
+    </record>
+
+    <record id="req_owner_chamber_commerce" model="risk.document.requirement">
+        <field name="sequence">200</field>
+        <field name="name">Camara de comercio</field>
+        <field name="document_type">owner_chamber_commerce</field>
+        <field name="party">owner</field>
+        <field name="applies_when">owner_company</field>
+        <field name="applies_owner_company">1</field>
+        <field name="max_age_days">30</field>
+        <field name="instructions">Certificado de camara de comercio con vigencia no mayor a 30 dias.</field>
+    </record>
+
+    <record id="req_owner_legal_representative_id" model="risk.document.requirement">
+        <field name="sequence">210</field>
+        <field name="name">Cedula del representante legal</field>
+        <field name="document_type">owner_legal_representative_id</field>
+        <field name="party">owner</field>
+        <field name="applies_when">owner_company</field>
+        <field name="applies_owner_company">1</field>
+        <field name="requires_color">1</field>
+        <field name="instructions">Cedula digital o contraseña del representante legal o suplente autorizado segun camara de comercio, a color.</field>
+    </record>
+
+    <record id="req_owner_bank_certificate" model="risk.document.requirement">
+        <field name="sequence">220</field>
+        <field name="name">Certificacion bancaria</field>
+        <field name="document_type">owner_bank_certificate</field>
+        <field name="party">owner</field>
+        <field name="applies_owner_natural">1</field>
+        <field name="applies_owner_company">1</field>
+        <field name="instructions">Certificacion bancaria para pagos.</field>
+    </record>
+
+    <record id="req_owner_rut" model="risk.document.requirement">
+        <field name="sequence">230</field>
+        <field name="name">Registro Unico Tributario RUT</field>
+        <field name="document_type">owner_rut</field>
+        <field name="party">owner</field>
+        <field name="applies_owner_natural">1</field>
+        <field name="applies_owner_company">1</field>
+        <field name="instructions">El RUT debe registrar marca de agua como copia de certificado o certificado unicamente.</field>
+    </record>
+
+    <record id="req_owner_life_sheet" model="risk.document.requirement">
+        <field name="sequence">240</field>
+        <field name="name">Formato Hoja de Vida Habilitacion de Terceros FO-RI-01</field>
+        <field name="document_type">third_party_life_sheet</field>
+        <field name="party">owner</field>
+        <field name="skip_when_owner_driver_same">1</field>
+        <field name="applies_owner_natural">1</field>
+        <field name="applies_owner_company">1</field>
+        <field name="instructions">Debe estar completamente diligenciado y firmado.</field>
+    </record>
+
+    <record id="req_semi_photo" model="risk.document.requirement">
+        <field name="sequence">300</field>
+        <field name="name">Foto del remolque o semirremolque</field>
+        <field name="document_type">semi_photo</field>
+        <field name="party">semi_trailer</field>
+        <field name="applies_when">semi_trailer</field>
+        <field name="applies_semi_trailer">1</field>
+        <field name="instructions">Foto donde se vea la placa y los ejes.</field>
+    </record>
+
+    <record id="req_semi_registration" model="risk.document.requirement">
+        <field name="sequence">310</field>
+        <field name="name">Tarjeta de registro de remolque o semirremolque</field>
+        <field name="document_type">semi_registration</field>
+        <field name="party">semi_trailer</field>
+        <field name="applies_when">semi_trailer</field>
+        <field name="applies_semi_trailer">1</field>
+        <field name="requires_color">1</field>
+        <field name="instructions">Tarjeta de registro del remolque o semirremolque a color.</field>
+    </record>
+
+    <record id="req_owner_security_study" model="risk.document.requirement">
+        <field name="sequence">400</field>
+        <field name="name">Estudio de seguridad vigente del propietario</field>
+        <field name="document_type">owner_security_study</field>
+        <field name="party">owner</field>
+        <field name="applies_when">owner_valid_study</field>
+        <field name="skip_when_owner_driver_same">1</field>
+        <field name="applies_owner_valid_study">1</field>
+        <field name="validity_required">1</field>
+        <field name="instructions">Cargar estudio de seguridad vigente del propietario.</field>
+    </record>
+
+    <record id="req_driver_security_study" model="risk.document.requirement">
+        <field name="sequence">410</field>
+        <field name="name">Estudio de seguridad vigente del conductor</field>
+        <field name="document_type">driver_security_study</field>
+        <field name="party">driver</field>
+        <field name="applies_when">driver_valid_study</field>
+        <field name="applies_driver_valid_study">1</field>
+        <field name="validity_required">1</field>
+        <field name="instructions">Cargar estudio de seguridad vigente del conductor.</field>
+    </record>
+</odoo>
