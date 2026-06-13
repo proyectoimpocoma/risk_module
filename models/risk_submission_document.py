@@ -319,6 +319,24 @@ class RiskSubmissionDocument(models.Model):
             "target": "new",
         }
 
+    def action_open_reject_wizard(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Rechazar documento",
+            "res_model": "risk.module.document.reject.wizard",
+            "view_mode": "form",
+            "view_id": self.env.ref(
+                "risk_module.view_risk_document_reject_wizard_form"
+            ).id,
+            "target": "new",
+            "context": {
+                "default_document_id": self.id,
+                "active_model": self._name,
+                "active_id": self.id,
+            },
+        }
+
     def action_approve(self):
         for record in self:
             if not record.file:
@@ -341,6 +359,9 @@ class RiskSubmissionDocument(models.Model):
             )
 
     def action_reject(self):
+        return self.action_open_reject_wizard()
+
+    def action_confirm_rejection(self):
         for record in self:
             if not (record.observations or "").strip() and record.rejection_reason:
                 record.observations = record._rejection_reason_message(

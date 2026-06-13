@@ -14,6 +14,7 @@
         "views/risk_submission_report_actions.xml",
         "views/risk_submission_report_styles.xml",
         "views/risk_submission_report_templates.xml",
+        "views/risk_document_reject_wizard_views.xml",
         "views/risk_submission_document_views.xml",
         "views/risk_external_validation_views.xml",
         "views/risk_submission_list_views.xml",

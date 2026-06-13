@@ -73,5 +73,5 @@ class RiskDocumentRejectWizard(models.TransientModel):
                 "observations": self.observations.strip(),
             }
         )
-        self.document_id.action_reject()
+        self.document_id.action_confirm_rejection()
         return {"type": "ir.actions.act_window_close"}
