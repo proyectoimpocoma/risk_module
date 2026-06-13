@@ -1,42 +1,101 @@
 <odoo>
     <template id="register_driver_step_vehicle" name="Registro Vehiculo Paso Vehiculo">
-        <div class="risk-field">
-            <label for="form_date">Fecha</label>
-            <input id="form_date" name="form_date" type="date" t-att-value="data.get('form_date')" required="required" placeholder="Selecciona la fecha de registro"/>
-        </div>
-        <div class="risk-field">
-            <label for="vehicle_plate">Placa</label>
-            <input id="vehicle_plate" name="vehicle_plate" type="text" t-att-value="data.get('vehicle_plate')" required="required" autocomplete="off" pattern="[A-Za-z]{3}[0-9]{2,3}" title="Formato valido: ABC123 para vehiculo/carga o ABC12 para motocicleta" placeholder="Ej: ABC123"/>
-        </div>
-        <t t-set="semi_enabled" t-value="data.get('has_semi_trailer') == 'yes' or (not data.get('has_semi_trailer') and data.get('semi_trailer_plate'))"/>
-        <div class="risk-field risk-field-full risk-switch-card">
-            <input id="has_semi_trailer" name="has_semi_trailer" type="hidden" t-att-value="'yes' if semi_enabled else 'no'"/>
-            <div>
-                <span class="risk-switch-title">Semi/remolque</span>
-                <span class="risk-switch-help">Indica si el vehiculo tiene semi/remolque asociado.</span>
+
+        <!-- Fila 1: Fecha y Placa en 2 columnas -->
+        <div class="risk-grid-2">
+            <div class="risk-field">
+                <label for="form_date">Fecha</label>
+                <input id="form_date" name="form_date" type="date"
+                       t-att-value="data.get('form_date')"
+                       required="required"
+                       placeholder="Selecciona la fecha de registro"/>
             </div>
-            <label class="risk-switch" for="has_semi_trailer_toggle">
-                <span>No</span>
-                <input id="has_semi_trailer_toggle" type="checkbox" t-att-checked="'checked' if semi_enabled else None"/>
-                <span class="risk-switch-track" aria-hidden="true"></span>
-                <span>Si</span>
-            </label>
+            <div class="risk-field">
+                <label for="vehicle_plate">Placa</label>
+                <input id="vehicle_plate" name="vehicle_plate" type="text"
+                       t-att-value="data.get('vehicle_plate')"
+                       required="required"
+                       autocomplete="off"
+                       pattern="[A-Za-z]{3}[0-9]{2,3}"
+                       title="Formato valido: ABC123 para vehiculo/carga o ABC12 para motocicleta"
+                       placeholder="Ej: ABC123"/>
+            </div>
         </div>
-        <div t-attf-class="risk-field risk-field-full risk-semi-field #{'' if semi_enabled else 'is-disabled'}" data-semi-trailer-field="1">
-            <label for="semi_trailer_plate">Placa semi/remolque</label>
-            <input id="semi_trailer_plate" name="semi_trailer_plate" type="text" t-att-value="data.get('semi_trailer_plate')" t-att-disabled="None if semi_enabled else 'disabled'" autocomplete="off" pattern="[A-Za-z][0-9]{5}" title="Formato valido: A12345 (una letra y cinco numeros)" placeholder="Ej: A12345"/>
+
+        <!-- Sección Semi/Remolque -->
+        <t t-set="semi_enabled" t-value="data.get('has_semi_trailer') == 'yes' or (not data.get('has_semi_trailer') and data.get('semi_trailer_plate'))"/>
+        <div class="risk-box-bright">
+            <div class="risk-field risk-switch-card">
+                <input id="has_semi_trailer" name="has_semi_trailer" type="hidden"
+                       t-att-value="'yes' if semi_enabled else 'no'"/>
+                <div>
+                    <span class="risk-switch-title">Semi/Remolque</span>
+                    <span class="risk-switch-help">Indica si el vehiculo tiene semi/remolque asociado.</span>
+                </div>
+                <label class="risk-switch" for="has_semi_trailer_toggle">
+                    <span>NO</span>
+                    <input id="has_semi_trailer_toggle" type="checkbox"
+                           t-att-checked="'checked' if semi_enabled else None"/>
+                    <span class="risk-switch-track" aria-hidden="true"></span>
+                    <span>SÍ</span>
+                </label>
+            </div>
+            <!-- Placa semi: se muestra condicionalmente via JS -->
+            <div t-attf-class="risk-field risk-semi-field #{'' if semi_enabled else 'is-disabled'}"
+                 data-semi-trailer-field="1">
+                <label for="semi_trailer_plate">Placa Semi/Remolque</label>
+                <input id="semi_trailer_plate" name="semi_trailer_plate" type="text"
+                       t-att-value="data.get('semi_trailer_plate')"
+                       t-att-disabled="None if semi_enabled else 'disabled'"
+                       autocomplete="off"
+                       pattern="[A-Za-z][0-9]{5}"
+                       title="Formato valido: A12345 (una letra y cinco numeros)"
+                       placeholder="Ej: A12345"/>
+            </div>
         </div>
-        <div class="risk-field">
-            <label for="satellite_company">Empresa satelital</label>
-            <input id="satellite_company" name="satellite_company" type="text" t-att-value="data.get('satellite_company')" maxlength="80" autocomplete="off" placeholder="Nombre de la empresa de rastreo"/>
+
+        <!-- Separador: Rastreo Satelital -->
+        <div class="risk-section-divider">
+            <i class="fa fa-satellite-dish"></i> Rastreo Satelital
         </div>
-        <div class="risk-field">
-            <label for="satellite_user">Usuario</label>
-            <input id="satellite_user" name="satellite_user" type="text" t-att-value="data.get('satellite_user')" maxlength="80" autocomplete="off" placeholder="Usuario de la cuenta satelital"/>
+
+        <!-- Campos satelitales en grid 2 columnas -->
+        <div class="risk-grid-2">
+            <!-- Empresa (ancho completo) -->
+            <div class="risk-field risk-field-full">
+                <label for="satellite_company">Empresa Satelital</label>
+                <input id="satellite_company" name="satellite_company" type="text"
+                       t-att-value="data.get('satellite_company')"
+                       maxlength="80"
+                       autocomplete="off"
+                       placeholder="Nombre de la empresa de rastreo satelital"/>
+            </div>
+            <!-- Usuario -->
+            <div class="risk-field">
+                <label for="satellite_user">Usuario</label>
+                <input id="satellite_user" name="satellite_user" type="text"
+                       t-att-value="data.get('satellite_user')"
+                       maxlength="80"
+                       autocomplete="off"
+                       placeholder="Usuario de la cuenta satelital"/>
+            </div>
+            <!-- Clave con botón ver/ocultar -->
+            <div class="risk-field">
+                <label for="satellite_password">Clave</label>
+                <div class="risk-password-wrapper">
+                    <input id="satellite_password" name="satellite_password" type="password"
+                           t-att-value="data.get('satellite_password')"
+                           maxlength="80"
+                           autocomplete="off"
+                           placeholder="Contraseña de la cuenta satelital"/>
+                    <button type="button"
+                            class="risk-password-toggle btn-toggle-password"
+                            aria-label="Mostrar contraseña">
+                        <i class="fa fa-eye"></i>
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="risk-field risk-field-full">
-            <label for="satellite_password">Clave</label>
-            <input id="satellite_password" name="satellite_password" type="password" t-att-value="data.get('satellite_password')" maxlength="80" autocomplete="off" placeholder="Contraseña de la cuenta satelital"/>
-        </div>
+
     </template>
 </odoo>

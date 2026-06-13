@@ -1,13 +1,17 @@
 .risk-step-page {
-    --risk-ink: #17202a;
-    --risk-muted: #667085;
-    --risk-line: #d8b46a;
-    --risk-fill: #f7fbf8;
-    --risk-accent: #8f5b2f;
-    --risk-primary: #214c3a;
-    --risk-primary-dark: #17382a;
+    /* === Paleta Impocoma: Naranja Operativo + Azul Corporativo === */
+    --risk-ink: #121c2c;
+    --risk-muted: #574235;
+    --risk-line: #cbd5e0;
+    --risk-fill: #f9f9ff;
+    --risk-accent: #003b73;
+    --risk-primary: #f77c00;
+    --risk-primary-dark: #d96c00;
+    --risk-secondary: #003b73;
     --risk-surface: #ffffff;
-    --risk-soft: #f4f7f1;
+    --risk-soft: #f5f7fa;
+    --risk-surface-variant: #d9e3f9;
+    --risk-primary-fixed: #ffdcc7;
     max-width: 1060px;
     margin: 0 auto;
     padding: 32px 16px 56px;
@@ -15,15 +19,18 @@
 }
 .risk-success-page,
 .risk-portal-page {
-    --risk-ink: #17202a;
-    --risk-muted: #667085;
-    --risk-line: #d8b46a;
-    --risk-fill: #f7fbf8;
-    --risk-accent: #8f5b2f;
-    --risk-primary: #214c3a;
-    --risk-primary-dark: #17382a;
+    --risk-ink: #121c2c;
+    --risk-muted: #574235;
+    --risk-line: #cbd5e0;
+    --risk-fill: #f9f9ff;
+    --risk-accent: #003b73;
+    --risk-primary: #f77c00;
+    --risk-primary-dark: #d96c00;
+    --risk-secondary: #003b73;
     --risk-surface: #ffffff;
-    --risk-soft: #f4f7f1;
+    --risk-soft: #f5f7fa;
+    --risk-surface-variant: #d9e3f9;
+    --risk-primary-fixed: #ffdcc7;
     max-width: 1060px;
     margin: 0 auto;
     padding: 42px 16px 64px;
@@ -36,12 +43,12 @@
     align-items: center;
     margin-bottom: 20px;
     padding: 24px;
-    border: 1px solid #dce5db;
+    border: 1px solid #0a2d57;
     border-radius: 8px;
     background:
-        linear-gradient(135deg, rgba(33, 76, 58, 0.95), rgba(23, 56, 42, 0.94)),
-        linear-gradient(90deg, rgba(216, 180, 106, 0.18), rgba(255, 255, 255, 0));
-    box-shadow: 0 18px 45px rgba(23, 32, 42, 0.12);
+        linear-gradient(135deg, rgba(0, 59, 115, 0.97), rgba(0, 40, 85, 0.96)),
+        linear-gradient(90deg, rgba(247, 124, 0, 0.15), rgba(255, 255, 255, 0));
+    box-shadow: 0 18px 45px rgba(0, 30, 70, 0.18);
 }
 .risk-brand-header-compact {
     margin-bottom: 24px;
@@ -137,19 +144,24 @@
     font-weight: 700;
 }
 .risk-panel {
-    border: 2px solid var(--risk-line);
-    border-radius: 8px;
+    border: 1px solid var(--risk-line);
+    border-radius: 12px;
     background: #fff;
     overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 .risk-panel-title {
-    background: var(--risk-soft);
-    padding: 9px 14px;
-    text-align: center;
-    font-size: 18px;
-    font-weight: 800;
-    font-style: italic;
-    text-transform: uppercase;
+    background: var(--risk-surface);
+    border-bottom: 1px solid var(--risk-line);
+    padding: 16px 22px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--risk-secondary);
+    font-style: normal;
+    text-transform: none;
 }
 .risk-fields {
     display: grid;
@@ -165,29 +177,42 @@
     grid-column: span 1;
 }
 .risk-field label {
-    display: flex;
-    align-items: flex-end;
-    margin-bottom: 7px;
-    font-weight: 700;
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
     text-transform: uppercase;
-    font-size: 13px;
-    line-height: 1.22;
-    min-height: 32px;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+    color: var(--risk-muted);
 }
 .risk-field input,
+.risk-field select,
 .risk-field textarea {
     width: 100%;
-    border: 0;
-    border-bottom: 2px solid var(--risk-line);
-    border-radius: 0;
-    min-height: 44px;
-    padding: 9px 4px;
-    background: transparent;
+    border: 1px solid var(--risk-line);
+    border-radius: 8px;
+    min-height: 48px;
+    padding: 10px 12px;
+    background: var(--risk-surface);
     outline: none;
+    font-size: 15px;
+    color: var(--risk-ink);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    appearance: none;
+}
+.risk-field input:focus,
+.risk-field select:focus,
+.risk-field textarea:focus {
+    border-color: var(--risk-secondary);
+    box-shadow: 0 0 0 3px rgba(0, 59, 115, 0.12);
 }
 #vehicle_plate,
 #semi_trailer_plate {
     text-transform: uppercase;
+    font-weight: 600;
+    font-size: 17px;
+    color: var(--risk-secondary);
 }
 .risk-choice-row {
     display: grid;
@@ -220,17 +245,18 @@
     align-items: center;
     justify-content: space-between;
     gap: 18px;
-    padding: 16px 18px;
-    border: 1px solid #dce5db;
-    border-radius: 8px;
-    background: var(--risk-fill);
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
 }
 .risk-switch-title {
     display: block;
-    color: var(--risk-ink);
+    color: var(--risk-secondary);
     font-size: 14px;
-    font-weight: 800;
+    font-weight: 700;
     text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 .risk-switch-help {
     display: block;
@@ -269,14 +295,34 @@
     color: #991b1b;
 }
 .risk-switch {
-    display: inline-flex;
-    align-items: center;
+    display: inline-flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: center !important;
     gap: 10px;
     margin: 0;
-    color: var(--risk-ink);
+    color: var(--risk-muted);
+    font-size: 14px;
     font-weight: 800;
-    white-space: nowrap;
+    letter-spacing: 0.05em;
+    white-space: nowrap !important;
     cursor: pointer;
+    user-select: none;
+}
+/* El texto "Si" activo se colorea con el primario */
+.risk-switch span:last-child {
+    color: var(--risk-primary);
+    opacity: 0.5;
+}
+.risk-switch input:checked ~ span:last-child {
+    opacity: 1;
+}
+.risk-switch span:first-child {
+    opacity: 1;
+}
+.risk-switch input:checked ~ span:first-of-type {
+    opacity: 0.5;
 }
 .risk-switch input {
     position: absolute;
@@ -287,31 +333,61 @@
 }
 .risk-switch-track {
     position: relative;
-    width: 58px;
-    height: 32px;
-    border: 1px solid #c8d3c7;
+    display: block !important;
+    box-sizing: border-box !important;
+    width: 52px !important;
+    min-width: 52px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    border: 1px solid var(--risk-line);
     border-radius: 999px;
-    background: #eef3ef;
-    transition: background 160ms ease, border-color 160ms ease;
+    background: var(--risk-surface-variant);
+    transition: background 200ms ease, border-color 200ms ease;
+    flex-shrink: 0;
+    margin: 0 4px;
 }
 .risk-switch-track::after {
     content: "";
     position: absolute;
-    top: 4px;
-    left: 4px;
+    top: 2px;
+    left: 2px;
     width: 22px;
     height: 22px;
     border-radius: 50%;
     background: #fff;
-    box-shadow: 0 2px 8px rgba(23, 32, 42, 0.22);
-    transition: transform 160ms ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.20);
+    transition: transform 200ms ease;
+    z-index: 1;
+}
+/* Checkmark icon inside the knob */
+.risk-switch-track::before {
+    content: "\f00c";
+    font-family: "FontAwesome";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: #2563eb; /* Bright blue for checkmark */
+    z-index: 2;
+    opacity: 0;
+    transition: transform 200ms ease, opacity 200ms ease;
+    pointer-events: none;
 }
 .risk-switch input:checked + .risk-switch-track {
     border-color: var(--risk-primary);
     background: var(--risk-primary);
 }
 .risk-switch input:checked + .risk-switch-track::after {
-    transform: translateX(26px);
+    transform: translateX(24px);
+}
+.risk-switch input:checked + .risk-switch-track::before {
+    transform: translateX(24px);
+    opacity: 1;
 }
 .risk-semi-field,
 .risk-registered-owner-field {
@@ -845,4 +921,118 @@
     .risk-portal-toolbar .btn {
         width: 100%;
     }
+}
+
+/* ============================================================
+   Layout adaptado - Paso 1 (Paleta Naranja + Azul Impocoma)
+   ============================================================ */
+
+/* Panel título con ícono (fa) */
+.risk-panel-title .fa {
+    color: var(--risk-primary);
+    font-size: 22px;
+}
+
+/* Grid de 2 columnas interno */
+.risk-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+    grid-column: 1 / -1;
+    margin: 0;
+}
+@media (min-width: 600px) {
+    .risk-grid-2 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+.risk-grid-2 .risk-field-full {
+    grid-column: 1 / -1;
+}
+
+/* Caja destacada Semi/Remolque */
+.risk-box-bright {
+    grid-column: 1 / -1;
+    background-color: var(--risk-fill);
+    border: 1px solid var(--risk-line);
+    border-radius: 10px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.risk-box-bright .risk-switch-card {
+    border: none;
+    background: transparent;
+    padding: 0;
+}
+/* Acento izquierdo en el campo de placa del remolque */
+.risk-box-bright [data-semi-trailer-field] {
+    border-left: 3px solid var(--risk-primary-fixed);
+    padding-left: 14px;
+    margin-top: 16px;
+}
+
+/* Separador de sección Rastreo Satelital */
+.risk-section-divider {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--risk-line);
+    padding-top: 20px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--risk-secondary);
+    font-size: 18px;
+    font-weight: 700;
+}
+.risk-section-divider .fa {
+    color: var(--risk-primary);
+    font-size: 20px;
+}
+
+/* Campo de contraseña con botón de ojo */
+.risk-password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.risk-password-wrapper input {
+    padding-right: 44px;
+}
+.risk-password-toggle {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: var(--risk-muted);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    line-height: 1;
+}
+.risk-password-toggle:hover {
+    color: var(--risk-primary);
+}
+
+/* Select con flecha personalizada */
+.risk-select-wrapper {
+    position: relative;
+}
+.risk-select-wrapper::after {
+    content: "\f107"; /* fa-angle-down */
+    font-family: "FontAwesome";
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--risk-muted);
+    font-size: 16px;
+}
+.risk-select-wrapper select {
+    padding-right: 36px;
 }

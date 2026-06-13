@@ -36,13 +36,27 @@
                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
 
                     <section class="risk-panel">
-                        <div t-if="step == 1" class="risk-panel-title">Informacion del Vehiculo</div>
-                        <div t-if="step == 2" class="risk-panel-title">Informacion del Propietario / Tenedor / Poseedor</div>
-                        <div t-if="step == 3" class="risk-panel-title">Informacion del Conductor</div>
-                        <div t-if="step == 4" class="risk-panel-title">Aceptacion de Terminos y Autorizaciones</div>
-                        <div t-if="step == 5" class="risk-panel-title">Firma Propietario</div>
-                        <div t-if="step == 6" class="risk-panel-title">Firma Conductor</div>
-                        <div t-if="step == 7" class="risk-panel-title">Revision de la Solicitud</div>
+                        <div t-if="step == 1" class="risk-panel-title">
+                            <i class="fa fa-truck"></i> Informacion del Vehiculo
+                        </div>
+                        <div t-if="step == 2" class="risk-panel-title">
+                            <i class="fa fa-user"></i> Informacion del Propietario / Tenedor / Poseedor
+                        </div>
+                        <div t-if="step == 3" class="risk-panel-title">
+                            <i class="fa fa-id-card"></i> Informacion del Conductor
+                        </div>
+                        <div t-if="step == 4" class="risk-panel-title">
+                            <i class="fa fa-file-text"></i> Aceptacion de Terminos y Autorizaciones
+                        </div>
+                        <div t-if="step == 5" class="risk-panel-title">
+                            <i class="fa fa-pen-nib"></i> Firma Propietario
+                        </div>
+                        <div t-if="step == 6" class="risk-panel-title">
+                            <i class="fa fa-pen-nib"></i> Firma Conductor
+                        </div>
+                        <div t-if="step == 7" class="risk-panel-title">
+                            <i class="fa fa-check-circle"></i> Revision de la Solicitud
+                        </div>
                         <div class="risk-fields">
                             <div t-if="data.get('step_error')" class="risk-error" t-esc="data.get('step_error')"/>
                             <t t-if="step == 1" t-call="risk_module.register_driver_step_vehicle"/>
