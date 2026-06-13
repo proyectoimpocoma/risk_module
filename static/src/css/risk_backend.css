@@ -10,3 +10,35 @@
     color: #214c3a;
     font-weight: 700;
 }
+
+.risk-document-preview-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.55fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.risk-document-preview {
+    min-height: 72vh;
+}
+
+.risk-document-preview .o_field_pdf_viewer .o_pdfview_iframe {
+    height: 72vh;
+    min-height: 620px;
+    margin-top: 0;
+    border: 1px solid #dce5db;
+    border-radius: 8px;
+}
+
+.risk-document-details {
+    border: 1px solid #dce5db;
+    border-radius: 8px;
+    padding: 12px;
+    background: #fff;
+}
+
+@media (max-width: 1100px) {
+    .risk-document-preview-layout {
+        grid-template-columns: 1fr;
+    }
+}

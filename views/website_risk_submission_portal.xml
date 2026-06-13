@@ -79,6 +79,21 @@
                 <div t-if="request.params.get('upload_error') == 'invalid_type'" class="alert alert-danger">
                     Solo puedes cargar archivos PDF, JPG o PNG.
                 </div>
+                <div t-if="request.params.get('upload_error') == 'missing_issue_date'" class="alert alert-danger">
+                    Debes indicar la fecha de expedicion del documento.
+                </div>
+                <div t-if="request.params.get('upload_error') == 'missing_expiration_date'" class="alert alert-danger">
+                    Debes indicar la fecha de vencimiento del documento.
+                </div>
+                <div t-if="request.params.get('upload_error') == 'invalid_date'" class="alert alert-danger">
+                    La fecha ingresada no es valida. Por favor revisala e intenta nuevamente.
+                </div>
+                <div t-if="request.params.get('upload_error') == 'expired_date'" class="alert alert-danger">
+                    El documento se encuentra vencido. Por favor carga una version vigente.
+                </div>
+                <div t-if="request.params.get('upload_error') == 'old_issue_date'" class="alert alert-danger">
+                    La fecha de expedicion supera la antiguedad maxima permitida para este documento.
+                </div>
 
                 <section class="mb-4">
                     <h2 class="h5">Estado</h2>
@@ -122,8 +137,16 @@
                                               t-attf-action="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/subir"
                                               method="post"
                                               enctype="multipart/form-data"
-                                              class="d-flex align-items-center gap-2">
+                                              class="risk-portal-upload-form d-flex align-items-end gap-2 flex-wrap">
                                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                            <label t-if="document.max_age_days" class="small text-muted mb-0">
+                                                Fecha de expedicion
+                                                <input type="date" name="issue_date" class="form-control form-control-sm" required="required" t-att-value="document.issue_date or ''"/>
+                                            </label>
+                                            <label t-if="document.validity_required" class="small text-muted mb-0">
+                                                Fecha de vencimiento
+                                                <input type="date" name="expiration_date" class="form-control form-control-sm" required="required" t-att-value="document.expiration_date or ''"/>
+                                            </label>
                                             <input type="file" name="document_file" class="form-control form-control-sm" required="required"/>
                                             <button type="submit" class="btn btn-sm btn-primary">Subir</button>
                                         </form>
@@ -155,8 +178,16 @@
                                               t-attf-action="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/subir"
                                               method="post"
                                               enctype="multipart/form-data"
-                                              class="d-flex align-items-center gap-2">
+                                              class="risk-portal-upload-form d-flex align-items-end gap-2 flex-wrap">
                                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                            <label t-if="document.max_age_days" class="small text-muted mb-0">
+                                                Fecha de expedicion
+                                                <input type="date" name="issue_date" class="form-control form-control-sm" required="required" t-att-value="document.issue_date or ''"/>
+                                            </label>
+                                            <label t-if="document.validity_required" class="small text-muted mb-0">
+                                                Fecha de vencimiento
+                                                <input type="date" name="expiration_date" class="form-control form-control-sm" required="required" t-att-value="document.expiration_date or ''"/>
+                                            </label>
                                             <input type="file" name="document_file" class="form-control form-control-sm" required="required"/>
                                             <button type="submit" class="btn btn-sm btn-primary">Subir</button>
                                         </form>
@@ -188,8 +219,16 @@
                                               t-attf-action="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/subir"
                                               method="post"
                                               enctype="multipart/form-data"
-                                              class="d-flex align-items-center gap-2">
+                                              class="risk-portal-upload-form d-flex align-items-end gap-2 flex-wrap">
                                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                            <label t-if="document.max_age_days" class="small text-muted mb-0">
+                                                Fecha de expedicion
+                                                <input type="date" name="issue_date" class="form-control form-control-sm" required="required" t-att-value="document.issue_date or ''"/>
+                                            </label>
+                                            <label t-if="document.validity_required" class="small text-muted mb-0">
+                                                Fecha de vencimiento
+                                                <input type="date" name="expiration_date" class="form-control form-control-sm" required="required" t-att-value="document.expiration_date or ''"/>
+                                            </label>
                                             <input type="file" name="document_file" class="form-control form-control-sm" required="required"/>
                                             <button type="submit" class="btn btn-sm btn-primary">Subir</button>
                                         </form>
@@ -221,8 +260,16 @@
                                               t-attf-action="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/subir"
                                               method="post"
                                               enctype="multipart/form-data"
-                                              class="d-flex align-items-center gap-2">
+                                              class="risk-portal-upload-form d-flex align-items-end gap-2 flex-wrap">
                                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                            <label t-if="document.max_age_days" class="small text-muted mb-0">
+                                                Fecha de expedicion
+                                                <input type="date" name="issue_date" class="form-control form-control-sm" required="required" t-att-value="document.issue_date or ''"/>
+                                            </label>
+                                            <label t-if="document.validity_required" class="small text-muted mb-0">
+                                                Fecha de vencimiento
+                                                <input type="date" name="expiration_date" class="form-control form-control-sm" required="required" t-att-value="document.expiration_date or ''"/>
+                                            </label>
                                             <input type="file" name="document_file" class="form-control form-control-sm" required="required"/>
                                             <button type="submit" class="btn btn-sm btn-primary">Subir</button>
                                         </form>

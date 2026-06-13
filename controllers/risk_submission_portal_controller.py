@@ -1,7 +1,9 @@
 import base64
 import logging
+from datetime import timedelta
 
 from odoo import http
+from odoo import fields
 from odoo.http import request
 
 _logger = logging.getLogger(__name__)
@@ -124,6 +126,19 @@ class RiskSubmissionPortalController(http.Controller):
             )
             return self._redirect_upload_error(submission, upload_error)
 
+        date_error, date_values = self._validate_portal_document_dates(document, post)
+        if date_error:
+            _logger.warning(
+                "Portal document upload rejected by date validation submission_id=%s document_id=%s user_id=%s error=%s validity_required=%s max_age_days=%s",
+                submission.id,
+                document.id,
+                request.env.user.id,
+                date_error,
+                document.validity_required,
+                document.max_age_days,
+            )
+            return self._redirect_upload_error(submission, date_error)
+
         _logger.info(
             "Portal document upload received submission_id=%s document_id=%s user_id=%s filename=%s content_length=%s",
             submission.id,
@@ -136,6 +151,7 @@ class RiskSubmissionPortalController(http.Controller):
             "file": base64.b64encode(upload.read()).decode("ascii"),
             "filename": upload.filename,
             "state": "received",
+            **date_values,
         })
         submission.message_post(
             body="Documento cargado desde portal: %s" % document.name,
@@ -155,6 +171,41 @@ class RiskSubmissionPortalController(http.Controller):
         if upload.mimetype and upload.mimetype not in ALLOWED_PORTAL_UPLOAD_MIMETYPES:
             return "invalid_type"
         return None
+
+    def _validate_portal_document_dates(self, document, post):
+        values = {}
+        today = fields.Date.context_today(document)
+
+        if document.max_age_days:
+            issue_date = post.get("issue_date")
+            if not issue_date:
+                return "missing_issue_date", values
+            try:
+                parsed_issue_date = fields.Date.to_date(issue_date)
+            except (TypeError, ValueError):
+                return "invalid_date", values
+            if not parsed_issue_date:
+                return "invalid_date", values
+            limit_date = today - timedelta(days=document.max_age_days)
+            if parsed_issue_date < limit_date:
+                return "old_issue_date", values
+            values["issue_date"] = parsed_issue_date
+
+        if document.validity_required:
+            expiration_date = post.get("expiration_date")
+            if not expiration_date:
+                return "missing_expiration_date", values
+            try:
+                parsed_expiration_date = fields.Date.to_date(expiration_date)
+            except (TypeError, ValueError):
+                return "invalid_date", values
+            if not parsed_expiration_date:
+                return "invalid_date", values
+            if parsed_expiration_date < today:
+                return "expired_date", values
+            values["expiration_date"] = parsed_expiration_date
+
+        return None, values
 
     def _redirect_upload_error(self, submission, error_code):
         return request.redirect(

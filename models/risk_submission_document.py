@@ -1,5 +1,6 @@
 import logging
 from datetime import timedelta
+from urllib.parse import quote
 
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
@@ -12,6 +13,24 @@ class RiskSubmissionDocument(models.Model):
     _description = "Documento de solicitud de riesgo"
     _inherit = ["mail.thread"]
     _order = "required desc, party, sequence, id"
+
+    _REJECTION_MESSAGES = {
+        "illegible": "El documento cargado no se puede leer con claridad. Por favor vuelve a cargar una imagen o PDF mas nitido, procurando que toda la informacion sea visible.",
+        "incomplete": "El documento esta incompleto. Por favor carga todas las paginas o caras requeridas para que podamos continuar con la revision.",
+        "missing_back": "Hace falta la parte posterior del documento. Por favor carga nuevamente el archivo incluyendo ambas caras.",
+        "expired": "El documento cargado se encuentra vencido. Por favor adjunta una version vigente para continuar con el proceso.",
+        "wrong_driver": "El documento cargado no corresponde al conductor registrado en la solicitud. Por favor verifica la informacion y carga el documento correcto.",
+        "wrong_owner": "El documento cargado no corresponde al propietario o tenedor registrado. Por favor carga el documento correspondiente a la persona indicada en la solicitud.",
+        "wrong_vehicle": "El documento cargado no corresponde al vehiculo registrado en la solicitud. Por favor verifica la placa y adjunta el documento correcto.",
+        "wrong_file": "El archivo cargado no corresponde al documento solicitado. Por favor revisa el nombre del documento requerido y vuelve a cargar el archivo correcto.",
+        "not_color": "El documento debe estar cargado a color para poder validarlo correctamente. Por favor adjunta una nueva version a color.",
+        "photo_requirements": "La foto cargada no cumple con los requisitos solicitados. Por favor adjunta una foto actualizada, clara y donde se vea la informacion requerida.",
+        "date_not_visible": "No es posible validar la fecha del documento porque no se ve con claridad. Por favor carga una version donde la fecha sea legible.",
+        "cropped": "Parte de la informacion del documento aparece cortada. Por favor vuelve a cargarlo asegurandote de que el documento completo sea visible.",
+        "damaged": "No pudimos abrir correctamente el archivo cargado. Por favor intenta subirlo nuevamente en formato PDF, JPG o PNG.",
+        "invalid_rut": "El RUT cargado no cumple con las condiciones requeridas. Por favor carga una version donde se observe la marca de agua como copia de certificado o certificado.",
+        "old_chamber": "La Camara de Comercio debe tener una fecha de expedicion no mayor a 30 dias. Por favor carga un certificado actualizado.",
+    }
 
     submission_id = fields.Many2one(
         "risk.module",
@@ -94,6 +113,26 @@ class RiskSubmissionDocument(models.Model):
         required=True,
         tracking=True,
     )
+    rejection_reason = fields.Selection(
+        [
+            ("illegible", "Documento ilegible"),
+            ("incomplete", "Documento incompleto"),
+            ("missing_back", "Falta reverso"),
+            ("expired", "Documento vencido"),
+            ("wrong_driver", "No corresponde al conductor"),
+            ("wrong_owner", "No corresponde al propietario"),
+            ("wrong_vehicle", "No corresponde al vehiculo"),
+            ("wrong_file", "Archivo equivocado"),
+            ("not_color", "Debe estar a color"),
+            ("photo_requirements", "Foto no cumple requisitos"),
+            ("date_not_visible", "Fecha no visible"),
+            ("cropped", "Informacion cortada"),
+            ("damaged", "Archivo danado"),
+            ("invalid_rut", "RUT no valido"),
+            ("old_chamber", "Camara de Comercio vencida"),
+        ],
+        string="Motivo de rechazo",
+    )
     observations = fields.Text(string="Observaciones")
 
     @api.depends("expiration_date")
@@ -117,6 +156,16 @@ class RiskSubmissionDocument(models.Model):
                 "Document onchange marked received document_id=%s", self.id or "new"
             )
             self.state = "received"
+
+    @api.onchange("rejection_reason")
+    def _onchange_rejection_reason(self):
+        for record in self:
+            message = record._rejection_reason_message(record.rejection_reason)
+            if message:
+                record.observations = message
+
+    def _rejection_reason_message(self, reason):
+        return self._REJECTION_MESSAGES.get(reason or "")
 
     @api.constrains("state", "observations")
     def _check_rejection_observations(self):
@@ -244,6 +293,32 @@ class RiskSubmissionDocument(models.Model):
         )
         self.write({"state": "received"})
 
+    def action_open_document_preview(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Ver documento",
+            "res_model": "risk.module.document",
+            "res_id": self.id,
+            "view_mode": "form",
+            "view_id": self.env.ref(
+                "risk_module.view_risk_module_document_form"
+            ).id,
+            "target": "new",
+        }
+
+    def action_open_file(self):
+        self.ensure_one()
+        if not self.file:
+            raise ValidationError("Este documento no tiene archivo cargado.")
+        filename = quote(self.filename or self.name or "documento")
+        return {
+            "type": "ir.actions.act_url",
+            "url": "/web/content/risk.module.document/%s/file/%s?download=false"
+            % (self.id, filename),
+            "target": "new",
+        }
+
     def action_approve(self):
         for record in self:
             if not record.file:
@@ -267,6 +342,10 @@ class RiskSubmissionDocument(models.Model):
 
     def action_reject(self):
         for record in self:
+            if not (record.observations or "").strip() and record.rejection_reason:
+                record.observations = record._rejection_reason_message(
+                    record.rejection_reason
+                )
             if not (record.observations or "").strip():
                 _logger.warning(
                     "Document rejection action blocked missing observations document_id=%s",

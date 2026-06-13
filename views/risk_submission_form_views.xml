@@ -205,7 +205,10 @@
                                            decoration-warning="expiration_state == 'expiring'"
                                            decoration-danger="expiration_state == 'expired'"
                                            decoration-muted="expiration_state == 'no_date'"/>
+                                    <field name="rejection_reason" string="Motivo"/>
                                     <field name="observations" string="Observaciones"/>
+                                    <button name="action_open_document_preview" type="object" string="Ver PDF"
+                                            invisible="not file"/>
                                     <button name="action_mark_received" type="object" string="Recibido"
                                             invisible="state != 'pending'"/>
                                     <button name="action_approve" type="object" string="Aprobar"
@@ -215,9 +218,8 @@
                                 </list>
                                 <form string="Documento">
                                     <header>
-                                        <button name="%(action_risk_module_document_form_modal)d" type="action"
-                                                string="Vista ampliada" class="btn-secondary"
-                                                attrs="{'invisible': [('id', '=', False)]}"/>
+                                        <button name="action_open_file" type="object" string="Abrir archivo"
+                                                class="btn-secondary" invisible="not file"/>
                                         <button name="action_mark_received" type="object" string="Marcar recibido"
                                                 invisible="state != 'pending'"/>
                                         <button name="action_approve" type="object" string="Aprobar" class="btn-primary"
@@ -228,28 +230,35 @@
                                                statusbar_visible="pending,received,approved,rejected"/>
                                     </header>
                                     <sheet>
-                                        <group>
-                                            <group>
-                                                <field name="name"/>
-                                                <field name="document_type"/>
-                                                <field name="party"/>
-                                                <field name="instructions" placeholder="Instrucciones para el tercero"/>
-                                                <field name="required"/>
-                                                <field name="requires_color"/>
-                                                <field name="requires_both_sides"/>
-                                                <field name="validity_required"/>
-                                                <field name="max_age_days"/>
-                                                <field name="issue_date"/>
-                                                <field name="expiration_date"/>
-                                            </group>
-                                            <group>
-                                                <field name="filename"/>
-                                                <field name="file" filename="filename" nolabel="1"/>
-                                            </group>
-                                        </group>
-                                        <group string="Observaciones">
-                                            <field name="observations" nolabel="1" colspan="2"/>
-                                        </group>
+                                        <div class="risk-document-preview-layout">
+                                            <div class="risk-document-preview">
+                                                <field name="file" filename="filename" widget="pdf_viewer" nolabel="1"/>
+                                                <div invisible="file" class="alert alert-info mb-0" role="status">
+                                                    Este documento aun no tiene archivo cargado.
+                                                </div>
+                                            </div>
+                                            <div class="risk-document-details">
+                                                <group>
+                                                    <field name="name"/>
+                                                    <field name="document_type"/>
+                                                    <field name="party"/>
+                                                    <field name="instructions" placeholder="Instrucciones para el tercero"/>
+                                                    <field name="required"/>
+                                                    <field name="requires_color"/>
+                                                    <field name="requires_both_sides"/>
+                                                    <field name="validity_required"/>
+                                                    <field name="max_age_days"/>
+                                                    <field name="issue_date"/>
+                                                    <field name="expiration_date"/>
+                                                    <field name="expiration_state" readonly="1"/>
+                                                    <field name="filename"/>
+                                                </group>
+                                                <group string="Observaciones">
+                                                    <field name="rejection_reason"/>
+                                                    <field name="observations" nolabel="1"/>
+                                                </group>
+                                            </div>
+                                        </div>
                                     </sheet>
                                 </form>
                             </field>

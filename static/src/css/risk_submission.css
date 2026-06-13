@@ -767,6 +767,17 @@
     border-radius: 999px;
     padding: 7px 10px;
 }
+.risk-portal-upload-form {
+    justify-content: flex-end;
+    max-width: 680px;
+}
+.risk-portal-upload-form label {
+    min-width: 160px;
+    font-weight: 700;
+}
+.risk-portal-upload-form input[type="file"] {
+    max-width: 220px;
+}
 @media (max-width: 720px) {
     .risk-success-page,
     .risk-portal-page {
