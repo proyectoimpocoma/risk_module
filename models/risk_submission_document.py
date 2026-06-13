@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
@@ -55,6 +56,16 @@ class RiskSubmissionDocument(models.Model):
     file = fields.Binary(string="Archivo", attachment=True)
     filename = fields.Char(string="Nombre de archivo")
     expiration_date = fields.Date(string="Fecha de vencimiento")
+    expiration_state = fields.Selection(
+        [
+            ("no_date", "Sin fecha"),
+            ("valid", "Vigente"),
+            ("expiring", "Vence pronto"),
+            ("expired", "Vencido"),
+        ],
+        string="Vigencia",
+        compute="_compute_expiration_state",
+    )
     state = fields.Selection(
         [
             ("pending", "Pendiente"),
@@ -68,6 +79,20 @@ class RiskSubmissionDocument(models.Model):
         tracking=True,
     )
     observations = fields.Text(string="Observaciones")
+
+    @api.depends("expiration_date")
+    def _compute_expiration_state(self):
+        today = fields.Date.context_today(self)
+        soon_limit = today + timedelta(days=30)
+        for record in self:
+            if not record.expiration_date:
+                record.expiration_state = "no_date"
+            elif record.expiration_date < today:
+                record.expiration_state = "expired"
+            elif record.expiration_date <= soon_limit:
+                record.expiration_state = "expiring"
+            else:
+                record.expiration_state = "valid"
 
     @api.onchange("file")
     def _onchange_file(self):

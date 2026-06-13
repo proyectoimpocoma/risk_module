@@ -169,24 +169,48 @@
                         </page>
 
                         <page string="Documentos" name="documents_page">
+                            <group string="Resumen documental" class="risk_document_summary">
+                                <group>
+                                    <field name="document_progress_label" readonly="1"/>
+                                    <field name="document_required_count" readonly="1"/>
+                                    <field name="document_pending_count" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="document_received_count" readonly="1"/>
+                                    <field name="document_approved_count" readonly="1"/>
+                                    <field name="document_rejected_count" readonly="1"/>
+                                </group>
+                            </group>
                             <field name="document_ids" context="{'default_submission_id': id}">
-                                <tree string="Documentos"
+                                <list string="Documentos"
                                       decoration-success="state == 'approved'"
                                       decoration-danger="state == 'rejected'"
                                       decoration-info="state == 'received'"
+                                      decoration-muted="expiration_state == 'no_date'"
                                       decoration-warning="state == 'pending'">
                                     <field name="state" widget="badge"
                                            decoration-success="state == 'approved'"
                                            decoration-danger="state == 'rejected'"
                                            decoration-info="state == 'received'"
                                            decoration-warning="state == 'pending'"/>
-                                    <field name="name"/>
-                                    <field name="document_type"/>
-                                    <field name="party"/>
-                                    <field name="required"/>
-                                    <field name="filename"/>
-                                    <field name="expiration_date"/>
-                                </tree>
+                                    <field name="name" string="Documento"/>
+                                    <field name="party" string="Persona / Vehiculo"/>
+                                    <field name="required" string="Obligatorio"/>
+                                    <field name="filename" string="Archivo"/>
+                                    <field name="expiration_date" string="Vencimiento"/>
+                                    <field name="expiration_state" widget="badge" string="Vigencia"
+                                           decoration-success="expiration_state == 'valid'"
+                                           decoration-warning="expiration_state == 'expiring'"
+                                           decoration-danger="expiration_state == 'expired'"
+                                           decoration-muted="expiration_state == 'no_date'"/>
+                                    <field name="observations" string="Observaciones"/>
+                                    <button name="action_mark_received" type="object" string="Recibido"
+                                            invisible="state != 'pending'"/>
+                                    <button name="action_approve" type="object" string="Aprobar"
+                                            invisible="state not in ('received', 'rejected')"/>
+                                    <button name="action_reject" type="object" string="Rechazar"
+                                            invisible="state not in ('received', 'approved')"/>
+                                </list>
                                 <form string="Documento">
                                     <header>
                                         <button name="%(action_risk_module_document_form_modal)d" type="action"

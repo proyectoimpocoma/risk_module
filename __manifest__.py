@@ -36,6 +36,9 @@
         "views/website_risk_submission_templates.xml",
     ],
     "assets": {
+        "web.assets_backend": [
+            "risk_module/static/src/css/risk_backend.css",
+        ],
         "web.assets_frontend": [
             "risk_module/static/src/css/risk_submission.css",
             "risk_module/static/src/js/risk_submission_vehicle.js",

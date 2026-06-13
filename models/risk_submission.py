@@ -370,6 +370,30 @@ class RiskSubmission(models.Model):
         string="Documentos",
         copy=False,
     )
+    document_required_count = fields.Integer(
+        string="Requeridos",
+        compute="_compute_document_summary",
+    )
+    document_pending_count = fields.Integer(
+        string="Pendientes",
+        compute="_compute_document_summary",
+    )
+    document_received_count = fields.Integer(
+        string="Recibidos",
+        compute="_compute_document_summary",
+    )
+    document_approved_count = fields.Integer(
+        string="Aprobados",
+        compute="_compute_document_summary",
+    )
+    document_rejected_count = fields.Integer(
+        string="Rechazados",
+        compute="_compute_document_summary",
+    )
+    document_progress_label = fields.Char(
+        string="Progreso documental",
+        compute="_compute_document_summary",
+    )
     external_validation_ids = fields.One2many(
         "risk.external.validation",
         "submission_id",
@@ -398,6 +422,28 @@ class RiskSubmission(models.Model):
                     "El Analista de Riesgo puede gestionar el flujo, pero no puede modificar datos registrados en el formulario: %s."
                     % ", ".join(labels)
                 )
+
+    @api.depends("document_ids.state", "document_ids.required")
+    def _compute_document_summary(self):
+        for record in self:
+            required_documents = record.document_ids.filtered("required")
+            record.document_required_count = len(required_documents)
+            record.document_pending_count = len(
+                required_documents.filtered(lambda doc: doc.state == "pending")
+            )
+            record.document_received_count = len(
+                required_documents.filtered(lambda doc: doc.state == "received")
+            )
+            record.document_approved_count = len(
+                required_documents.filtered(lambda doc: doc.state == "approved")
+            )
+            record.document_rejected_count = len(
+                required_documents.filtered(lambda doc: doc.state == "rejected")
+            )
+            record.document_progress_label = "%s / %s aprobados" % (
+                record.document_approved_count,
+                record.document_required_count,
+            )
 
     @api.depends("state")
     def _compute_portal_state_label(self):

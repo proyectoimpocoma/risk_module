@@ -1,0 +1,12 @@
+.risk_document_summary {
+    border: 1px solid #d8b46a;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    background: #f7fbf8;
+}
+
+.risk_document_summary .o_group_name {
+    color: #214c3a;
+    font-weight: 700;
+}
