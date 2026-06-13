@@ -26,14 +26,24 @@ class RiskSubmissionDocument(models.Model):
         [
             ("driver_id", "Cedula del conductor"),
             ("driver_license", "Licencia de conduccion"),
+            ("driver_social_security", "Planilla de seguridad social"),
+            ("driver_photo", "Foto del conductor"),
+            ("driver_risk_induction", "Induccion y notificacion general de riesgos"),
             ("owner_document", "Cedula / NIT del propietario"),
+            ("owner_bank_certificate", "Certificacion bancaria"),
+            ("owner_rut", "RUT"),
+            ("owner_chamber_commerce", "Camara de comercio"),
+            ("owner_legal_representative_id", "Cedula representante legal"),
             ("vehicle_registration", "Tarjeta de propiedad"),
+            ("vehicle_photo", "Foto del vehiculo"),
             ("soat", "SOAT"),
             ("technical_inspection", "Revision tecnico-mecanica"),
             ("policy", "Poliza"),
+            ("third_party_life_sheet", "Formato FO-RI-01"),
             ("owner_security_study", "Estudio de seguridad del propietario"),
             ("driver_security_study", "Estudio de seguridad del conductor"),
             ("semi_registration", "Documento del semi/remolque"),
+            ("semi_photo", "Foto del remolque o semirremolque"),
             ("other", "Otro"),
         ],
         string="Tipo",
@@ -53,8 +63,14 @@ class RiskSubmissionDocument(models.Model):
         default="other",
     )
     required = fields.Boolean(string="Obligatorio", default=True)
+    validity_required = fields.Boolean(string="Requiere vigencia")
+    max_age_days = fields.Integer(string="Antiguedad maxima en dias")
+    requires_color = fields.Boolean(string="Debe estar a color")
+    requires_both_sides = fields.Boolean(string="Requiere ambas caras")
+    instructions = fields.Text(string="Instrucciones")
     file = fields.Binary(string="Archivo", attachment=True)
     filename = fields.Char(string="Nombre de archivo")
+    issue_date = fields.Date(string="Fecha de expedicion")
     expiration_date = fields.Date(string="Fecha de vencimiento")
     expiration_state = fields.Selection(
         [
@@ -124,6 +140,33 @@ class RiskSubmissionDocument(models.Model):
                 raise ValidationError(
                     "No puedes aprobar un documento sin archivo adjunto."
                 )
+            if (
+                record.state == "approved"
+                and record.validity_required
+                and not record.expiration_date
+            ):
+                raise ValidationError(
+                    "Debes indicar la fecha de vencimiento para aprobar %s."
+                    % record.name
+                )
+            if record.state == "approved" and record.expiration_state == "expired":
+                raise ValidationError(
+                    "No puedes aprobar %s porque esta vencido." % record.name
+                )
+            if record.state == "approved" and record.max_age_days:
+                if not record.issue_date:
+                    raise ValidationError(
+                        "Debes indicar la fecha de expedicion para aprobar %s."
+                        % record.name
+                    )
+                limit_date = fields.Date.context_today(record) - timedelta(
+                    days=record.max_age_days
+                )
+                if record.issue_date < limit_date:
+                    raise ValidationError(
+                        "No puedes aprobar %s porque supera la antiguedad maxima de %s dias."
+                        % (record.name, record.max_age_days)
+                    )
 
     @api.model_create_multi
     def create(self, vals_list):

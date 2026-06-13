@@ -197,6 +197,7 @@
                                     <field name="party" string="Persona / Vehiculo"/>
                                     <field name="required" string="Obligatorio"/>
                                     <field name="filename" string="Archivo"/>
+                                    <field name="issue_date" string="Expedicion"/>
                                     <field name="expiration_date" string="Vencimiento"/>
                                     <field name="expiration_state" widget="badge" string="Vigencia"
                                            decoration-success="expiration_state == 'valid'"
@@ -231,7 +232,13 @@
                                                 <field name="name"/>
                                                 <field name="document_type"/>
                                                 <field name="party"/>
+                                                <field name="instructions" placeholder="Instrucciones para el tercero"/>
                                                 <field name="required"/>
+                                                <field name="requires_color"/>
+                                                <field name="requires_both_sides"/>
+                                                <field name="validity_required"/>
+                                                <field name="max_age_days"/>
+                                                <field name="issue_date"/>
                                                 <field name="expiration_date"/>
                                             </group>
                                             <group>

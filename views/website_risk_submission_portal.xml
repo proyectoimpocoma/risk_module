@@ -108,6 +108,13 @@
                                             <div class="text-muted small">
                                                 Estado: <span t-esc="dict(document._fields['state'].selection).get(document.state)"/>
                                             </div>
+                                            <div t-if="document.instructions" class="small" t-esc="document.instructions"/>
+                                            <div class="small text-muted">
+                                                <span t-if="document.requires_color" class="badge text-bg-light">A color</span>
+                                                <span t-if="document.requires_both_sides" class="badge text-bg-light">Ambas caras</span>
+                                                <span t-if="document.validity_required" class="badge text-bg-light">Vigente</span>
+                                                <span t-if="document.max_age_days" class="badge text-bg-light">Max. <t t-esc="document.max_age_days"/> dias</span>
+                                            </div>
                                             <div t-if="document.observations" class="text-danger small" t-esc="document.observations"/>
                                         </div>
                                         <form t-if="submission._portal_document_upload_allowed(document)"
@@ -133,6 +140,13 @@
                                             <strong t-esc="document.name"/>
                                             <div class="text-muted small">
                                                 Estado: <span t-esc="dict(document._fields['state'].selection).get(document.state)"/>
+                                            </div>
+                                            <div t-if="document.instructions" class="small" t-esc="document.instructions"/>
+                                            <div class="small text-muted">
+                                                <span t-if="document.requires_color" class="badge text-bg-light">A color</span>
+                                                <span t-if="document.requires_both_sides" class="badge text-bg-light">Ambas caras</span>
+                                                <span t-if="document.validity_required" class="badge text-bg-light">Vigente</span>
+                                                <span t-if="document.max_age_days" class="badge text-bg-light">Max. <t t-esc="document.max_age_days"/> dias</span>
                                             </div>
                                             <div t-if="document.observations" class="text-danger small" t-esc="document.observations"/>
                                         </div>
@@ -160,6 +174,13 @@
                                             <div class="text-muted small">
                                                 Estado: <span t-esc="dict(document._fields['state'].selection).get(document.state)"/>
                                             </div>
+                                            <div t-if="document.instructions" class="small" t-esc="document.instructions"/>
+                                            <div class="small text-muted">
+                                                <span t-if="document.requires_color" class="badge text-bg-light">A color</span>
+                                                <span t-if="document.requires_both_sides" class="badge text-bg-light">Ambas caras</span>
+                                                <span t-if="document.validity_required" class="badge text-bg-light">Vigente</span>
+                                                <span t-if="document.max_age_days" class="badge text-bg-light">Max. <t t-esc="document.max_age_days"/> dias</span>
+                                            </div>
                                             <div t-if="document.observations" class="text-danger small" t-esc="document.observations"/>
                                         </div>
                                         <form t-if="submission._portal_document_upload_allowed(document)"
@@ -185,6 +206,13 @@
                                             <strong t-esc="document.name"/>
                                             <div class="text-muted small">
                                                 Estado: <span t-esc="dict(document._fields['state'].selection).get(document.state)"/>
+                                            </div>
+                                            <div t-if="document.instructions" class="small" t-esc="document.instructions"/>
+                                            <div class="small text-muted">
+                                                <span t-if="document.requires_color" class="badge text-bg-light">A color</span>
+                                                <span t-if="document.requires_both_sides" class="badge text-bg-light">Ambas caras</span>
+                                                <span t-if="document.validity_required" class="badge text-bg-light">Vigente</span>
+                                                <span t-if="document.max_age_days" class="badge text-bg-light">Max. <t t-esc="document.max_age_days"/> dias</span>
                                             </div>
                                             <div t-if="document.observations" class="text-danger small" t-esc="document.observations"/>
                                         </div>

@@ -46,52 +46,196 @@ class RiskSubmissionDocuments(models.Model):
     def _required_document_templates(self):
         self.ensure_one()
         templates = [
-            ("driver_id", "Cedula del conductor", "driver", 10),
-            ("driver_license", "Licencia de conduccion", "driver", 20),
-            ("owner_document", "Cedula / NIT del propietario", "owner", 30),
-            ("vehicle_registration", "Tarjeta de propiedad", "vehicle", 40),
-            ("soat", "SOAT", "vehicle", 50),
-            ("technical_inspection", "Revision tecnico-mecanica", "vehicle", 60),
-            ("policy", "Poliza", "vehicle", 70),
+            {
+                "document_type": "driver_license",
+                "name": "Licencia de conduccion",
+                "party": "driver",
+                "sequence": 10,
+                "validity_required": True,
+                "requires_color": True,
+                "requires_both_sides": True,
+                "instructions": "Debe estar vigente, a color y cargada por ambas caras.",
+            },
+            {
+                "document_type": "driver_id",
+                "name": "Cedula de ciudadania del conductor",
+                "party": "driver",
+                "sequence": 20,
+                "requires_color": True,
+                "requires_both_sides": True,
+                "instructions": "Cedula digital, fisica o contraseña. Cargar ultima modificacion si aplica, a color y por ambas caras.",
+            },
+            {
+                "document_type": "driver_social_security",
+                "name": "Planilla de pago de seguridad social",
+                "party": "driver",
+                "sequence": 30,
+                "validity_required": True,
+                "instructions": "Periodo vigente con cuadro de novedades.",
+            },
+            {
+                "document_type": "driver_photo",
+                "name": "Foto actualizada del conductor",
+                "party": "driver",
+                "sequence": 40,
+                "instructions": "Foto de hombros hacia arriba, sin gorra, gafas oscuras, tapabocas u otros accesorios.",
+            },
+            {
+                "document_type": "third_party_life_sheet",
+                "name": "Formato Hoja de Vida Habilitacion de Terceros FO-RI-01",
+                "party": "driver",
+                "sequence": 50,
+                "instructions": "Debe estar completamente diligenciado y firmado.",
+            },
+            {
+                "document_type": "driver_risk_induction",
+                "name": "Induccion y notificacion general de riesgos Impocoma",
+                "party": "driver",
+                "sequence": 60,
+                "instructions": "Cargar soporte de induccion y notificacion general de riesgos Impocoma.",
+            },
+            {
+                "document_type": "vehicle_registration",
+                "name": "Licencia de transito del vehiculo",
+                "party": "vehicle",
+                "sequence": 100,
+                "requires_color": True,
+                "instructions": "Licencia de transito del vehiculo a color.",
+            },
+            {
+                "document_type": "vehicle_photo",
+                "name": "Foto actualizada del vehiculo",
+                "party": "vehicle",
+                "sequence": 110,
+                "instructions": "Foto de frente y lado izquierdo o derecho, donde se vea la placa y los ejes.",
+            },
+            {
+                "document_type": "soat",
+                "name": "SOAT",
+                "party": "vehicle",
+                "sequence": 120,
+                "validity_required": True,
+                "instructions": "Seguro obligatorio de accidentes de transito vigente.",
+            },
         ]
-        if self.owner_has_valid_study == "yes":
-            templates.append((
-                "owner_security_study",
-                "Estudio de seguridad vigente del propietario",
-                "owner",
-                80,
-            ))
-        if self.driver_has_valid_study == "yes":
-            templates.append((
-                "driver_security_study",
-                "Estudio de seguridad vigente del conductor",
-                "driver",
-                90,
-            ))
+        if self.owner_document_type == "nit":
+            templates.extend([
+                {
+                    "document_type": "owner_chamber_commerce",
+                    "name": "Camara de comercio",
+                    "party": "owner",
+                    "sequence": 200,
+                    "max_age_days": 30,
+                    "instructions": "Certificado de camara de comercio con vigencia no mayor a 30 dias.",
+                },
+                {
+                    "document_type": "owner_legal_representative_id",
+                    "name": "Cedula del representante legal",
+                    "party": "owner",
+                    "sequence": 210,
+                    "requires_color": True,
+                    "instructions": "Cedula digital o contraseña del representante legal o suplente autorizado segun camara de comercio, a color.",
+                },
+            ])
+        else:
+            templates.append({
+                "document_type": "owner_document",
+                "name": "Cedula de ciudadania del propietario o tenedor",
+                "party": "owner",
+                "sequence": 200,
+                "requires_color": True,
+                "instructions": "Cedula digital, fisica o contraseña. Cargar ultima modificacion si aplica, a color.",
+            })
+        templates.extend([
+            {
+                "document_type": "owner_bank_certificate",
+                "name": "Certificacion bancaria",
+                "party": "owner",
+                "sequence": 220,
+                "instructions": "Certificacion bancaria para pagos.",
+            },
+            {
+                "document_type": "owner_rut",
+                "name": "Registro Unico Tributario RUT",
+                "party": "owner",
+                "sequence": 230,
+                "instructions": "El RUT debe registrar marca de agua como copia de certificado o certificado unicamente.",
+            },
+            {
+                "document_type": "third_party_life_sheet",
+                "name": "Formato Hoja de Vida Habilitacion de Terceros FO-RI-01",
+                "party": "owner",
+                "sequence": 240,
+                "instructions": "Debe estar completamente diligenciado y firmado.",
+            },
+        ])
         if self.semi_trailer_plate:
-            templates.append((
-                "semi_registration",
-                "Documento del semi/remolque",
-                "semi_trailer",
-                100,
-            ))
+            templates.extend([
+                {
+                    "document_type": "semi_photo",
+                    "name": "Foto del remolque o semirremolque",
+                    "party": "semi_trailer",
+                    "sequence": 300,
+                    "instructions": "Foto donde se vea la placa y los ejes.",
+                },
+                {
+                    "document_type": "semi_registration",
+                    "name": "Tarjeta de registro de remolque o semirremolque",
+                    "party": "semi_trailer",
+                    "sequence": 310,
+                    "requires_color": True,
+                    "instructions": "Tarjeta de registro del remolque o semirremolque a color.",
+                },
+            ])
+        if self.owner_has_valid_study == "yes":
+            templates.append({
+                "document_type": "owner_security_study",
+                "name": "Estudio de seguridad vigente del propietario",
+                "party": "owner",
+                "sequence": 400,
+                "validity_required": True,
+                "instructions": "Cargar estudio de seguridad vigente del propietario.",
+            })
+        if self.driver_has_valid_study == "yes":
+            templates.append({
+                "document_type": "driver_security_study",
+                "name": "Estudio de seguridad vigente del conductor",
+                "party": "driver",
+                "sequence": 410,
+                "validity_required": True,
+                "instructions": "Cargar estudio de seguridad vigente del conductor.",
+            })
         _logger.debug("Required document templates submission_id=%s count=%s", self.id, len(templates))
         return templates
 
     def _ensure_required_documents(self):
         self.ensure_one()
-        existing_keys = set(self.document_ids.mapped("document_type"))
+        existing_documents = {
+            (document.document_type, document.party): document
+            for document in self.document_ids
+        }
         values = []
-        for document_type, name, party, sequence in self._required_document_templates():
-            if document_type in existing_keys:
+        for template in self._required_document_templates():
+            key = (template["document_type"], template["party"])
+            existing_document = existing_documents.get(key)
+            metadata = {
+                "name": template["name"],
+                "sequence": template["sequence"],
+                "required": True,
+                "validity_required": template.get("validity_required", False),
+                "max_age_days": template.get("max_age_days", 0),
+                "requires_color": template.get("requires_color", False),
+                "requires_both_sides": template.get("requires_both_sides", False),
+                "instructions": template.get("instructions"),
+            }
+            if existing_document:
+                existing_document.write(metadata)
                 continue
             values.append({
                 "submission_id": self.id,
-                "sequence": sequence,
-                "name": name,
-                "document_type": document_type,
-                "party": party,
-                "required": True,
+                "document_type": template["document_type"],
+                "party": template["party"],
+                **metadata,
             })
         if values:
             _logger.info(
