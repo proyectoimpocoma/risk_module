@@ -79,7 +79,9 @@ class TestRiskSubmission(TransactionCase):
             self.assertEqual(self.submission.portal_state_label, label)
 
     def test_submission_confirmation_email_is_queued_when_submitted(self):
-        self.submission.write({"state": "submitted"})
+        self.submission.with_context(risk_send_mail_immediately=True).write(
+            {"state": "submitted"}
+        )
 
         self.assertEqual(self.submission.submission_email_status, "sent")
         self.assertEqual(
@@ -98,7 +100,9 @@ class TestRiskSubmission(TransactionCase):
         self.assertFalse(mail.recipient_ids)
 
     def test_submission_rejection_email_is_queued_when_rejected(self):
-        self.submission.action_confirm_rejection("Datos incompletos")
+        self.submission.with_context(
+            risk_send_mail_immediately=True
+        ).action_confirm_rejection("Datos incompletos")
 
         self.assertEqual(self.submission.state, "rejected")
         mail = self.env["mail.mail"].search(
@@ -124,7 +128,7 @@ class TestRiskSubmission(TransactionCase):
             }
         )
 
-        document.action_reject()
+        document.with_context(risk_send_mail_immediately=True).action_confirm_rejection()
 
         self.assertEqual(document.state, "rejected")
         mail = self.env["mail.mail"].search(
@@ -139,7 +143,9 @@ class TestRiskSubmission(TransactionCase):
         self.assertFalse(mail.recipient_ids)
 
     def test_owner_signature_code_email_is_queued(self):
-        result = self.submission.send_owner_signature_code()
+        result = self.submission.with_context(
+            risk_send_mail_immediately=True
+        ).send_owner_signature_code()
 
         self.assertTrue(result["ok"])
         self.assertEqual(self.submission.owner_signature_verification_state, "sent")

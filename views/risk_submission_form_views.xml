@@ -128,7 +128,7 @@
                                     <field name="owner_phone" placeholder="Teléfono principal"/>
                                     <field name="owner_email" placeholder="Correo electrónico"/>
                                     <field name="advance_payment_to" placeholder="Persona o cuenta de pago"/>
-                                    <field name="same_owner_on_license" widget="boolean_button"/>
+                                    <field name="same_owner_on_license" widget="radio"/>
                                 </group>
                             </group>
                             <group string="Propietario Registrado en Licencia"
@@ -158,8 +158,8 @@
                                     <field name="driver_phone" placeholder="Teléfono principal"/>
                                     <field name="driver_optional_phone" placeholder="Teléfono secundario (opcional)"/>
                                     <field name="driver_email" placeholder="Correo electrónico del conductor"/>
-                                    <field name="driver_is_fit" widget="boolean_button"/>
-                                    <field name="driver_is_trained" widget="boolean_button"/>
+                                    <field name="driver_is_fit" widget="radio"/>
+                                    <field name="driver_is_trained" widget="radio"/>
                                 </group>
                             </group>
                             <group string="Referencias del Conductor">
@@ -190,7 +190,7 @@
                             </group>
                             <group string="Firma Propietario">
                                 <group>
-                                    <field name="owner_has_valid_study" widget="boolean_button"/>
+                                    <field name="owner_has_valid_study" widget="radio"/>
                                     <field name="owner_signature_document" placeholder="Documento que respalda la firma"/>
                                     <field name="owner_signed_at"/>
                                     <field name="owner_signature_verification_state" readonly="1"/>
@@ -203,7 +203,7 @@
                             </group>
                             <group string="Firma Conductor">
                                 <group>
-                                    <field name="driver_has_valid_study" widget="boolean_button"/>
+                                    <field name="driver_has_valid_study" widget="radio"/>
                                     <field name="driver_signature_document" placeholder="Documento que respalda la firma"/>
                                     <field name="driver_signed_at"/>
                                     <field name="driver_signature_verification_state" readonly="1"/>

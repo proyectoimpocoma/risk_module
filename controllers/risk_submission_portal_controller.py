@@ -112,16 +112,18 @@ class RiskSubmissionPortalController(http.Controller):
             )
             return self._redirect_upload_error(submission, "missing")
 
-        upload_error = self._validate_portal_upload(upload, document)
+        upload_content = upload.read()
+        upload_error = self._validate_portal_upload(upload, document, len(upload_content))
         if upload_error:
             _logger.warning(
-                "Portal document upload rejected submission_id=%s document_id=%s user_id=%s filename=%s error=%s mimetype=%s content_length=%s",
+                "Portal document upload rejected submission_id=%s document_id=%s user_id=%s filename=%s error=%s mimetype=%s file_size=%s content_length=%s",
                 submission.id,
                 document.id,
                 request.env.user.id,
                 upload.filename,
                 upload_error,
                 upload.mimetype,
+                len(upload_content),
                 request.httprequest.content_length,
             )
             return self._redirect_upload_error(submission, upload_error)
@@ -148,9 +150,11 @@ class RiskSubmissionPortalController(http.Controller):
             request.httprequest.content_length,
         )
         document.write({
-            "file": base64.b64encode(upload.read()).decode("ascii"),
+            "file": base64.b64encode(upload_content).decode("ascii"),
             "filename": upload.filename,
             "state": "received",
+            "uploaded_by_id": request.env.user.id,
+            "uploaded_at": fields.Datetime.now(),
             **date_values,
         })
         submission.message_post(
@@ -159,12 +163,11 @@ class RiskSubmissionPortalController(http.Controller):
         submission.action_mark_documents_sent_if_complete()
         return request.redirect("/mis-solicitudes-riesgo/%s?upload_success=1" % submission.id)
 
-    def _validate_portal_upload(self, upload, document):
-        content_length = request.httprequest.content_length or 0
+    def _validate_portal_upload(self, upload, document, file_size):
         max_size = DEFAULT_MAX_PORTAL_UPLOAD_SIZE
         if document.max_file_size_mb:
             max_size = int(document.max_file_size_mb * 1024 * 1024)
-        if content_length > max_size:
+        if file_size > max_size:
             return "too_large"
 
         filename = upload.filename or ""

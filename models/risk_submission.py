@@ -756,53 +756,50 @@ class RiskSubmission(models.Model):
         success_message = success_message or False
         failure_message = failure_message or False
 
-        def _after_commit_send_mail(
-            rec_id=record_id,
-            template_id=template_id,
-            email_values=email_values,
-            template_context=template_context,
-            write_values=write_values,
-            failure_values=failure_values,
-            success_message=success_message,
-            failure_message=failure_message,
-        ):
+        def _send_mail(env, rec_id=record_id, commit=False):
+            record = env[model_name].browse(rec_id)
+
+            if not record.exists():
+                return
+
+            try:
+                env["mail.template"].browse(template_id).with_context(
+                    **template_context
+                ).send_mail(
+                    rec_id,
+                    force_send=force_send,
+                    email_values=email_values,
+                )
+            except Exception:
+                _logger.exception(
+                    "Deferred mail send failed model=%s record_id=%s template_id=%s",
+                    model_name,
+                    rec_id,
+                    template_id,
+                )
+                if failure_values:
+                    record.write(failure_values)
+                if failure_message:
+                    record.message_post(body=failure_message)
+                if commit:
+                    env.cr.commit()
+                return
+
+            if write_values:
+                record.write(write_values)
+            if success_message:
+                record.message_post(body=success_message)
+            if commit:
+                env.cr.commit()
+
+        def _after_commit_send_mail():
             with Registry(dbname).cursor() as cr:
                 env = api.Environment(cr, SUPERUSER_ID, {})
+                _send_mail(env, commit=True)
 
-                record = env[model_name].browse(rec_id)
-
-                if not record.exists():
-                    return
-
-                try:
-                    env["mail.template"].browse(template_id).with_context(
-                        **template_context
-                    ).send_mail(
-                        rec_id,
-                        force_send=force_send,
-                        email_values=email_values,
-                    )
-                except Exception:
-                    _logger.exception(
-                        "Deferred mail send failed model=%s record_id=%s template_id=%s",
-                        model_name,
-                        rec_id,
-                        template_id,
-                    )
-                    if failure_values:
-                        record.write(failure_values)
-                    if failure_message:
-                        record.message_post(body=failure_message)
-                    cr.commit()
-                    return
-
-                if write_values:
-                    record.write(write_values)
-                if success_message:
-                    record.message_post(body=success_message)
-
-                cr.commit()
-
+        if self.env.context.get("risk_send_mail_immediately"):
+            _send_mail(self.env)
+            return
         self.env.cr.postcommit.add(_after_commit_send_mail)
 
     def action_send_submission_received_email(self):
