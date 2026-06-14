@@ -21,6 +21,7 @@
         "views/risk_document_reject_wizard_views.xml",
         "views/risk_submission_document_views.xml",
         "views/risk_external_validation_views.xml",
+        "views/risk_master_views.xml",
         "views/risk_submission_list_views.xml",
         "views/risk_submission_form_views.xml",
         "views/risk_submission_search_views.xml",

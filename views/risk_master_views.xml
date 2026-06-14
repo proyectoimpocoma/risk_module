@@ -1,0 +1,317 @@
+<odoo>
+    <record id="view_risk_vehicle_list" model="ir.ui.view">
+        <field name="name">risk.vehicle.list</field>
+        <field name="model">risk.vehicle</field>
+        <field name="arch" type="xml">
+            <list string="Vehiculos"
+                  decoration-success="status == 'enabled'"
+                  decoration-danger="status == 'blocked'"
+                  decoration-muted="active == False">
+                <field name="active" widget="boolean_toggle"/>
+                <field name="plate"/>
+                <field name="semi_trailer_plate"/>
+                <field name="current_driver_id"/>
+                <field name="status" widget="badge"
+                       decoration-success="status == 'enabled'"
+                       decoration-danger="status == 'blocked'"
+                       decoration-info="status == 'available'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_risk_vehicle_form" model="ir.ui.view">
+        <field name="name">risk.vehicle.form</field>
+        <field name="model">risk.vehicle</field>
+        <field name="arch" type="xml">
+            <form string="Vehiculo">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="plate"/>
+                        <h1>
+                            <field name="plate" placeholder="ABC123"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Informacion del vehiculo">
+                            <field name="active"/>
+                            <field name="status"/>
+                            <field name="semi_trailer_plate" placeholder="A12345"/>
+                        </group>
+                        <group string="Asignacion actual">
+                            <field name="current_driver_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Propietarios / tenedores" name="owners">
+                            <field name="owner_link_ids" context="{'default_vehicle_id': id}">
+                                <list editable="bottom">
+                                    <field name="active" widget="boolean_toggle"/>
+                                    <field name="owner_id"/>
+                                    <field name="role"/>
+                                    <field name="date_from"/>
+                                    <field name="date_to"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_risk_vehicle_search" model="ir.ui.view">
+        <field name="name">risk.vehicle.search</field>
+        <field name="model">risk.vehicle</field>
+        <field name="arch" type="xml">
+            <search string="Vehiculos">
+                <field name="plate"/>
+                <field name="semi_trailer_plate"/>
+                <field name="current_driver_id"/>
+                <filter string="Activos" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archivados" name="inactive" domain="[('active', '=', False)]"/>
+                <filter string="Disponibles" name="available" domain="[('status', '=', 'available')]"/>
+                <filter string="Habilitados" name="enabled" domain="[('status', '=', 'enabled')]"/>
+                <filter string="Bloqueados" name="blocked" domain="[('status', '=', 'blocked')]"/>
+                <filter string="Estado" name="group_status" context="{'group_by': 'status'}"/>
+                <filter string="Conductor" name="group_driver" context="{'group_by': 'current_driver_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_risk_vehicle" model="ir.actions.act_window">
+        <field name="name">Vehiculos registrados</field>
+        <field name="res_model">risk.vehicle</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_risk_vehicle_search"/>
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+
+    <record id="view_risk_driver_list" model="ir.ui.view">
+        <field name="name">risk.driver.list</field>
+        <field name="model">risk.driver</field>
+        <field name="arch" type="xml">
+            <list string="Conductores" decoration-muted="active == False">
+                <field name="active" widget="boolean_toggle"/>
+                <field name="name"/>
+                <field name="document_number"/>
+                <field name="phone"/>
+                <field name="email"/>
+                <field name="current_vehicle_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_risk_driver_form" model="ir.ui.view">
+        <field name="name">risk.driver.form</field>
+        <field name="model">risk.driver</field>
+        <field name="arch" type="xml">
+            <form string="Conductor">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="Nombres y apellidos"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Identificacion">
+                            <field name="active"/>
+                            <field name="document_number" placeholder="Cedula"/>
+                            <field name="current_vehicle_id"/>
+                        </group>
+                        <group string="Contacto">
+                            <field name="phone" placeholder="3123456789"/>
+                            <field name="optional_phone"/>
+                            <field name="email" placeholder="correo@dominio.com"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_risk_driver_search" model="ir.ui.view">
+        <field name="name">risk.driver.search</field>
+        <field name="model">risk.driver</field>
+        <field name="arch" type="xml">
+            <search string="Conductores">
+                <field name="name"/>
+                <field name="document_number"/>
+                <field name="phone"/>
+                <field name="email"/>
+                <field name="current_vehicle_id"/>
+                <filter string="Activos" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archivados" name="inactive" domain="[('active', '=', False)]"/>
+                <filter string="Con vehiculo" name="with_vehicle" domain="[('current_vehicle_id', '!=', False)]"/>
+                <filter string="Sin vehiculo" name="without_vehicle" domain="[('current_vehicle_id', '=', False)]"/>
+                <filter string="Vehiculo actual" name="group_vehicle" context="{'group_by': 'current_vehicle_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_risk_driver" model="ir.actions.act_window">
+        <field name="name">Conductores</field>
+        <field name="res_model">risk.driver</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_risk_driver_search"/>
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+
+    <record id="view_risk_owner_list" model="ir.ui.view">
+        <field name="name">risk.owner.list</field>
+        <field name="model">risk.owner</field>
+        <field name="arch" type="xml">
+            <list string="Propietarios / Tenedores" decoration-muted="active == False">
+                <field name="active" widget="boolean_toggle"/>
+                <field name="name"/>
+                <field name="document_type"/>
+                <field name="document_number"/>
+                <field name="owner_kind"/>
+                <field name="phone"/>
+                <field name="email"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_risk_owner_form" model="ir.ui.view">
+        <field name="name">risk.owner.form</field>
+        <field name="model">risk.owner</field>
+        <field name="arch" type="xml">
+            <form string="Propietario / Tenedor">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="Persona o empresa"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Identificacion">
+                            <field name="active"/>
+                            <field name="document_type"/>
+                            <field name="document_number"/>
+                            <field name="owner_kind" readonly="1"/>
+                        </group>
+                        <group string="Contacto">
+                            <field name="phone" placeholder="3123456789"/>
+                            <field name="email" placeholder="correo@dominio.com"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Vehiculos relacionados" name="vehicles">
+                            <field name="vehicle_link_ids" context="{'default_owner_id': id}">
+                                <list editable="bottom">
+                                    <field name="active" widget="boolean_toggle"/>
+                                    <field name="vehicle_id"/>
+                                    <field name="role"/>
+                                    <field name="date_from"/>
+                                    <field name="date_to"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_risk_owner_search" model="ir.ui.view">
+        <field name="name">risk.owner.search</field>
+        <field name="model">risk.owner</field>
+        <field name="arch" type="xml">
+            <search string="Propietarios / Tenedores">
+                <field name="name"/>
+                <field name="document_type"/>
+                <field name="document_number"/>
+                <field name="phone"/>
+                <field name="email"/>
+                <filter string="Activos" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archivados" name="inactive" domain="[('active', '=', False)]"/>
+                <filter string="Persona natural" name="natural" domain="[('owner_kind', '=', 'natural')]"/>
+                <filter string="Empresa" name="company" domain="[('owner_kind', '=', 'company')]"/>
+                <filter string="Tipo" name="group_kind" context="{'group_by': 'owner_kind'}"/>
+                <filter string="Documento" name="group_document_type" context="{'group_by': 'document_type'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_risk_owner" model="ir.actions.act_window">
+        <field name="name">Propietarios / Tenedores</field>
+        <field name="res_model">risk.owner</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_risk_owner_search"/>
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+
+    <record id="view_risk_vehicle_owner_list" model="ir.ui.view">
+        <field name="name">risk.vehicle.owner.list</field>
+        <field name="model">risk.vehicle.owner</field>
+        <field name="arch" type="xml">
+            <list string="Relaciones vehiculo-propietario" decoration-muted="active == False">
+                <field name="active" widget="boolean_toggle"/>
+                <field name="vehicle_id"/>
+                <field name="owner_id"/>
+                <field name="role"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_risk_vehicle_owner_form" model="ir.ui.view">
+        <field name="name">risk.vehicle.owner.form</field>
+        <field name="model">risk.vehicle.owner</field>
+        <field name="arch" type="xml">
+            <form string="Relacion vehiculo-propietario">
+                <sheet>
+                    <group>
+                        <group string="Relacion">
+                            <field name="active"/>
+                            <field name="vehicle_id"/>
+                            <field name="owner_id"/>
+                            <field name="role"/>
+                        </group>
+                        <group string="Vigencia">
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                    </group>
+                    <group string="Notas">
+                        <field name="notes" nolabel="1"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_risk_vehicle_owner_search" model="ir.ui.view">
+        <field name="name">risk.vehicle.owner.search</field>
+        <field name="model">risk.vehicle.owner</field>
+        <field name="arch" type="xml">
+            <search string="Relaciones vehiculo-propietario">
+                <field name="vehicle_id"/>
+                <field name="owner_id"/>
+                <field name="role"/>
+                <filter string="Activas" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archivadas" name="inactive" domain="[('active', '=', False)]"/>
+                <filter string="Propietario" name="owner_role" domain="[('role', '=', 'owner')]"/>
+                <filter string="Tenedor" name="holder_role" domain="[('role', '=', 'holder')]"/>
+                <filter string="Poseedor" name="possessor_role" domain="[('role', '=', 'possessor')]"/>
+                <filter string="Vehiculo" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
+                <filter string="Relacion" name="group_role" context="{'group_by': 'role'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_risk_vehicle_owner" model="ir.actions.act_window">
+        <field name="name">Relaciones vehiculo-propietario</field>
+        <field name="res_model">risk.vehicle.owner</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_risk_vehicle_owner_search"/>
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+</odoo>

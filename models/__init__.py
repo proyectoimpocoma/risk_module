@@ -3,6 +3,10 @@ from . import risk_submission_formatting
 from . import risk_submission_validations
 from . import risk_submission_workflow
 from . import risk_submission_validiti
+from . import risk_vehicle
+from . import risk_driver
+from . import risk_owner
+from . import risk_vehicle_owner
 from . import risk_document_requirement
 from . import risk_message_template
 from . import risk_submission_documents
@@ -17,6 +21,10 @@ __all__ = [
     "risk_submission_validations",
     "risk_submission_workflow",
     "risk_submission_validiti",
+    "risk_vehicle",
+    "risk_driver",
+    "risk_owner",
+    "risk_vehicle_owner",
     "risk_document_requirement",
     "risk_message_template",
     "risk_submission_documents",
