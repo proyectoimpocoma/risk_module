@@ -383,3 +383,155 @@
         grid-template-columns: 1fr;
     }
 }
+
+.risk-submission-kanban .o_kanban_record {
+    padding: 0;
+}
+
+.risk-submission-card {
+    --risk-state-border: #7a679f;
+    --risk-state-bg: #f3f0f8;
+    --risk-state-text: #4f3f6e;
+
+    min-height: 220px;
+    padding: 14px;
+    border-left: 4px solid var(--risk-state-border);
+    border-radius: 8px;
+    background: #fff;
+}
+
+.risk-submission-card-draft {
+    --risk-state-border: #98a2b3;
+    --risk-state-bg: #f2f4f7;
+    --risk-state-text: #475467;
+}
+
+.risk-submission-card-submitted,
+.risk-submission-card-risk_review,
+.risk-submission-card-external_validation_pending,
+.risk-submission-card-correction_submitted {
+    --risk-state-border: #3478a8;
+    --risk-state-bg: #e7f2fb;
+    --risk-state-text: #245a7d;
+}
+
+.risk-submission-card-manual_approval_pending,
+.risk-submission-card-documents_review {
+    --risk-state-border: #7a679f;
+    --risk-state-bg: #f3f0f8;
+    --risk-state-text: #4f3f6e;
+}
+
+.risk-submission-card-documents_requested,
+.risk-submission-card-correction_required {
+    --risk-state-border: #d8a23a;
+    --risk-state-bg: #fff4d6;
+    --risk-state-text: #744b12;
+}
+
+.risk-submission-card-approved {
+    --risk-state-border: #2f855a;
+    --risk-state-bg: #e3f5e9;
+    --risk-state-text: #245642;
+}
+
+.risk-submission-card-rejected {
+    --risk-state-border: #a83f3f;
+    --risk-state-bg: #fde8e8;
+    --risk-state-text: #8a2f2f;
+}
+
+.risk-submission-card-header {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.risk-submission-card-plate {
+    color: #1f2933;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.risk-submission-card-date {
+    margin-top: 3px;
+    color: #667085;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.risk-submission-state-badge {
+    display: inline-flex;
+    max-width: 140px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: var(--risk-state-bg);
+    color: var(--risk-state-text);
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: center;
+}
+
+.risk-submission-card-body {
+    display: grid;
+    gap: 7px;
+    margin-bottom: 12px;
+}
+
+.risk-submission-info-row {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 8px;
+    align-items: baseline;
+}
+
+.risk-submission-info-row span {
+    color: #667085;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.risk-submission-info-row strong {
+    overflow: hidden;
+    color: #1f2933;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.risk-submission-next-action {
+    margin: 12px 0;
+    padding: 10px 12px;
+    border: 1px solid #dce5db;
+    border-radius: 8px;
+    background: #f7fbf8;
+}
+
+.risk-submission-next-action span {
+    display: block;
+    margin-bottom: 2px;
+    color: #667085;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.risk-submission-next-action strong {
+    color: #214c3a;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.risk-submission-card-footer {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+    color: #667085;
+    font-size: 12px;
+    font-weight: 700;
+}

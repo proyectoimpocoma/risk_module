@@ -471,6 +471,10 @@ class RiskSubmission(models.Model):
         string="Progreso documental",
         compute="_compute_document_summary",
     )
+    next_action_label = fields.Char(
+        string="Siguiente accion",
+        compute="_compute_next_action_label",
+    )
     external_validation_ids = fields.One2many(
         "risk.external.validation",
         "submission_id",
@@ -542,6 +546,44 @@ class RiskSubmission(models.Model):
                 record.document_approved_count,
                 record.document_required_count,
             )
+
+    @api.depends(
+        "state",
+        "document_pending_count",
+        "document_received_count",
+        "document_rejected_count",
+    )
+    def _compute_next_action_label(self):
+        """Show the next operational action for the risk work queue."""
+        default_actions = {
+            "draft": "Completar formulario",
+            "submitted": "Iniciar revision",
+            "risk_review": "Revisar datos y definir siguiente paso",
+            "external_validation_pending": "Gestionar validacion externa",
+            "manual_approval_pending": "Solicitar documentos, corregir o aprobar",
+            "documents_requested": "Esperar carga de documentos",
+            "documents_review": "Revisar documentos recibidos",
+            "correction_required": "Esperar correccion del tercero",
+            "correction_submitted": "Revisar correcciones",
+            "approved": "Proceso finalizado",
+            "rejected": "Proceso rechazado",
+        }
+        for record in self:
+            if record.state == "documents_requested" and record.document_pending_count:
+                record.next_action_label = "%s documentos pendientes por cargar" % (
+                    record.document_pending_count
+                )
+            elif record.state == "documents_review" and record.document_received_count:
+                record.next_action_label = "%s documentos recibidos por revisar" % (
+                    record.document_received_count
+                )
+            elif record.state == "documents_review" and record.document_rejected_count:
+                record.next_action_label = "Esperar reemplazo de documentos rechazados"
+            else:
+                record.next_action_label = default_actions.get(
+                    record.state,
+                    "Revisar solicitud",
+                )
 
     @api.depends("state")
     def _compute_portal_state_label(self):

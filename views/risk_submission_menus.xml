@@ -2,7 +2,16 @@
     <record id="action_risk_module" model="ir.actions.act_window">
         <field name="name">Habilitacion de Terceros</field>
         <field name="res_model">risk.module</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_risk_module_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hay solicitudes de habilitacion para revisar.
+            </p>
+            <p>
+                Las solicitudes apareceran aqui organizadas por estado para que el equipo de riesgo pueda gestionar el flujo.
+            </p>
+        </field>
     </record>
 
     <menuitem id="menu_risk_module_root" name="Riesgo" sequence="60" groups="risk_module.group_risk_user"/>

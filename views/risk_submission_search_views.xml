@@ -10,6 +10,26 @@
                 <field name="owner_name"/>
                 <field name="driver_name"/>
                 <filter string="Con empresa satelital" name="has_satellite_company" domain="[('satellite_company', '!=', False)]"/>
+                <separator/>
+                <filter string="Por iniciar" name="state_submitted" domain="[('state', '=', 'submitted')]"/>
+                <filter string="En revision" name="state_review_queue" domain="[('state', 'in', ['risk_review', 'external_validation_pending', 'manual_approval_pending'])]"/>
+                <filter string="Documentos solicitados" name="state_documents_requested" domain="[('state', '=', 'documents_requested')]"/>
+                <filter string="Documentos por revisar" name="state_documents_review" domain="[('state', '=', 'documents_review')]"/>
+                <filter string="Requiere correccion" name="state_correction_required" domain="[('state', '=', 'correction_required')]"/>
+                <filter string="Correccion enviada" name="state_correction_submitted" domain="[('state', '=', 'correction_submitted')]"/>
+                <filter string="Aprobadas" name="state_approved" domain="[('state', '=', 'approved')]"/>
+                <filter string="Rechazadas" name="state_rejected" domain="[('state', '=', 'rejected')]"/>
+                <separator/>
+                <filter string="Mis revisiones" name="my_reviews" domain="[('risk_reviewer_id', '=', uid)]"/>
+                <filter string="Pendientes" name="open_states" domain="[('state', 'not in', ['draft', 'approved', 'rejected'])]"/>
+                <separator/>
+                <filter string="Agrupar por estado" name="group_by_state" context="{'group_by': 'state'}"/>
+                <filter string="Agrupar por revisor" name="group_by_reviewer" context="{'group_by': 'risk_reviewer_id'}"/>
+                <filter string="Agrupar por ciudad" name="group_by_city" context="{'group_by': 'owner_city'}"/>
+                <searchpanel view_types="list,kanban">
+                    <field name="state" string="Estado" icon="fa-tasks" enable_counters="1"/>
+                    <field name="risk_reviewer_id" string="Revisor" icon="fa-user-check" enable_counters="1"/>
+                </searchpanel>
             </search>
         </field>
     </record>

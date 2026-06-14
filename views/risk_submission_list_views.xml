@@ -1,4 +1,89 @@
 <odoo>
+    <record id="view_risk_module_kanban" model="ir.ui.view">
+        <field name="name">risk.module.kanban</field>
+        <field name="model">risk.module</field>
+        <field name="arch" type="xml">
+            <kanban string="Solicitudes de Vehiculo" default_group_by="state" class="risk-submission-kanban">
+                <field name="state"/>
+                <field name="create_date"/>
+                <field name="form_date"/>
+                <field name="vehicle_plate"/>
+                <field name="semi_trailer_plate"/>
+                <field name="owner_name"/>
+                <field name="owner_city"/>
+                <field name="driver_name"/>
+                <field name="risk_reviewer_id"/>
+                <field name="document_progress_label"/>
+                <field name="document_pending_count"/>
+                <field name="document_received_count"/>
+                <field name="document_rejected_count"/>
+                <field name="next_action_label"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_global_click risk-submission-card risk-submission-card-#{record.state.raw_value}">
+                            <div class="risk-submission-card-header">
+                                <div>
+                                    <div class="risk-submission-card-plate">
+                                        <field name="vehicle_plate"/>
+                                    </div>
+                                    <div class="risk-submission-card-date">
+                                        <field name="form_date"/>
+                                    </div>
+                                </div>
+                                <span t-attf-class="risk-submission-state-badge risk-submission-state-#{record.state.raw_value}">
+                                    <field name="state"/>
+                                </span>
+                            </div>
+
+                            <div class="risk-submission-card-body">
+                                <div class="risk-submission-info-row">
+                                    <span>Propietario</span>
+                                    <strong>
+                                        <field name="owner_name"/>
+                                    </strong>
+                                </div>
+                                <div class="risk-submission-info-row">
+                                    <span>Conductor</span>
+                                    <strong>
+                                        <field name="driver_name"/>
+                                    </strong>
+                                </div>
+                                <div class="risk-submission-info-row" t-if="record.owner_city.value">
+                                    <span>Ciudad</span>
+                                    <strong>
+                                        <field name="owner_city"/>
+                                    </strong>
+                                </div>
+                                <div class="risk-submission-info-row" t-if="record.semi_trailer_plate.value">
+                                    <span>Semi/Remolque</span>
+                                    <strong>
+                                        <field name="semi_trailer_plate"/>
+                                    </strong>
+                                </div>
+                            </div>
+
+                            <div class="risk-submission-next-action">
+                                <span>Siguiente accion</span>
+                                <strong>
+                                    <field name="next_action_label"/>
+                                </strong>
+                            </div>
+
+                            <div class="risk-submission-card-footer">
+                                <span>
+                                    <field name="document_progress_label"/>
+                                </span>
+                                <span t-if="record.risk_reviewer_id.value">
+                                    <field name="risk_reviewer_id"/>
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <record id="view_risk_module_list" model="ir.ui.view">
         <field name="name">risk.module.list</field>
         <field name="model">risk.module</field>
@@ -6,20 +91,26 @@
             <list string="Solicitudes de Vehiculo"
                   decoration-success="state == 'approved'"
                   decoration-danger="state == 'rejected'"
-                  decoration-info="state in ('submitted', 'risk_review', 'manual_approval_pending', 'documents_review', 'correction_submitted')"
-                  decoration-warning="state in ('draft', 'external_validation_pending', 'documents_requested', 'correction_required')">
+                  decoration-info="state in ('submitted', 'risk_review', 'external_validation_pending', 'correction_submitted')"
+                  decoration-primary="state in ('manual_approval_pending', 'documents_review')"
+                  decoration-warning="state in ('documents_requested', 'correction_required')"
+                  decoration-muted="state == 'draft'">
                 <field name="create_date" string="Creado"/>
                 <field name="state" widget="badge"
                        decoration-success="state == 'approved'"
                        decoration-danger="state == 'rejected'"
-                       decoration-info="state in ('submitted', 'risk_review', 'manual_approval_pending', 'documents_review', 'correction_submitted')"
-                       decoration-warning="state in ('draft', 'external_validation_pending', 'documents_requested', 'correction_required')"/>
+                       decoration-info="state in ('submitted', 'risk_review', 'external_validation_pending', 'correction_submitted')"
+                       decoration-primary="state in ('manual_approval_pending', 'documents_review')"
+                       decoration-warning="state in ('documents_requested', 'correction_required')"
+                       decoration-muted="state == 'draft'"/>
                 <field name="form_date" string="Fecha"/>
                 <field name="vehicle_plate" string="Placa"/>
                 <field name="semi_trailer_plate" string="Semi/Remolque" optional="hide"/>
                 <field name="owner_name" string="Propietario / Empresa"/>
                 <field name="owner_city" string="Ciudad"/>
                 <field name="driver_name" string="Conductor"/>
+                <field name="next_action_label" string="Siguiente accion" optional="show"/>
+                <field name="document_progress_label" string="Documentos" optional="hide"/>
                 <field name="satellite_company" string="Empresa Satelital" optional="hide"/>
                 <button name="action_open_printable" type="object" string="PDF" icon="fa-print"/>
             </list>
