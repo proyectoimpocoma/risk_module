@@ -90,7 +90,9 @@ class RiskSubmission(models.Model):
             ("external_validation_pending", "Validacion externa pendiente"),
             ("manual_approval_pending", "Pendiente aprobacion manual"),
             ("documents_requested", "Documentos solicitados"),
-            ("documents_review", "Documentos enviados"),
+            ("documents_review", "Documentos en revision"),
+            ("correction_required", "Requiere correccion"),
+            ("correction_submitted", "Correccion enviada"),
             ("approved", "Aprobado"),
             ("rejected", "Rechazado"),
         ],
@@ -373,6 +375,71 @@ class RiskSubmission(models.Model):
     rejection_reason = fields.Text(
         string="Motivo de rechazo", readonly=True, copy=False
     )
+    correction_reason = fields.Text(
+        string="Motivo de correccion",
+        readonly=True,
+        copy=False,
+        tracking=True,
+    )
+    correction_requested_by_id = fields.Many2one(
+        "res.users",
+        string="Correccion solicitada por",
+        readonly=True,
+        copy=False,
+        tracking=True,
+    )
+    correction_requested_at = fields.Datetime(
+        string="Fecha solicitud correccion",
+        readonly=True,
+        copy=False,
+        tracking=True,
+    )
+    correction_submitted_at = fields.Datetime(
+        string="Fecha envio correccion",
+        readonly=True,
+        copy=False,
+        tracking=True,
+    )
+    correction_count = fields.Integer(
+        string="Veces devuelta",
+        readonly=True,
+        copy=False,
+    )
+    correction_section_vehicle = fields.Boolean(
+        string="Corregir vehiculo",
+        readonly=True,
+        copy=False,
+    )
+    correction_section_owner = fields.Boolean(
+        string="Corregir propietario",
+        readonly=True,
+        copy=False,
+    )
+    correction_section_driver = fields.Boolean(
+        string="Corregir conductor",
+        readonly=True,
+        copy=False,
+    )
+    correction_section_satellite = fields.Boolean(
+        string="Corregir satelital",
+        readonly=True,
+        copy=False,
+    )
+    correction_section_signatures = fields.Boolean(
+        string="Corregir firmas",
+        readonly=True,
+        copy=False,
+    )
+    correction_section_terms = fields.Boolean(
+        string="Corregir terminos",
+        readonly=True,
+        copy=False,
+    )
+    correction_section_other = fields.Boolean(
+        string="Otra correccion",
+        readonly=True,
+        copy=False,
+    )
     document_ids = fields.One2many(
         "risk.module.document",
         "submission_id",
@@ -488,7 +555,9 @@ class RiskSubmission(models.Model):
             "external_validation_pending": "En revision",
             "manual_approval_pending": "En revision",
             "documents_requested": "Documentos solicitados",
-            "documents_review": "Documentos enviados",
+            "documents_review": "Documentos en revision",
+            "correction_required": "Requiere correccion",
+            "correction_submitted": "Correccion enviada",
             "approved": "Aprobada",
             "rejected": "Rechazada",
         }
@@ -826,6 +895,61 @@ class RiskSubmission(models.Model):
             sent = True
 
         return sent
+
+    def action_send_correction_requested_email(self):
+        template = self.env.ref(
+            "risk_module.email_template_risk_submission_correction_requested",
+            raise_if_not_found=False,
+        )
+        if not template:
+            _logger.warning("Risk correction requested template not found")
+            return False
+
+        sent = False
+        for record in self:
+            recipient = record._submission_rejected_email_to()
+            if not recipient:
+                _logger.warning(
+                    "Risk correction requested email skipped without recipient submission_id=%s",
+                    record.id,
+                )
+                continue
+
+            record._queue_mail_after_commit(
+                template=template,
+                record_id=record.id,
+                email_values={
+                    "email_from": "reporte@impocoma.com",
+                    "reply_to": "reporte@impocoma.com",
+                    "email_to": recipient,
+                    "recipient_ids": [(5, 0, 0)],
+                },
+                force_send=True,
+                template_context={
+                    "correction_reason": record.correction_reason or "",
+                    "correction_sections": record._correction_section_labels(),
+                },
+                success_message="Correo de correccion de solicitud enviado a %s."
+                % recipient,
+                failure_message="No fue posible enviar el correo de correccion de solicitud a %s."
+                % recipient,
+            )
+            sent = True
+        return sent
+
+    def _correction_section_labels(self):
+        self.ensure_one()
+        sections = [
+            ("correction_section_vehicle", "Vehiculo"),
+            ("correction_section_owner", "Propietario"),
+            ("correction_section_driver", "Conductor"),
+            ("correction_section_satellite", "Satelital"),
+            ("correction_section_signatures", "Firmas"),
+            ("correction_section_terms", "Terminos"),
+            ("correction_section_other", "Otro"),
+        ]
+        labels = [label for field, label in sections if self[field]]
+        return ", ".join(labels) if labels else "No especificadas"
 
     def _documents_requested_email_to(self):
         """Return the best available email address for documents-requested notifications."""

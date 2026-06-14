@@ -1,15 +1,55 @@
 <odoo>
+    <record id="view_risk_message_template_wizard_form" model="ir.ui.view">
+        <field name="name">risk.message.template.wizard.form</field>
+        <field name="model">risk.message.template.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Nueva plantilla de mensaje">
+                <sheet class="risk-message-template-wizard">
+                    <div class="risk-template-wizard-intro">
+                        <h2>Nueva plantilla de mensaje</h2>
+                        <p>Define un motivo claro y el mensaje que recibira el usuario.</p>
+                    </div>
+                    <group>
+                        <field name="category" widget="radio"/>
+                    </group>
+                    <group>
+                        <field name="name" placeholder="Ej: Documento ilegible"/>
+                        <field name="body"
+                               placeholder="Ej: El documento cargado no se puede leer con claridad. Por favor vuelve a cargarlo en una version mas nitida."
+                               nolabel="1"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_create_template" type="object" string="Crear plantilla" class="btn-primary"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_risk_message_template_new" model="ir.actions.act_window">
+        <field name="name">Nueva plantilla de mensaje</field>
+        <field name="res_model">risk.message.template.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
     <record id="view_risk_message_template_list" model="ir.ui.view">
         <field name="name">risk.message.template.list</field>
         <field name="model">risk.message.template</field>
         <field name="arch" type="xml">
             <list string="Plantillas de mensajes" editable="bottom">
+                <header>
+                    <button name="%(action_risk_message_template_new)d"
+                            type="action"
+                            string="Nueva plantilla"
+                            class="btn-primary"/>
+                </header>
                 <field name="sequence" widget="handle"/>
-                <field name="active"/>
-                <field name="category"/>
-                <field name="code"/>
-                <field name="name"/>
-                <field name="subject"/>
+                <field name="active" string="Activa"/>
+                <field name="category" string="Donde se usa"/>
+                <field name="name" string="Motivo"/>
+                <field name="body" string="Mensaje"/>
             </list>
         </field>
     </record>
@@ -19,21 +59,27 @@
         <field name="model">risk.message.template</field>
         <field name="arch" type="xml">
             <form string="Plantilla de mensaje">
-                <sheet>
+                <sheet class="risk-message-template-form">
                     <group>
-                        <group>
-                            <field name="active"/>
-                            <field name="sequence"/>
-                            <field name="category"/>
-                            <field name="code"/>
-                        </group>
-                        <group>
-                            <field name="name"/>
-                            <field name="subject"/>
-                        </group>
+                        <field name="active"/>
+                        <field name="category" string="Donde se usa"/>
+                        <field name="name" string="Motivo"/>
+                        <field name="usage_location" string="Ubicacion"/>
                     </group>
                     <group string="Mensaje">
                         <field name="body" nolabel="1"/>
+                    </group>
+                    <group string="Vista previa">
+                        <field name="preview_body" readonly="1" nolabel="1"/>
+                    </group>
+                    <group string="Datos tecnicos" groups="risk_module.group_risk_manager">
+                        <field name="sequence"/>
+                        <field name="message_type"/>
+                        <field name="channel"/>
+                        <field name="recipient_type"/>
+                        <field name="code"/>
+                        <field name="subject"/>
+                        <field name="available_variables"/>
                     </group>
                 </sheet>
             </form>
@@ -45,14 +91,15 @@
         <field name="model">risk.message.template</field>
         <field name="arch" type="xml">
             <search string="Plantillas de mensajes">
-                <field name="name"/>
-                <field name="code"/>
-                <field name="category"/>
+                <field name="name" string="Motivo"/>
+                <field name="body" string="Mensaje"/>
+                <field name="category" string="Donde se usa"/>
                 <filter string="Activas" name="active" domain="[('active', '=', True)]"/>
                 <filter string="Archivadas" name="inactive" domain="[('active', '=', False)]"/>
-                <filter string="Rechazo documento" name="document_rejection" domain="[('category', '=', 'document_rejection')]"/>
-                <filter string="Rechazo solicitud" name="submission_rejection" domain="[('category', '=', 'submission_rejection')]"/>
-                <filter string="Categoria" name="group_category" context="{'group_by': 'category'}"/>
+                <filter string="Rechazo de documentos" name="document_rejection" domain="[('category', '=', 'document_rejection')]"/>
+                <filter string="Solicitud de correccion" name="submission_correction" domain="[('category', '=', 'submission_correction')]"/>
+                <filter string="Rechazo definitivo" name="submission_rejection" domain="[('category', '=', 'submission_rejection')]"/>
+                <filter string="Donde se usa" name="group_category" context="{'group_by': 'category'}"/>
             </search>
         </field>
     </record>
@@ -61,6 +108,7 @@
         <field name="name">Plantillas de mensajes</field>
         <field name="res_model">risk.message.template</field>
         <field name="view_mode">list,form</field>
+        <field name="domain">[('category', 'in', ('document_rejection', 'submission_correction', 'submission_rejection'))]</field>
         <field name="search_view_id" ref="view_risk_message_template_search"/>
         <field name="context">{'search_default_active': 1}</field>
     </record>

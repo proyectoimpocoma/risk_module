@@ -6,7 +6,9 @@
             <form string="Rechazar documento">
                 <group>
                     <field name="document_id"/>
-                    <field name="rejection_reason" widget="selection"/>
+                    <field name="message_template_id"
+                           options="{'no_create': True, 'no_open': True}"/>
+                    <field name="rejection_reason" invisible="1"/>
                     <field name="observations"
                            placeholder="Este mensaje se enviara al usuario para que corrija el documento."/>
                 </group>

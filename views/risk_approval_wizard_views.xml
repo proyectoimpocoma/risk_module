@@ -4,16 +4,84 @@
         <field name="model">risk.approval.wizard</field>
         <field name="arch" type="xml">
             <form string="Decision manual">
-                <group>
-                    <field name="submission_id"/>
-                    <field name="decision"/>
-                    <field name="approval_note" invisible="decision != 'approve'"
-                           placeholder="Comentario opcional para dejar trazabilidad de la aprobacion."/>
-                    <field name="rejection_reason_code" widget="selection"
-                           invisible="decision != 'reject'" required="decision == 'reject'"/>
-                    <field name="rejection_reason" invisible="decision != 'reject'" required="decision == 'reject'"
-                           placeholder="Este mensaje se enviara al usuario. Puedes ajustarlo antes de confirmar."/>
-                </group>
+                <sheet class="risk-decision-wizard">
+                    <div class="risk-decision-header">
+                        <div>
+                            <div class="risk-decision-eyebrow">Solicitud</div>
+                            <field name="submission_id" nolabel="1" readonly="1"/>
+                        </div>
+                        <div>
+                            <div class="risk-decision-eyebrow">Decision</div>
+                            <field name="decision" nolabel="1" readonly="1"/>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning mb-3" role="status" invisible="decision != 'correction'">
+                        Esta opcion devuelve la solicitud al tercero para que corrija el formulario. No es un rechazo definitivo.
+                    </div>
+
+                    <group invisible="decision != 'approve'">
+                        <field name="approval_note"
+                               placeholder="Comentario opcional para dejar trazabilidad de la aprobacion."/>
+                    </group>
+
+                    <div class="risk-correction-layout" invisible="decision != 'correction'">
+                        <div class="risk-correction-main">
+                            <group string="Motivo y mensaje">
+                                <field name="message_template_category" invisible="1"/>
+                                <field name="message_template_id"
+                                       required="decision == 'correction'"
+                                       options="{'no_create': True, 'no_open': True}"/>
+                                <field name="rejection_reason_code" invisible="1"/>
+                                <field name="rejection_reason" required="decision != 'approve'"
+                                       placeholder="Explica de forma clara que debe corregir el usuario."/>
+                            </group>
+                        </div>
+                        <div class="risk-correction-sections">
+                            <div class="o_horizontal_separator">Secciones a corregir</div>
+                            <div class="risk-correction-section-grid">
+                                <div class="risk-correction-section-item">
+                                    <field name="correction_section_vehicle" nolabel="1"/>
+                                    <label for="correction_section_vehicle"/>
+                                </div>
+                                <div class="risk-correction-section-item">
+                                    <field name="correction_section_owner" nolabel="1"/>
+                                    <label for="correction_section_owner"/>
+                                </div>
+                                <div class="risk-correction-section-item">
+                                    <field name="correction_section_driver" nolabel="1"/>
+                                    <label for="correction_section_driver"/>
+                                </div>
+                                <div class="risk-correction-section-item">
+                                    <field name="correction_section_satellite" nolabel="1"/>
+                                    <label for="correction_section_satellite"/>
+                                </div>
+                                <div class="risk-correction-section-item">
+                                    <field name="correction_section_signatures" nolabel="1"/>
+                                    <label for="correction_section_signatures"/>
+                                </div>
+                                <div class="risk-correction-section-item">
+                                    <field name="correction_section_terms" nolabel="1"/>
+                                    <label for="correction_section_terms"/>
+                                </div>
+                                <div class="risk-correction-section-item">
+                                    <field name="correction_section_other" nolabel="1"/>
+                                    <label for="correction_section_other"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <group invisible="decision != 'reject'">
+                        <field name="message_template_category" invisible="1"/>
+                        <field name="message_template_id"
+                               required="decision == 'reject'"
+                               options="{'no_create': True, 'no_open': True}"/>
+                        <field name="rejection_reason_code" invisible="1"/>
+                        <field name="rejection_reason" required="decision != 'approve'"
+                               placeholder="Este mensaje se enviara al usuario. Debe explicar el motivo del rechazo definitivo."/>
+                    </group>
+                </sheet>
                 <footer>
                     <button name="action_confirm" type="object" string="Confirmar" class="btn-primary"/>
                     <button string="Cancelar" special="cancel"/>

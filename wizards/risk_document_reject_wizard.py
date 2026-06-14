@@ -16,12 +16,17 @@ class RiskDocumentRejectWizard(models.TransientModel):
         required=True,
         readonly=True,
     )
+    message_template_id = fields.Many2one(
+        "risk.message.template",
+        string="Motivo",
+        domain="[('category', '=', 'document_rejection'), ('active', '=', True)]",
+        required=True,
+    )
     rejection_reason = fields.Selection(
         selection=lambda self: self.env["risk.module.document"]._fields[
             "rejection_reason"
         ].selection,
         string="Motivo de rechazo",
-        required=True,
     )
     observations = fields.Text(
         string="Mensaje para el usuario",
@@ -43,33 +48,57 @@ class RiskDocumentRejectWizard(models.TransientModel):
             values["document_id"] = document.id
             if document.rejection_reason:
                 values["rejection_reason"] = document.rejection_reason
+                template = self.env["risk.message.template"].search(
+                    [
+                        ("category", "=", "document_rejection"),
+                        ("code", "=", document.rejection_reason),
+                        ("active", "=", True),
+                    ],
+                    limit=1,
+                )
+                if template:
+                    values["message_template_id"] = template.id
             if document.observations:
                 values["observations"] = document.observations
         return values
 
-    def _rejection_message(self, reason):
-        return self.env["risk.module.document"]._rejection_reason_message(reason)
-
-    @api.onchange("rejection_reason")
-    def _onchange_rejection_reason(self):
+    @api.onchange("message_template_id")
+    def _onchange_message_template_id(self):
         for wizard in self:
-            message = wizard._rejection_message(wizard.rejection_reason)
-            if message:
-                wizard.observations = message
+            if not wizard.message_template_id:
+                continue
+            wizard.observations = wizard.message_template_id.body
+            if wizard.message_template_id.code in wizard._document_rejection_codes():
+                wizard.rejection_reason = wizard.message_template_id.code
+            else:
+                wizard.rejection_reason = False
+
+    def _document_rejection_codes(self):
+        return {
+            code
+            for code, _label in self.env["risk.module.document"]._fields[
+                "rejection_reason"
+            ].selection
+        }
 
     def action_confirm(self):
         self.ensure_one()
+        if not self.message_template_id:
+            raise ValidationError("Debes seleccionar un motivo de rechazo.")
         if not (self.observations or "").strip():
             raise ValidationError("Debes indicar el mensaje que recibira el usuario.")
         _logger.info(
-            "Document rejection wizard confirmed document_id=%s reason=%s user_id=%s",
+            "Document rejection wizard confirmed document_id=%s template_id=%s user_id=%s",
             self.document_id.id,
-            self.rejection_reason,
+            self.message_template_id.id,
             self.env.user.id,
         )
+        rejection_reason = False
+        if self.message_template_id.code in self._document_rejection_codes():
+            rejection_reason = self.message_template_id.code
         self.document_id.write(
             {
-                "rejection_reason": self.rejection_reason,
+                "rejection_reason": rejection_reason,
                 "observations": self.observations.strip(),
             }
         )

@@ -27,6 +27,23 @@ class RiskApprovalWizard(models.TransientModel):
         "contact_failed": "No fue posible confirmar informacion necesaria para continuar con la revision de la solicitud.",
         "other": "La solicitud fue rechazada por un motivo especifico indicado por el equipo de riesgo.",
     }
+    _CORRECTION_MESSAGES = {
+        "incomplete_documents": "Para continuar con la revision necesitamos que completes la informacion o documentos pendientes.",
+        "documents_not_fixed": "Para continuar, por favor corrige o carga nuevamente los documentos indicados por el equipo de riesgo.",
+        "inconsistent_information": "Encontramos diferencias entre la informacion registrada y los documentos adjuntos. Por favor revisa y corrige los datos indicados.",
+        "identity_validation_failed": "Necesitamos que revises la informacion de identidad registrada para poder continuar con la validacion.",
+        "driver_not_approved": "Necesitamos que revises la informacion del conductor indicada por el equipo de riesgo antes de continuar.",
+        "owner_not_approved": "Necesitamos que revises la informacion del propietario o tenedor indicada por el equipo de riesgo.",
+        "vehicle_not_approved": "Necesitamos que revises la informacion del vehiculo indicada por el equipo de riesgo.",
+        "external_validation_failed": "La validacion externa requiere ajustes antes de poder continuar. Por favor revisa las observaciones indicadas.",
+        "risk_alerts": "Durante la revision se identificaron alertas que requieren aclaracion. Por favor revisa las observaciones y corrige la informacion indicada.",
+        "security_study_failed": "El estudio de seguridad requiere informacion adicional o correccion antes de continuar.",
+        "internal_policy": "La solicitud requiere ajustes para cumplir con las politicas internas de habilitacion.",
+        "duplicate_or_expired": "Necesitamos que revises la vigencia de la informacion registrada o si existe una solicitud activa relacionada.",
+        "third_party_withdrawal": "Antes de continuar necesitamos confirmar si deseas seguir con el proceso de habilitacion.",
+        "contact_failed": "No fue posible confirmar informacion necesaria. Por favor revisa los datos de contacto registrados.",
+        "other": "La solicitud requiere una correccion especifica indicada por el equipo de riesgo.",
+    }
 
     submission_id = fields.Many2one(
         "risk.module",
@@ -36,9 +53,23 @@ class RiskApprovalWizard(models.TransientModel):
     )
     decision = fields.Selection([
         ("approve", "Aprobar"),
-        ("reject", "Rechazar"),
+        ("reject", "Rechazar definitivamente"),
+        ("correction", "Devolver para correccion"),
     ], string="Decision", required=True, readonly=True)
     approval_note = fields.Text(string="Comentario de aprobacion")
+    message_template_category = fields.Selection(
+        [
+            ("submission_rejection", "Rechazo definitivo"),
+            ("submission_correction", "Solicitud de correccion"),
+        ],
+        string="Tipo de mensaje",
+        compute="_compute_message_template_category",
+    )
+    message_template_id = fields.Many2one(
+        "risk.message.template",
+        string="Motivo",
+        domain="[('category', '=', message_template_category), ('active', '=', True)]",
+    )
     rejection_reason_code = fields.Selection(
         [
             ("incomplete_documents", "Documentacion incompleta"),
@@ -57,9 +88,26 @@ class RiskApprovalWizard(models.TransientModel):
             ("contact_failed", "No fue posible contactar o confirmar informacion"),
             ("other", "Otro motivo"),
         ],
-        string="Motivo de rechazo",
+        string="Motivo",
     )
     rejection_reason = fields.Text(string="Mensaje para el usuario")
+    correction_section_vehicle = fields.Boolean(string="Vehiculo")
+    correction_section_owner = fields.Boolean(string="Propietario")
+    correction_section_driver = fields.Boolean(string="Conductor")
+    correction_section_satellite = fields.Boolean(string="Satelital")
+    correction_section_signatures = fields.Boolean(string="Firmas")
+    correction_section_terms = fields.Boolean(string="Terminos")
+    correction_section_other = fields.Boolean(string="Otro")
+
+    @api.depends("decision")
+    def _compute_message_template_category(self):
+        for wizard in self:
+            if wizard.decision == "correction":
+                wizard.message_template_category = "submission_correction"
+            elif wizard.decision == "reject":
+                wizard.message_template_category = "submission_rejection"
+            else:
+                wizard.message_template_category = False
 
     def _rejection_message(self, reason_code):
         """
@@ -71,9 +119,14 @@ class RiskApprovalWizard(models.TransientModel):
         Returns:
             str: The full rejection message from the template or default dictionary.
         """
-        default = self._REJECTION_MESSAGES.get(reason_code or "")
+        if self.decision == "correction":
+            category = "submission_correction"
+            default = self._CORRECTION_MESSAGES.get(reason_code or "")
+        else:
+            category = "submission_rejection"
+            default = self._REJECTION_MESSAGES.get(reason_code or "")
         return self.env["risk.message.template"]._get_body(
-            "submission_rejection",
+            category,
             reason_code,
             default=default,
         )
@@ -84,6 +137,23 @@ class RiskApprovalWizard(models.TransientModel):
             message = wizard._rejection_message(wizard.rejection_reason_code)
             if message:
                 wizard.rejection_reason = message
+
+    @api.onchange("message_template_id")
+    def _onchange_message_template_id(self):
+        for wizard in self:
+            if not wizard.message_template_id:
+                continue
+            wizard.rejection_reason = wizard.message_template_id.body
+            if wizard.message_template_id.code in wizard._submission_reason_codes():
+                wizard.rejection_reason_code = wizard.message_template_id.code
+            else:
+                wizard.rejection_reason_code = False
+
+    def _submission_reason_codes(self):
+        return {
+            code
+            for code, _label in self._fields["rejection_reason_code"].selection
+        }
 
     def action_confirm(self):
         """
@@ -102,8 +172,8 @@ class RiskApprovalWizard(models.TransientModel):
         )
         if self.decision == "approve":
             self.submission_id.action_confirm_approval(self.approval_note)
-        else:
-            if not self.rejection_reason_code:
+        elif self.decision == "reject":
+            if not self.message_template_id and not self.rejection_reason_code:
                 raise ValidationError("Debes seleccionar un motivo de rechazo.")
             if not (self.rejection_reason or "").strip():
                 self.rejection_reason = self._rejection_message(
@@ -113,4 +183,25 @@ class RiskApprovalWizard(models.TransientModel):
                 _logger.warning("Approval wizard rejection blocked missing reason submission_id=%s user_id=%s", self.submission_id.id, self.env.user.id)
                 raise ValidationError("Debes indicar el mensaje de rechazo.")
             self.submission_id.action_confirm_rejection(self.rejection_reason.strip())
+        else:
+            if not self.message_template_id and not self.rejection_reason_code:
+                raise ValidationError("Debes seleccionar un motivo de correccion.")
+            if not (self.rejection_reason or "").strip():
+                self.rejection_reason = self._rejection_message(
+                    self.rejection_reason_code
+                )
+            if not self.rejection_reason or not self.rejection_reason.strip():
+                raise ValidationError("Debes indicar el mensaje de correccion.")
+            self.submission_id.action_confirm_correction_request(
+                self.rejection_reason.strip(),
+                sections={
+                    "vehicle": self.correction_section_vehicle,
+                    "owner": self.correction_section_owner,
+                    "driver": self.correction_section_driver,
+                    "satellite": self.correction_section_satellite,
+                    "signatures": self.correction_section_signatures,
+                    "terms": self.correction_section_terms,
+                    "other": self.correction_section_other,
+                },
+            )
         return {"type": "ir.actions.act_window_close"}

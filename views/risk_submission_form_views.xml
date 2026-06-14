@@ -7,7 +7,7 @@
                 <header>
                     <button name="action_open_printable" type="object" string="Imprimir / Guardar PDF" class="btn-primary"/>
                     <button name="action_start_risk_review" type="object" string="Iniciar revision"
-                            invisible="state != 'submitted'"/>
+                            invisible="state not in ('submitted', 'correction_submitted')"/>
                     <button name="action_mark_external_validation_pending" type="object" string="Dejar validacion externa pendiente"
                             invisible="state != 'risk_review'"/>
                     <button name="action_send_external_validation" type="object" string="Enviar a Validiti"
@@ -32,11 +32,14 @@
                     <button name="action_reject" type="object" string="Rechazar"
                             invisible="state in ('approved', 'rejected')"
                             groups="risk_module.group_risk_user"/>
+                    <button name="action_request_correction" type="object" string="Solicitar correccion"
+                            invisible="state in ('draft', 'correction_required', 'approved', 'rejected')"
+                            groups="risk_module.group_risk_user"/>
                     <button name="action_reset_to_submitted" type="object" string="Reabrir"
                             invisible="state not in ('approved', 'rejected')"
                             groups="risk_module.group_risk_user"/>
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,submitted,risk_review,external_validation_pending,manual_approval_pending,documents_requested,documents_review,approved,rejected"/>
+                           statusbar_visible="submitted,risk_review,external_validation_pending,manual_approval_pending,documents_requested,documents_review,correction_required,correction_submitted,approved,rejected"/>
                 </header>
                 <sheet>
                     <!-- Encabezado con datos clave -->
@@ -47,6 +50,47 @@
                         <h2>
                             <field name="name" placeholder="Referencia interna o número de solicitud"/>
                         </h2>
+                    </div>
+
+                    <div class="alert alert-info" role="status" invisible="state != 'submitted'">
+                        <strong>Guia del flujo:</strong>
+                        La solicitud fue enviada por el tercero. Inicia la revision para validar datos generales, propietario, conductor, vehiculo y firmas.
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="state != 'risk_review'">
+                        <strong>Guia del flujo:</strong>
+                        Revisa el formulario. Desde aqui puedes enviar a validacion externa, continuar a aprobacion manual, solicitar correccion o rechazar definitivamente.
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="state != 'external_validation_pending'">
+                        <strong>Guia del flujo:</strong>
+                        Gestiona la validacion externa. Registra el resultado o continua manualmente si aplica.
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="state != 'manual_approval_pending'">
+                        <strong>Guia del flujo:</strong>
+                        Decide si apruebas, solicitas documentos, devuelves para correccion o rechazas definitivamente.
+                    </div>
+                    <div class="alert alert-warning" role="status" invisible="state != 'documents_requested'">
+                        <strong>Guia del flujo:</strong>
+                        Los documentos fueron solicitados al tercero. Espera las cargas del portal o agrega documentos adicionales si hace falta.
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="state != 'documents_review'">
+                        <strong>Guia del flujo:</strong>
+                        Revisa y aprueba cada documento obligatorio. Si un documento esta mal, rechaza solo ese documento para que el tercero lo reemplace.
+                    </div>
+                    <div class="alert alert-warning" role="status" invisible="state != 'correction_required'">
+                        <strong>Guia del flujo:</strong>
+                        La solicitud fue devuelta al tercero. Espera a que corrija el formulario desde el portal y lo envie nuevamente.
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="state != 'correction_submitted'">
+                        <strong>Guia del flujo:</strong>
+                        El tercero envio correcciones. Inicia revision para validar los cambios antes de continuar el flujo.
+                    </div>
+                    <div class="alert alert-success" role="status" invisible="state != 'approved'">
+                        <strong>Guia del flujo:</strong>
+                        Solicitud aprobada. El proceso queda finalizado salvo que un lider decida reabrirlo.
+                    </div>
+                    <div class="alert alert-danger" role="status" invisible="state != 'rejected'">
+                        <strong>Guia del flujo:</strong>
+                        Solicitud rechazada definitivamente. El tercero no puede corregir esta solicitud desde el portal.
                     </div>
 
                     <group>
@@ -339,6 +383,24 @@
                                     <field name="rejection_reason"/>
                                 </group>
                             </group>
+                            <group string="Correcciones">
+                                <group>
+                                    <field name="correction_requested_by_id"/>
+                                    <field name="correction_requested_at"/>
+                                    <field name="correction_submitted_at"/>
+                                    <field name="correction_count"/>
+                                </group>
+                                <group>
+                                    <field name="correction_reason"/>
+                                    <field name="correction_section_vehicle"/>
+                                    <field name="correction_section_owner"/>
+                                    <field name="correction_section_driver"/>
+                                    <field name="correction_section_satellite"/>
+                                    <field name="correction_section_signatures"/>
+                                    <field name="correction_section_terms"/>
+                                    <field name="correction_section_other"/>
+                                </group>
+                            </group>
                             <group string="Trazabilidad de Firma Propietario">
                                 <field name="owner_signature_ip"/>
                                 <field name="owner_signature_user_agent"/>
@@ -361,6 +423,52 @@
                         <page string="Observaciones" name="notes_page">
                             <group>
                                 <field name="message" nolabel="1" placeholder="Escriba observaciones o notas adicionales"/>
+                            </group>
+                        </page>
+
+                        <page string="Guia del flujo" name="flow_guide_page">
+                            <div class="alert alert-info" role="status">
+                                Usa esta guia para distinguir entre correccion de formulario, rechazo definitivo y rechazo individual de documentos.
+                            </div>
+                            <group string="Flujo principal">
+                                <group>
+                                    <separator string="1. Enviado"/>
+                                    <p>Revisa que la solicitud tenga datos base suficientes. Accion sugerida: Iniciar revision.</p>
+                                    <separator string="2. En revision de riesgo"/>
+                                    <p>Valida formulario, firmas y consistencia. Puedes enviar a validacion externa, continuar manualmente, solicitar correccion o rechazar.</p>
+                                    <separator string="3. Validacion externa pendiente"/>
+                                    <p>Gestiona el proveedor externo y registra el resultado. Si no aplica, continua a aprobacion manual.</p>
+                                    <separator string="4. Pendiente aprobacion manual"/>
+                                    <p>Punto de decision: aprobar, solicitar documentos, devolver para correccion o rechazar definitivamente.</p>
+                                    <separator string="5. Documentos solicitados"/>
+                                    <p>El tercero carga soportes desde el portal. Aqui tambien puedes agregar documentos adicionales puntuales.</p>
+                                </group>
+                                <group>
+                                    <separator string="6. Documentos en revision"/>
+                                    <p>Aprueba documentos obligatorios. Si un archivo esta mal, rechaza solo el documento, no toda la solicitud.</p>
+                                    <separator string="7. Requiere correccion"/>
+                                    <p>Usalo cuando el formulario esta mal diligenciado y el tercero puede corregirlo. El portal habilita la misma solicitud.</p>
+                                    <separator string="8. Correccion enviada"/>
+                                    <p>El tercero ya corrigio. Inicia revision para validar cambios y continuar el flujo.</p>
+                                    <separator string="9. Aprobado"/>
+                                    <p>Proceso finalizado favorablemente.</p>
+                                    <separator string="10. Rechazado"/>
+                                    <p>Proceso finalizado definitivamente. Usalo para casos no subsanables como estudio de seguridad no aprobado o politica interna.</p>
+                                </group>
+                            </group>
+                            <group string="Reglas practicas">
+                                <group>
+                                    <separator string="Rechazo definitivo"/>
+                                    <p>Usalo cuando la solicitud no puede continuar. El usuario recibe el motivo, pero no puede editar la solicitud.</p>
+                                    <separator string="Devolver para correccion"/>
+                                    <p>Usalo cuando hay datos del formulario mal diligenciados. El usuario corrige y reenvia la misma solicitud.</p>
+                                </group>
+                                <group>
+                                    <separator string="Rechazo de documento"/>
+                                    <p>Usalo solamente para archivos cargados incorrectos, vencidos o ilegibles. No cambia toda la solicitud a correccion.</p>
+                                    <separator string="Documentos adicionales"/>
+                                    <p>Usalo para pedir un soporte puntual sin modificar el catalogo global de documentos requeridos.</p>
+                                </group>
                             </group>
                         </page>
                     </notebook>

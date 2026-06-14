@@ -109,6 +109,31 @@ class RiskSubmissionController(
         return self._render_step(step)
 
     @http.route(
+        "/registro-conductor/corregir/<int:submission_id>",
+        type="http",
+        auth="user",
+        website=True,
+        sitemap=False,
+    )
+    def correct_submission(self, submission_id, **kwargs):
+        submission = request.env["risk.module"].sudo().browse(submission_id).exists()
+        if (
+            not submission
+            or not submission._portal_is_owned_by(request.env.user)
+            or submission.state != "correction_required"
+        ):
+            _logger.warning(
+                "Risk correction denied submission_id=%s user_id=%s exists=%s state=%s",
+                submission_id,
+                request.env.user.id,
+                bool(submission),
+                submission.state if submission else None,
+            )
+            return request.not_found()
+        self._load_submission_for_correction(submission)
+        return request.redirect("/registro-conductor/1")
+
+    @http.route(
         "/registro-conductor/submit/<int:step>",
         type="http",
         auth="user",
@@ -456,9 +481,21 @@ class RiskSubmissionController(
             request.session["risk_vehicle_form"] = data
             return self._render_step(self._first_invalid_signature_step(data))
 
+        target_state = "submitted"
+        if submission_id:
+            existing_submission = (
+                request.env["risk.module"].sudo().browse(int(submission_id)).exists()
+            )
+            if (
+                existing_submission
+                and existing_submission._portal_is_owned_by(request.env.user)
+                and existing_submission.state == "correction_required"
+            ):
+                target_state = "correction_submitted"
+
         submission, error_response = self._safe_create_or_update_submission(
             data,
-            state="submitted",
+            state=target_state,
             error_step=7,
         )
         if error_response:
@@ -471,11 +508,19 @@ class RiskSubmissionController(
             )
             return request.not_found()
         _logger.info(
-            "Risk submission submitted submission_id=%s user_id=%s plate=%s",
+            "Risk submission submitted submission_id=%s user_id=%s plate=%s state=%s",
             submission.id,
             request.env.user.id,
             submission.vehicle_plate,
+            submission.state,
         )
+        if target_state == "correction_submitted":
+            submission.sudo().with_context(skip_risk_form_lock=True).write(
+                {"correction_submitted_at": fields.Datetime.now()}
+            )
+            submission.message_post(
+                body="El tercero envio la correccion de la solicitud."
+            )
         self._reset_registration_session()
         return request.render(
             "risk_module.register_driver_success",
@@ -587,6 +632,38 @@ class RiskSubmissionController(
                 "print_url": self._print_url(data) if request.env.user.has_group("base.group_user") else "",
             },
         )
+
+    def _load_submission_for_correction(self, submission):
+        data = {
+            "submission_id": submission.id,
+            "submission_token": submission.access_token,
+        }
+        all_fields = set()
+        for fields_for_step in STEP_FIELDS.values():
+            all_fields.update(fields_for_step)
+        for field in all_fields:
+            if field not in submission._fields:
+                continue
+            value = submission[field]
+            if value is False or value is None:
+                value = ""
+            elif field.endswith("_at"):
+                value = fields.Datetime.to_string(value)
+            elif hasattr(value, "isoformat"):
+                value = value.isoformat()
+            elif isinstance(value, bytes):
+                value = value.decode("ascii")
+            data[field] = value
+        if submission.banking_info_accepted:
+            data["terms_accepted"] = "1"
+            request.session["risk_terms_accepted"] = "1"
+        else:
+            request.session["risk_terms_accepted"] = None
+        data["correction_reason"] = submission.correction_reason or ""
+        request.session["risk_submission_id"] = submission.id
+        request.session["risk_vehicle_form"] = data
+        for step in STEP_SESSION_KEYS:
+            self._persist_step_data(step, data)
 
     def _can_access_submission(self, submission):
         """Determina si el usuario actual puede ver la solicitud.

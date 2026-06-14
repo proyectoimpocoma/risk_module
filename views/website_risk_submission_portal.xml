@@ -98,6 +98,22 @@
                 <section class="mb-4">
                     <h2 class="h5">Estado</h2>
                     <p><span class="badge text-bg-secondary" t-esc="submission.portal_state_label"/></p>
+                    <div t-if="submission.state == 'correction_required'" class="alert alert-warning">
+                        <p class="mb-2">
+                            Tu solicitud requiere correccion antes de continuar.
+                        </p>
+                        <p t-if="submission.correction_reason" class="mb-2">
+                            <strong>Motivo:</strong>
+                            <span t-esc="submission.correction_reason"/>
+                        </p>
+                        <p class="mb-3">
+                            <strong>Secciones:</strong>
+                            <span t-esc="submission._correction_section_labels()"/>
+                        </p>
+                        <a t-attf-href="/registro-conductor/corregir/#{submission.id}" class="btn btn-primary">
+                            Corregir solicitud
+                        </a>
+                    </div>
                     <p t-if="submission.rejection_reason" class="alert alert-danger" t-esc="submission.rejection_reason"/>
                     <p t-if="submission.message" class="alert alert-light" t-esc="submission.message"/>
                 </section>

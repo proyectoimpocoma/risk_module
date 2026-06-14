@@ -13,5 +13,6 @@
     <menuitem id="menu_risk_document_requirement" name="Catalogo de documentos" parent="menu_risk_module_configuration" action="action_risk_document_requirement" sequence="10" groups="risk_module.group_risk_user"/>
     <menuitem id="menu_risk_document_requirement_matrix" name="Documentos por perfil" parent="menu_risk_module_configuration" action="action_risk_document_requirement_matrix" sequence="20" groups="risk_module.group_risk_user"/>
     <menuitem id="menu_risk_message_template" name="Plantillas de mensajes" parent="menu_risk_module_configuration" action="action_risk_message_template" sequence="30" groups="risk_module.group_risk_user"/>
+    <menuitem id="menu_risk_message_template_new" name="Nueva plantilla de mensaje" parent="menu_risk_module_configuration" action="action_risk_message_template_new" sequence="31" groups="risk_module.group_risk_user"/>
 
 </odoo>

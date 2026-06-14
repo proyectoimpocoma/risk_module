@@ -74,6 +74,43 @@
             </field>
         </record>
 
+        <record id="email_template_risk_submission_correction_requested" model="mail.template">
+            <field name="name">Solicitud requiere correccion</field>
+            <field name="model_id" ref="risk_module.model_risk_module"/>
+            <field name="subject">Correccion requerida - {{ object.vehicle_plate or 'Sin placa' }}</field>
+            <field name="email_from">reporte@impocoma.com</field>
+            <field name="email_to">{{ object._submission_rejected_email_to() }}</field>
+            <field name="auto_delete" eval="False"/>
+            <field name="body_html" type="html">
+<div style="margin: 0; padding: 0; font-size: 13px;">
+    <p>Hola <t t-out="object.partner_id.name or object.owner_name or 'usuario'"/>,</p>
+    <p>
+        Tu solicitud de riesgo para el vehiculo
+        <strong t-out="object.vehicle_plate or ''">ABC123</strong>
+        requiere correccion antes de continuar.
+    </p>
+    <p>
+        Motivo:
+        <strong><t t-out="ctx.get('correction_reason') or object.correction_reason or 'No especificado'"/></strong>
+    </p>
+    <p>
+        Secciones a revisar:
+        <strong><t t-out="ctx.get('correction_sections') or object._correction_section_labels()"/></strong>
+    </p>
+    <p>
+        Puedes corregir la solicitud desde el portal:
+        <br/>
+        <a t-att-href="object._portal_submission_absolute_url()" target="_blank">
+            Corregir mi solicitud
+        </a>
+    </p>
+    <p>
+        Cuando termines, envia nuevamente la solicitud para que el equipo de riesgo la revise.
+    </p>
+</div>
+            </field>
+        </record>
+
         <record id="email_template_risk_submission_rejected" model="mail.template">
             <field name="name">Solicitud rechazada</field>
             <field name="model_id" ref="risk_module.model_risk_module"/>

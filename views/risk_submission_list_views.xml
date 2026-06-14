@@ -6,14 +6,14 @@
             <list string="Solicitudes de Vehiculo"
                   decoration-success="state == 'approved'"
                   decoration-danger="state == 'rejected'"
-                  decoration-info="state in ('submitted', 'risk_review', 'manual_approval_pending', 'documents_review')"
-                  decoration-warning="state in ('draft', 'external_validation_pending', 'documents_requested')">
+                  decoration-info="state in ('submitted', 'risk_review', 'manual_approval_pending', 'documents_review', 'correction_submitted')"
+                  decoration-warning="state in ('draft', 'external_validation_pending', 'documents_requested', 'correction_required')">
                 <field name="create_date" string="Creado"/>
                 <field name="state" widget="badge"
                        decoration-success="state == 'approved'"
                        decoration-danger="state == 'rejected'"
-                       decoration-info="state in ('submitted', 'risk_review', 'manual_approval_pending', 'documents_review')"
-                       decoration-warning="state in ('draft', 'external_validation_pending', 'documents_requested')"/>
+                       decoration-info="state in ('submitted', 'risk_review', 'manual_approval_pending', 'documents_review', 'correction_submitted')"
+                       decoration-warning="state in ('draft', 'external_validation_pending', 'documents_requested', 'correction_required')"/>
                 <field name="form_date" string="Fecha"/>
                 <field name="vehicle_plate" string="Placa"/>
                 <field name="semi_trailer_plate" string="Semi/Remolque" optional="hide"/>

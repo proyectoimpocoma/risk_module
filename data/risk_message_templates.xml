@@ -1,6 +1,7 @@
 <odoo noupdate="1">
     <record id="msg_doc_reject_illegible" model="risk.message.template">
         <field name="sequence">10</field>
+        <field name="message_type">document</field>
         <field name="category">document_rejection</field>
         <field name="code">illegible</field>
         <field name="name">Documento ilegible</field>
@@ -8,6 +9,7 @@
     </record>
     <record id="msg_doc_reject_incomplete" model="risk.message.template">
         <field name="sequence">20</field>
+        <field name="message_type">document</field>
         <field name="category">document_rejection</field>
         <field name="code">incomplete</field>
         <field name="name">Documento incompleto</field>
@@ -15,6 +17,7 @@
     </record>
     <record id="msg_doc_reject_missing_back" model="risk.message.template">
         <field name="sequence">30</field>
+        <field name="message_type">document</field>
         <field name="category">document_rejection</field>
         <field name="code">missing_back</field>
         <field name="name">Falta reverso</field>
@@ -22,6 +25,7 @@
     </record>
     <record id="msg_doc_reject_expired" model="risk.message.template">
         <field name="sequence">40</field>
+        <field name="message_type">document</field>
         <field name="category">document_rejection</field>
         <field name="code">expired</field>
         <field name="name">Documento vencido</field>
@@ -29,6 +33,7 @@
     </record>
     <record id="msg_doc_reject_wrong_driver" model="risk.message.template">
         <field name="sequence">50</field>
+        <field name="message_type">document</field>
         <field name="category">document_rejection</field>
         <field name="code">wrong_driver</field>
         <field name="name">No corresponde al conductor</field>
@@ -36,6 +41,7 @@
     </record>
     <record id="msg_doc_reject_wrong_owner" model="risk.message.template">
         <field name="sequence">60</field>
+        <field name="message_type">document</field>
         <field name="category">document_rejection</field>
         <field name="code">wrong_owner</field>
         <field name="name">No corresponde al propietario</field>
@@ -43,6 +49,7 @@
     </record>
     <record id="msg_doc_reject_wrong_vehicle" model="risk.message.template">
         <field name="sequence">70</field>
+        <field name="message_type">document</field>
         <field name="category">document_rejection</field>
         <field name="code">wrong_vehicle</field>
         <field name="name">No corresponde al vehiculo</field>
@@ -50,6 +57,7 @@
     </record>
     <record id="msg_doc_reject_wrong_file" model="risk.message.template">
         <field name="sequence">80</field>
+        <field name="message_type">document</field>
         <field name="category">document_rejection</field>
         <field name="code">wrong_file</field>
         <field name="name">Archivo equivocado</field>
@@ -57,6 +65,7 @@
     </record>
     <record id="msg_doc_reject_not_color" model="risk.message.template">
         <field name="sequence">90</field>
+        <field name="message_type">document</field>
         <field name="category">document_rejection</field>
         <field name="code">not_color</field>
         <field name="name">Debe estar a color</field>
@@ -64,6 +73,7 @@
     </record>
     <record id="msg_doc_reject_photo_requirements" model="risk.message.template">
         <field name="sequence">100</field>
+        <field name="message_type">document</field>
         <field name="category">document_rejection</field>
         <field name="code">photo_requirements</field>
         <field name="name">Foto no cumple requisitos</field>
@@ -71,6 +81,7 @@
     </record>
     <record id="msg_doc_reject_date_not_visible" model="risk.message.template">
         <field name="sequence">110</field>
+        <field name="message_type">document</field>
         <field name="category">document_rejection</field>
         <field name="code">date_not_visible</field>
         <field name="name">Fecha no visible</field>
@@ -78,6 +89,7 @@
     </record>
     <record id="msg_doc_reject_cropped" model="risk.message.template">
         <field name="sequence">120</field>
+        <field name="message_type">document</field>
         <field name="category">document_rejection</field>
         <field name="code">cropped</field>
         <field name="name">Informacion cortada</field>
@@ -85,6 +97,7 @@
     </record>
     <record id="msg_doc_reject_damaged" model="risk.message.template">
         <field name="sequence">130</field>
+        <field name="message_type">document</field>
         <field name="category">document_rejection</field>
         <field name="code">damaged</field>
         <field name="name">Archivo danado</field>
@@ -92,6 +105,7 @@
     </record>
     <record id="msg_doc_reject_invalid_rut" model="risk.message.template">
         <field name="sequence">140</field>
+        <field name="message_type">document</field>
         <field name="category">document_rejection</field>
         <field name="code">invalid_rut</field>
         <field name="name">RUT no valido</field>
@@ -99,6 +113,7 @@
     </record>
     <record id="msg_doc_reject_old_chamber" model="risk.message.template">
         <field name="sequence">150</field>
+        <field name="message_type">document</field>
         <field name="category">document_rejection</field>
         <field name="code">old_chamber</field>
         <field name="name">Camara de Comercio vencida</field>
@@ -107,6 +122,7 @@
 
     <record id="msg_submission_reject_incomplete_documents" model="risk.message.template">
         <field name="sequence">10</field>
+        <field name="message_type">final_rejection</field>
         <field name="category">submission_rejection</field>
         <field name="code">incomplete_documents</field>
         <field name="name">Documentacion incompleta</field>
@@ -114,6 +130,7 @@
     </record>
     <record id="msg_submission_reject_documents_not_fixed" model="risk.message.template">
         <field name="sequence">20</field>
+        <field name="message_type">final_rejection</field>
         <field name="category">submission_rejection</field>
         <field name="code">documents_not_fixed</field>
         <field name="name">Documentacion no subsanada</field>
@@ -121,6 +138,7 @@
     </record>
     <record id="msg_submission_reject_inconsistent_information" model="risk.message.template">
         <field name="sequence">30</field>
+        <field name="message_type">final_rejection</field>
         <field name="category">submission_rejection</field>
         <field name="code">inconsistent_information</field>
         <field name="name">Informacion inconsistente</field>
@@ -128,6 +146,7 @@
     </record>
     <record id="msg_submission_reject_identity_validation_failed" model="risk.message.template">
         <field name="sequence">40</field>
+        <field name="message_type">final_rejection</field>
         <field name="category">submission_rejection</field>
         <field name="code">identity_validation_failed</field>
         <field name="name">Validacion de identidad no satisfactoria</field>
@@ -135,6 +154,7 @@
     </record>
     <record id="msg_submission_reject_driver_not_approved" model="risk.message.template">
         <field name="sequence">50</field>
+        <field name="message_type">final_rejection</field>
         <field name="category">submission_rejection</field>
         <field name="code">driver_not_approved</field>
         <field name="name">Validacion del conductor no aprobada</field>
@@ -142,6 +162,7 @@
     </record>
     <record id="msg_submission_reject_owner_not_approved" model="risk.message.template">
         <field name="sequence">60</field>
+        <field name="message_type">final_rejection</field>
         <field name="category">submission_rejection</field>
         <field name="code">owner_not_approved</field>
         <field name="name">Validacion del propietario no aprobada</field>
@@ -149,6 +170,7 @@
     </record>
     <record id="msg_submission_reject_vehicle_not_approved" model="risk.message.template">
         <field name="sequence">70</field>
+        <field name="message_type">final_rejection</field>
         <field name="category">submission_rejection</field>
         <field name="code">vehicle_not_approved</field>
         <field name="name">Validacion del vehiculo no aprobada</field>
@@ -156,6 +178,7 @@
     </record>
     <record id="msg_submission_reject_external_validation_failed" model="risk.message.template">
         <field name="sequence">80</field>
+        <field name="message_type">final_rejection</field>
         <field name="category">submission_rejection</field>
         <field name="code">external_validation_failed</field>
         <field name="name">Validacion externa desfavorable</field>
@@ -163,6 +186,7 @@
     </record>
     <record id="msg_submission_reject_risk_alerts" model="risk.message.template">
         <field name="sequence">90</field>
+        <field name="message_type">final_rejection</field>
         <field name="category">submission_rejection</field>
         <field name="code">risk_alerts</field>
         <field name="name">Antecedentes o alertas de riesgo</field>
@@ -170,6 +194,7 @@
     </record>
     <record id="msg_submission_reject_security_study_failed" model="risk.message.template">
         <field name="sequence">100</field>
+        <field name="message_type">final_rejection</field>
         <field name="category">submission_rejection</field>
         <field name="code">security_study_failed</field>
         <field name="name">Estudio de seguridad no aprobado</field>
@@ -177,6 +202,7 @@
     </record>
     <record id="msg_submission_reject_internal_policy" model="risk.message.template">
         <field name="sequence">110</field>
+        <field name="message_type">final_rejection</field>
         <field name="category">submission_rejection</field>
         <field name="code">internal_policy</field>
         <field name="name">No cumple politicas internas</field>
@@ -184,6 +210,7 @@
     </record>
     <record id="msg_submission_reject_duplicate_or_expired" model="risk.message.template">
         <field name="sequence">120</field>
+        <field name="message_type">final_rejection</field>
         <field name="category">submission_rejection</field>
         <field name="code">duplicate_or_expired</field>
         <field name="name">Solicitud duplicada o no vigente</field>
@@ -191,6 +218,7 @@
     </record>
     <record id="msg_submission_reject_third_party_withdrawal" model="risk.message.template">
         <field name="sequence">130</field>
+        <field name="message_type">final_rejection</field>
         <field name="category">submission_rejection</field>
         <field name="code">third_party_withdrawal</field>
         <field name="name">Desistimiento del tercero</field>
@@ -198,6 +226,7 @@
     </record>
     <record id="msg_submission_reject_contact_failed" model="risk.message.template">
         <field name="sequence">140</field>
+        <field name="message_type">final_rejection</field>
         <field name="category">submission_rejection</field>
         <field name="code">contact_failed</field>
         <field name="name">No fue posible contactar</field>
@@ -205,14 +234,137 @@
     </record>
     <record id="msg_submission_reject_other" model="risk.message.template">
         <field name="sequence">150</field>
+        <field name="message_type">final_rejection</field>
         <field name="category">submission_rejection</field>
         <field name="code">other</field>
         <field name="name">Otro motivo</field>
         <field name="body">La solicitud fue rechazada por un motivo especifico indicado por el equipo de riesgo.</field>
     </record>
 
+    <record id="msg_submission_correction_incomplete_documents" model="risk.message.template">
+        <field name="sequence">10</field>
+        <field name="message_type">correction</field>
+        <field name="category">submission_correction</field>
+        <field name="code">incomplete_documents</field>
+        <field name="name">Completar informacion o documentos</field>
+        <field name="body">Para continuar con la revision necesitamos que completes la informacion o documentos pendientes.</field>
+    </record>
+    <record id="msg_submission_correction_documents_not_fixed" model="risk.message.template">
+        <field name="sequence">20</field>
+        <field name="message_type">correction</field>
+        <field name="category">submission_correction</field>
+        <field name="code">documents_not_fixed</field>
+        <field name="name">Corregir documentos solicitados</field>
+        <field name="body">Para continuar, por favor corrige o carga nuevamente los documentos indicados por el equipo de riesgo.</field>
+    </record>
+    <record id="msg_submission_correction_inconsistent_information" model="risk.message.template">
+        <field name="sequence">30</field>
+        <field name="message_type">correction</field>
+        <field name="category">submission_correction</field>
+        <field name="code">inconsistent_information</field>
+        <field name="name">Corregir informacion inconsistente</field>
+        <field name="body">Encontramos diferencias entre la informacion registrada y los documentos adjuntos. Por favor revisa y corrige los datos indicados.</field>
+    </record>
+    <record id="msg_submission_correction_identity_validation_failed" model="risk.message.template">
+        <field name="sequence">40</field>
+        <field name="message_type">correction</field>
+        <field name="category">submission_correction</field>
+        <field name="code">identity_validation_failed</field>
+        <field name="name">Revisar identidad</field>
+        <field name="body">Necesitamos que revises la informacion de identidad registrada para poder continuar con la validacion.</field>
+    </record>
+    <record id="msg_submission_correction_driver_not_approved" model="risk.message.template">
+        <field name="sequence">50</field>
+        <field name="message_type">correction</field>
+        <field name="category">submission_correction</field>
+        <field name="code">driver_not_approved</field>
+        <field name="name">Revisar informacion del conductor</field>
+        <field name="body">Necesitamos que revises la informacion del conductor indicada por el equipo de riesgo antes de continuar.</field>
+    </record>
+    <record id="msg_submission_correction_owner_not_approved" model="risk.message.template">
+        <field name="sequence">60</field>
+        <field name="message_type">correction</field>
+        <field name="category">submission_correction</field>
+        <field name="code">owner_not_approved</field>
+        <field name="name">Revisar informacion del propietario</field>
+        <field name="body">Necesitamos que revises la informacion del propietario o tenedor indicada por el equipo de riesgo.</field>
+    </record>
+    <record id="msg_submission_correction_vehicle_not_approved" model="risk.message.template">
+        <field name="sequence">70</field>
+        <field name="message_type">correction</field>
+        <field name="category">submission_correction</field>
+        <field name="code">vehicle_not_approved</field>
+        <field name="name">Revisar informacion del vehiculo</field>
+        <field name="body">Necesitamos que revises la informacion del vehiculo indicada por el equipo de riesgo.</field>
+    </record>
+    <record id="msg_submission_correction_external_validation_failed" model="risk.message.template">
+        <field name="sequence">80</field>
+        <field name="message_type">correction</field>
+        <field name="category">submission_correction</field>
+        <field name="code">external_validation_failed</field>
+        <field name="name">Ajustar validacion externa</field>
+        <field name="body">La validacion externa requiere ajustes antes de poder continuar. Por favor revisa las observaciones indicadas.</field>
+    </record>
+    <record id="msg_submission_correction_risk_alerts" model="risk.message.template">
+        <field name="sequence">90</field>
+        <field name="message_type">correction</field>
+        <field name="category">submission_correction</field>
+        <field name="code">risk_alerts</field>
+        <field name="name">Aclarar alertas de riesgo</field>
+        <field name="body">Durante la revision se identificaron alertas que requieren aclaracion. Por favor revisa las observaciones y corrige la informacion indicada.</field>
+    </record>
+    <record id="msg_submission_correction_security_study_failed" model="risk.message.template">
+        <field name="sequence">100</field>
+        <field name="message_type">correction</field>
+        <field name="category">submission_correction</field>
+        <field name="code">security_study_failed</field>
+        <field name="name">Ajustar estudio de seguridad</field>
+        <field name="body">El estudio de seguridad requiere informacion adicional o correccion antes de continuar.</field>
+    </record>
+    <record id="msg_submission_correction_internal_policy" model="risk.message.template">
+        <field name="sequence">110</field>
+        <field name="message_type">correction</field>
+        <field name="category">submission_correction</field>
+        <field name="code">internal_policy</field>
+        <field name="name">Ajustar politicas internas</field>
+        <field name="body">La solicitud requiere ajustes para cumplir con las politicas internas de habilitacion.</field>
+    </record>
+    <record id="msg_submission_correction_duplicate_or_expired" model="risk.message.template">
+        <field name="sequence">120</field>
+        <field name="message_type">correction</field>
+        <field name="category">submission_correction</field>
+        <field name="code">duplicate_or_expired</field>
+        <field name="name">Revisar vigencia o duplicidad</field>
+        <field name="body">Necesitamos que revises la vigencia de la informacion registrada o si existe una solicitud activa relacionada.</field>
+    </record>
+    <record id="msg_submission_correction_third_party_withdrawal" model="risk.message.template">
+        <field name="sequence">130</field>
+        <field name="message_type">correction</field>
+        <field name="category">submission_correction</field>
+        <field name="code">third_party_withdrawal</field>
+        <field name="name">Confirmar continuidad del proceso</field>
+        <field name="body">Antes de continuar necesitamos confirmar si deseas seguir con el proceso de habilitacion.</field>
+    </record>
+    <record id="msg_submission_correction_contact_failed" model="risk.message.template">
+        <field name="sequence">140</field>
+        <field name="message_type">correction</field>
+        <field name="category">submission_correction</field>
+        <field name="code">contact_failed</field>
+        <field name="name">Revisar datos de contacto</field>
+        <field name="body">No fue posible confirmar informacion necesaria. Por favor revisa los datos de contacto registrados.</field>
+    </record>
+    <record id="msg_submission_correction_other" model="risk.message.template">
+        <field name="sequence">150</field>
+        <field name="message_type">correction</field>
+        <field name="category">submission_correction</field>
+        <field name="code">other</field>
+        <field name="name">Otra correccion</field>
+        <field name="body">La solicitud requiere una correccion especifica indicada por el equipo de riesgo.</field>
+    </record>
+
     <record id="msg_email_documents_requested" model="risk.message.template">
         <field name="sequence">10</field>
+        <field name="message_type">document</field>
         <field name="category">document_request</field>
         <field name="code">documents_requested</field>
         <field name="name">Correo de solicitud de documentos</field>
@@ -221,6 +373,7 @@
     </record>
     <record id="msg_email_document_rejected" model="risk.message.template">
         <field name="sequence">10</field>
+        <field name="message_type">document</field>
         <field name="category">document_rejected_email</field>
         <field name="code">document_rejected</field>
         <field name="name">Correo de documento rechazado</field>
