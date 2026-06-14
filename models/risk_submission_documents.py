@@ -96,8 +96,36 @@ class RiskSubmissionDocuments(models.Model):
             for requirement in requirements
             if requirement._applies_to_submission(self)
         ]
+        templates = self._deduplicate_owner_driver_document_templates(templates)
         _logger.debug("Required document templates submission_id=%s count=%s", self.id, len(templates))
         return templates
+
+    def _deduplicate_owner_driver_document_templates(self, templates):
+        """Avoid duplicate role documents when owner and driver are the same person."""
+        self.ensure_one()
+        if not self._same_owner_and_driver_person():
+            return templates
+        driver_document_types = {
+            template["document_type"]
+            for template in templates
+            if template.get("party") == "driver"
+        }
+        if not driver_document_types:
+            return templates
+        deduplicated = []
+        for template in templates:
+            if (
+                template.get("party") == "owner"
+                and template.get("document_type") in driver_document_types
+            ):
+                _logger.info(
+                    "Skipping duplicate owner/driver document template submission_id=%s document_type=%s",
+                    self.id,
+                    template.get("document_type"),
+                )
+                continue
+            deduplicated.append(template)
+        return deduplicated
 
     def _same_owner_and_driver_person(self):
         """

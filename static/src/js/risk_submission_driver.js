@@ -8,6 +8,7 @@
             return;
         }
 
+        var ownerIsCompany = ownerData.dataset.ownerDocumentType === "nit";
         var fieldMap = {
             ownerName: "driver_name",
             ownerDocumentNumber: "driver_document_number",
@@ -36,6 +37,16 @@
             field.dispatchEvent(new Event("input", { bubbles: true }));
             field.dispatchEvent(new Event("change", { bubbles: true }));
             return true;
+        }
+
+        if (ownerIsCompany) {
+            button.disabled = true;
+            button.classList.add("d-none");
+            setFeedback(
+                "El propietario registrado con NIT es una empresa. El conductor debe registrarse con sus propios datos.",
+                true
+            );
+            return;
         }
 
         button.addEventListener("click", function () {

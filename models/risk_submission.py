@@ -19,6 +19,18 @@ class RiskSubmission(models.Model):
     _rec_name = "vehicle_plate"
     _order = "create_date desc"
 
+    _ACTIVE_SUBMISSION_STATES = (
+        "draft",
+        "submitted",
+        "risk_review",
+        "external_validation_pending",
+        "manual_approval_pending",
+        "documents_requested",
+        "documents_review",
+        "correction_required",
+        "correction_submitted",
+    )
+
     _FORM_LOCKED_FIELDS = frozenset(
         {
             "form_date",
@@ -1138,6 +1150,25 @@ class RiskSubmission(models.Model):
             "url": f"/registro-conductor/imprimir/{self.id}?token={self.access_token}",
             "target": "new",
         }
+
+    @api.model
+    def _active_submission_states(self):
+        """Return states considered active for duplicate-request checks."""
+        return self._ACTIVE_SUBMISSION_STATES
+
+    @api.model
+    def _find_active_submission_for_plate(self, plate, exclude_id=False):
+        """Return another active submission for the same plate, if any."""
+        normalized_plate = self._normalize_plate(plate)
+        if not normalized_plate:
+            return self.browse()
+        domain = [
+            ("vehicle_plate", "=", normalized_plate),
+            ("state", "in", self._active_submission_states()),
+        ]
+        if exclude_id:
+            domain.append(("id", "!=", int(exclude_id)))
+        return self.search(domain, limit=1)
 
     @api.model_create_multi
     def create(self, vals_list):

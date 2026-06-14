@@ -255,3 +255,108 @@ class TestRiskSubmission(RiskModuleTestCase):
         self.assertEqual(validation.status, "approved")
         self.assertEqual(self.submission.state, "manual_approval_pending")
         self.assertEqual(self.submission.risk_reviewer_id, self.env.user)
+
+    def test_cannot_create_second_active_submission_for_same_plate(self):
+        self.make_submission(owner=self.portal_user, state="submitted", plate="DUP123")
+
+        with self.assertRaises(ValidationError):
+            self.make_submission(
+                owner=self.other_portal_user,
+                state="draft",
+                plate="DUP123",
+            )
+
+    def test_closed_submission_does_not_block_new_active_submission_for_same_plate(self):
+        self.make_submission(owner=self.portal_user, state="rejected", plate="OLD123")
+
+        submission = self.make_submission(
+            owner=self.other_portal_user,
+            state="submitted",
+            plate="OLD123",
+        )
+
+        self.assertEqual(submission.vehicle_plate, "OLD123")
+
+    def test_single_signature_requires_same_owner_and_driver_document(self):
+        with self.assertRaises(ValidationError):
+            self.make_submission(
+                owner=self.portal_user,
+                plate="SIG123",
+                owner_document_type="cc",
+                owner_document_number="11111111",
+                driver_document_number="22222222",
+                single_owner_driver_signature="yes",
+            )
+
+    def test_approval_blocks_vehicle_with_another_active_driver(self):
+        self.make_submission(
+            owner=self.portal_user,
+            state="approved",
+            plate="VEH123",
+            driver_document_number="11111111",
+        )
+        current = self.make_submission(
+            owner=self.other_portal_user,
+            state="documents_review",
+            plate="VEH123",
+            driver_document_number="22222222",
+        )
+        self.approve_document(self.make_document(current))
+
+        with self.assertRaises(ValidationError):
+            current.action_confirm_approval("Revision completa")
+
+    def test_approval_blocks_driver_with_another_active_vehicle(self):
+        self.make_submission(
+            owner=self.portal_user,
+            state="approved",
+            plate="DRV123",
+            driver_document_number="33333333",
+        )
+        current = self.make_submission(
+            owner=self.other_portal_user,
+            state="documents_review",
+            plate="DRV124",
+            driver_document_number="33333333",
+        )
+        self.approve_document(self.make_document(current))
+
+        with self.assertRaises(ValidationError):
+            current.action_confirm_approval("Revision completa")
+
+    def test_owner_driver_same_deduplicates_same_document_type_templates(self):
+        submission = self.make_submission(
+            owner=self.portal_user,
+            plate="DOC123",
+            owner_document_type="cc",
+            owner_document_number="44444444",
+            driver_document_number="44444444",
+            single_owner_driver_signature="yes",
+        )
+        templates = [
+            {
+                "document_type": "third_party_life_sheet",
+                "party": "driver",
+                "name": "Formato conductor",
+            },
+            {
+                "document_type": "third_party_life_sheet",
+                "party": "owner",
+                "name": "Formato propietario",
+            },
+            {
+                "document_type": "owner_rut",
+                "party": "owner",
+                "name": "RUT",
+            },
+        ]
+
+        result = submission._deduplicate_owner_driver_document_templates(templates)
+
+        self.assertEqual(
+            [(item["document_type"], item["party"]) for item in result],
+            [
+                ("third_party_life_sheet", "driver"),
+                ("owner_rut", "owner"),
+            ],
+        )

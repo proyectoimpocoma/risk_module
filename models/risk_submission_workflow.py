@@ -124,6 +124,7 @@ class RiskSubmissionWorkflow(models.Model):
                 self.env.user.id,
             )
             record._check_documents_ready_for_approval()
+            record._check_active_vehicle_driver_assignment()
             record.write(
                 {
                     "state": "approved",

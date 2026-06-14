@@ -130,11 +130,32 @@ class RiskSubmissionFormSignatureMixin:
         )
         _signature_logger.info("Single owner/driver signature applied user_id=%s", request.env.user.id)
 
+    def _single_owner_driver_identity_error(self, data):
+        if data.get("single_owner_driver_signature") != "yes":
+            return None
+        owner_document_type = data.get("owner_document_type")
+        owner_document_number = (data.get("owner_document_number") or "").strip()
+        driver_document_number = (data.get("driver_document_number") or "").strip()
+        if (
+            owner_document_type != "cc"
+            or not owner_document_number
+            or not driver_document_number
+            or owner_document_number != driver_document_number
+        ):
+            return (
+                "Para usar firma unica, el propietario y el conductor deben "
+                "ser la misma persona y tener el mismo numero de cedula."
+            )
+        return None
+
     def _validate_signature_step(self, data):
         """
         Perform a combined validation of all signature requirements.
         Returns an error message string if any validation fails.
         """
+        identity_error = self._single_owner_driver_identity_error(data)
+        if identity_error:
+            return identity_error
         if data.get("owner_has_valid_study") not in ("yes", "no"):
             _signature_logger.warning("Signature validation missing owner study flag user_id=%s", request.env.user.id)
             return "Debes indicar si el propietario cuenta con estudio vigente."
@@ -232,6 +253,9 @@ class RiskSubmissionFormSignatureMixin:
 
     def _validate_owner_signature_step(self, data):
         """Valida únicamente los datos de firma del propietario."""
+        identity_error = self._single_owner_driver_identity_error(data)
+        if identity_error:
+            return identity_error
         verification_error = self._signature_email_verification_error(data, "owner")
         if verification_error:
             _signature_logger.warning("Owner signature email verification missing user_id=%s", request.env.user.id)
@@ -252,6 +276,9 @@ class RiskSubmissionFormSignatureMixin:
 
     def _validate_driver_signature_step(self, data):
         """Valida únicamente los datos de firma del conductor."""
+        identity_error = self._single_owner_driver_identity_error(data)
+        if identity_error:
+            return identity_error
         if data.get("single_owner_driver_signature") == "yes":
             self._apply_single_owner_driver_signature(data)
             return None

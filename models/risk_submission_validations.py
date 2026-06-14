@@ -13,6 +13,50 @@ from ..risk_validation_rules import (
 class RiskSubmissionValidations(models.Model):
     _inherit = "risk.module"
 
+    @api.constrains("vehicle_plate", "state")
+    def _check_single_active_submission_per_plate(self):
+        """Avoid more than one active onboarding request per vehicle plate."""
+        for record in self:
+            if (
+                not record.vehicle_plate
+                or record.state not in record._active_submission_states()
+            ):
+                continue
+            duplicate = record._find_active_submission_for_plate(
+                record.vehicle_plate,
+                exclude_id=record.id,
+            )
+            if duplicate:
+                raise ValidationError(
+                    "Ya existe una solicitud activa para la placa %s. "
+                    "Finaliza, rechaza o corrige esa solicitud antes de crear una nueva."
+                    % record.vehicle_plate
+                )
+
+    @api.constrains(
+        "single_owner_driver_signature",
+        "owner_document_type",
+        "owner_document_number",
+        "driver_document_number",
+    )
+    def _check_single_signature_matches_owner_and_driver(self):
+        """Require same natural-person document before using one signature."""
+        for record in self:
+            if record.single_owner_driver_signature != "yes":
+                continue
+            owner_document_number = (record.owner_document_number or "").strip()
+            driver_document_number = (record.driver_document_number or "").strip()
+            if (
+                record.owner_document_type != "cc"
+                or not owner_document_number
+                or not driver_document_number
+                or owner_document_number != driver_document_number
+            ):
+                raise ValidationError(
+                    "Para usar firma unica, el propietario y el conductor deben "
+                    "ser la misma persona y tener el mismo numero de cedula."
+                )
+
     @api.constrains("owner_email")
     def _check_owner_email(self):
         """Valida que el correo del propietario tenga un formato valido."""
@@ -164,3 +208,66 @@ class RiskSubmissionValidations(models.Model):
                 }
             }
         return None
+
+    def _approved_vehicle_driver_conflict(self):
+        """Return an approved submission for the same plate with another driver."""
+        self.ensure_one()
+        if not self.vehicle_plate or not self.driver_document_number:
+            return self.browse()
+        approved_for_plate = self.search(
+            [
+                ("id", "!=", self.id),
+                ("state", "=", "approved"),
+                ("vehicle_plate", "=", self.vehicle_plate),
+            ],
+            order="approval_date desc, id desc",
+            limit=20,
+        )
+        return approved_for_plate.filtered(
+            lambda item: item.driver_document_number
+            and item.driver_document_number != self.driver_document_number
+        )[:1]
+
+    def _approved_driver_vehicle_conflict(self):
+        """Return an approved submission for the same driver with another plate."""
+        self.ensure_one()
+        if not self.vehicle_plate or not self.driver_document_number:
+            return self.browse()
+        approved_for_driver = self.search(
+            [
+                ("id", "!=", self.id),
+                ("state", "=", "approved"),
+                ("driver_document_number", "=", self.driver_document_number),
+            ],
+            order="approval_date desc, id desc",
+            limit=20,
+        )
+        return approved_for_driver.filtered(
+            lambda item: item.vehicle_plate and item.vehicle_plate != self.vehicle_plate
+        )[:1]
+
+    def _check_active_vehicle_driver_assignment(self):
+        """Validate one active driver per vehicle and one active vehicle per driver."""
+        for record in self:
+            vehicle_conflict = record._approved_vehicle_driver_conflict()
+            if vehicle_conflict:
+                raise ValidationError(
+                    "El vehiculo %s ya se encuentra habilitado con el conductor "
+                    "%s. Para continuar debes cerrar o reemplazar la habilitacion "
+                    "anterior."
+                    % (
+                        record.vehicle_plate,
+                        vehicle_conflict.driver_document_number,
+                    )
+                )
+            driver_conflict = record._approved_driver_vehicle_conflict()
+            if driver_conflict:
+                raise ValidationError(
+                    "El conductor con cedula %s ya esta habilitado para el "
+                    "vehiculo %s. Un conductor solo puede estar activo en un "
+                    "vehiculo."
+                    % (
+                        record.driver_document_number,
+                        driver_conflict.vehicle_plate,
+                    )
+                )

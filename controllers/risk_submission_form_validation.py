@@ -1,6 +1,8 @@
 import logging
 from datetime import date
 
+from odoo.http import request
+
 from ..risk_validation_rules import is_valid_mobile_phone, is_valid_phone, phone_digits
 from .risk_submission_form_schema import (
     CC_REGEX,
@@ -38,6 +40,8 @@ class RiskSubmissionFormValidationMixin:
             for field in ("owner_city", "driver_city"):
                 if data.get(field):
                     data[field] = data[field].strip().title()
+        if data.get("owner_document_type") == "nit":
+            data["single_owner_driver_signature"] = "no"
         if step == 2:
             if data.get("same_owner_on_license") not in ("yes", "no"):
                 data["same_owner_on_license"] = "yes"
@@ -102,6 +106,9 @@ class RiskSubmissionFormValidationMixin:
                 "La placa del vehiculo debe tener formato colombiano valido: "
                 "ABC123 para vehiculo/carga o ABC12 para motocicleta."
             )
+        active_error = self._validate_no_active_submission_for_plate(data)
+        if active_error:
+            return active_error
         if has_semi_trailer not in ("yes", "no"):
             return "Debes indicar si el vehiculo tiene semi/remolque."
         if has_semi_trailer == "yes" and not semi_trailer_plate:
@@ -164,6 +171,9 @@ class RiskSubmissionFormValidationMixin:
             return (
                 "La cedula del conductor debe contener entre 6 y 10 digitos numericos."
             )
+        driver_assignment_error = self._validate_driver_not_active_on_other_vehicle(data)
+        if driver_assignment_error:
+            return driver_assignment_error
 
         for phone, label, validator in (
             (
@@ -203,6 +213,46 @@ class RiskSubmissionFormValidationMixin:
             return "Debes indicar si el conductor esta capacitado y entrenado."
         if data.get("driver_is_trained") != "yes":
             return "Para continuar, el conductor debe confirmar que esta capacitado y entrenado para contingencias y prevencion de accidentes en carretera."
+        return None
+
+    def _validate_no_active_submission_for_plate(self, data):
+        plate = data.get("vehicle_plate")
+        submission_id = data.get("submission_id") or request.session.get(
+            "risk_submission_id"
+        )
+        duplicate = (
+            request.env["risk.module"]
+            .sudo()
+            ._find_active_submission_for_plate(plate, exclude_id=submission_id)
+        )
+        if duplicate:
+            return (
+                "Ya existe una solicitud activa para la placa %s. "
+                "Finaliza, rechaza o corrige esa solicitud antes de crear una nueva."
+            ) % plate
+        return None
+
+    def _validate_driver_not_active_on_other_vehicle(self, data):
+        driver_document_number = data.get("driver_document_number")
+        vehicle_plate = data.get("vehicle_plate")
+        if not driver_document_number or not vehicle_plate:
+            return None
+        submission_id = data.get("submission_id") or request.session.get(
+            "risk_submission_id"
+        )
+        domain = [
+            ("state", "=", "approved"),
+            ("driver_document_number", "=", driver_document_number),
+            ("vehicle_plate", "!=", vehicle_plate),
+        ]
+        if submission_id:
+            domain.append(("id", "!=", int(submission_id)))
+        approved = request.env["risk.module"].sudo().search(domain, limit=1)
+        if approved:
+            return (
+                "El conductor con cedula %s ya esta habilitado para el vehiculo %s. "
+                "Un conductor solo puede estar activo en un vehiculo."
+            ) % (driver_document_number, approved.vehicle_plate)
         return None
 
     def _validate_text_lengths(self, data):
