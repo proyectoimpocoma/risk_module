@@ -1,54 +1,19 @@
 from datetime import timedelta
 
 from odoo import fields
-from odoo.fields import Command
 from odoo.exceptions import ValidationError
-from odoo.tests.common import TransactionCase, tagged
+
+from .common import RiskModuleTestCase
 
 
-@tagged("post_install", "-at_install")
-class TestRiskSubmission(TransactionCase):
+class TestRiskSubmission(RiskModuleTestCase):
     def setUp(self):
         super().setUp()
-        self.portal_group = self.env.ref("base.group_portal")
-        self.portal_user = self._create_portal_user("portal-a@example.com", "Portal A")
-        self.other_portal_user = self._create_portal_user(
-            "portal-b@example.com", "Portal B"
+        self.portal_user = self.make_portal_user(self.TEST_PORTAL_A, "Portal A")
+        self.other_portal_user = self.make_portal_user(
+            self.TEST_PORTAL_B, "Portal B"
         )
-        self.submission = self.env["risk.module"].create(
-            {
-                "vehicle_plate": "abc123",
-                "form_date": "2026-05-09",
-                **self.env["risk.module"]._portal_ownership_values(self.portal_user),
-                "owner_name": "Transportes Demo",
-                "owner_document_type": "nit",
-                "owner_document_number": "123456789-0",
-                "owner_phone": "3001234567",
-                "owner_email": "operaciones@example.com",
-                "driver_name": "Conductor Demo",
-                "driver_document_number": "12345678",
-                "driver_phone": "3007654321",
-                "driver_email": "conductor@example.com",
-                "driver_is_fit": "yes",
-                "driver_is_trained": "yes",
-                "owner_has_valid_study": "yes",
-                "driver_has_valid_study": "yes",
-            }
-        )
-
-    def _create_portal_user(self, login, name):
-        return (
-            self.env["res.users"]
-            .with_context(no_reset_password=True)
-            .create(
-                {
-                    "name": name,
-                    "login": login,
-                    "email": login,
-                    "group_ids": [Command.set([self.portal_group.id])],
-                }
-            )
-        )
+        self.submission = self.make_submission(owner=self.portal_user)
 
     def test_create_normalizes_plate(self):
         self.assertEqual(self.submission.vehicle_plate, "ABC123")
@@ -117,15 +82,12 @@ class TestRiskSubmission(TransactionCase):
         self.assertFalse(mail.recipient_ids)
 
     def test_document_rejection_email_is_queued_when_document_rejected(self):
-        document = self.env["risk.module.document"].create(
-            {
-                "submission_id": self.submission.id,
-                "name": "Tarjeta de propiedad",
-                "document_type": "vehicle_registration",
-                "party": "vehicle",
-                "state": "received",
-                "observations": "No es legible",
-            }
+        document = self.make_document(
+            self.submission,
+            document_type="vehicle_registration",
+            party="vehicle",
+            state="received",
+            observations="No es legible",
         )
 
         document.with_context(risk_send_mail_immediately=True).action_confirm_rejection()
@@ -270,13 +232,8 @@ class TestRiskSubmission(TransactionCase):
 
     def test_approval_after_documents_are_approved(self):
         self.submission.action_request_documents()
-        self.submission.document_ids.write(
-            {
-                "file": "ZHVtbXk=",
-                "filename": "documento.pdf",
-                "state": "approved",
-            }
-        )
+        for document in self.submission.document_ids:
+            self.approve_document(document)
         self.submission.write({"state": "documents_review"})
 
         self.submission.action_confirm_approval("Documentos completos")
@@ -286,7 +243,7 @@ class TestRiskSubmission(TransactionCase):
         self.assertFalse(self.submission.rejection_user_id)
 
     def test_validiti_manual_approval_moves_to_manual_approval(self):
-        validation = self.submission._ensure_validiti_validation()
+        validation = self.make_validation(self.submission)
 
         validation.apply_manual_result(
             decision="approved",
