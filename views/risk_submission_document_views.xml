@@ -1,4 +1,36 @@
 <odoo>
+    <record id="view_risk_additional_document_wizard_form" model="ir.ui.view">
+        <field name="name">risk.additional.document.wizard.form</field>
+        <field name="model">risk.additional.document.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Solicitar documento adicional">
+                <sheet class="risk-additional-document-wizard">
+                    <div class="risk-template-wizard-intro">
+                        <h2>Solicitar documento adicional</h2>
+                        <p>Selecciona un documento del catalogo. Solo aparecen documentos que aun no han sido solicitados en esta solicitud.</p>
+                    </div>
+                    <field name="submission_id" invisible="1"/>
+                    <field name="available_requirement_ids" invisible="1"/>
+                    <field name="no_available_documents" invisible="1"/>
+                    <div class="alert alert-info" role="status" invisible="not no_available_documents">
+                        Ya solicitaste todos los documentos disponibles del catalogo para esta solicitud.
+                    </div>
+                    <group invisible="no_available_documents">
+                        <field name="requirement_id"
+                               options="{'no_create': True, 'no_open': True}"
+                               placeholder="Selecciona el documento adicional"/>
+                        <field name="notify_third_party"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_request_document" type="object" string="Solicitar documento" class="btn-primary"
+                            invisible="no_available_documents"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
     <record id="view_risk_module_document_list" model="ir.ui.view">
         <field name="name">risk.module.document.list</field>
         <field name="model">risk.module.document</field>

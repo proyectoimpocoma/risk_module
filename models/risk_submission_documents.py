@@ -76,19 +76,12 @@ class RiskSubmissionDocuments(models.Model):
         self.ensure_one()
         return {
             "type": "ir.actions.act_window",
-            "name": "Agregar documento adicional",
-            "res_model": "risk.module.document",
+            "name": "Solicitar documento adicional",
+            "res_model": "risk.additional.document.wizard",
             "view_mode": "form",
-            "view_id": self.env.ref("risk_module.view_risk_module_document_form").id,
             "target": "new",
             "context": {
                 "default_submission_id": self.id,
-                "default_source": "manual",
-                "default_required": True,
-                "default_document_type": "other",
-                "default_party": "other",
-                "default_max_file_size_mb": 10.0,
-                "default_allowed_file_extensions": "pdf,jpg,jpeg,png",
             },
         }
 

@@ -138,3 +138,248 @@
 .risk-message-template-form textarea {
     min-height: 120px;
 }
+
+.risk-message-template-kanban .o_kanban_record {
+    padding: 0;
+}
+
+.risk-message-card {
+    min-height: 150px;
+    padding: 12px 14px;
+    border-left: 4px solid #7a679f;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.risk-message-card-document_rejection {
+    border-left-color: #d8a23a;
+}
+
+.risk-message-card-submission_correction {
+    border-left-color: #3478a8;
+}
+
+.risk-message-card-submission_rejection {
+    border-left-color: #a83f3f;
+}
+
+.risk-message-card-header {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.risk-message-card-type {
+    display: inline-flex;
+    max-width: 100%;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: #f3f4f6;
+    color: #4b5563;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.risk-message-card-title {
+    margin-bottom: 8px;
+    color: #1f2933;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.risk-message-card-body {
+    display: -webkit-box;
+    overflow: hidden;
+    color: #4b5563;
+    font-size: 13px;
+    line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+}
+
+.risk-document-requirement-kanban .o_kanban_record {
+    padding: 0;
+}
+
+.risk-docreq-card {
+    min-height: 150px;
+    padding: 12px 14px;
+    border-left: 4px solid #7a679f;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.risk-docreq-card-driver {
+    border-left-color: #3478a8;
+}
+
+.risk-docreq-card-owner {
+    border-left-color: #7a679f;
+}
+
+.risk-docreq-card-vehicle {
+    border-left-color: #2f855a;
+}
+
+.risk-docreq-card-semi_trailer {
+    border-left-color: #b7791f;
+}
+
+.risk-docreq-card-other {
+    border-left-color: #718096;
+}
+
+.risk-docreq-card-header {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.risk-docreq-profile {
+    display: inline-flex;
+    max-width: 100%;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: #f3f4f6;
+    color: #4b5563;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.risk-docreq-title {
+    margin-bottom: 8px;
+    color: #1f2933;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.risk-docreq-rule {
+    margin-bottom: 10px;
+    color: #667085;
+    font-size: 13px;
+}
+
+.risk-docreq-rule span {
+    margin-right: 4px;
+}
+
+.risk-docreq-rule strong {
+    color: #344054;
+    font-weight: 700;
+}
+
+.risk-docreq-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.risk-docreq-badge {
+    display: inline-flex;
+    padding: 3px 7px;
+    border-radius: 6px;
+    background: #edf7f1;
+    color: #245642;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.risk-docreq-badge-muted {
+    background: #f3f4f6;
+    color: #667085;
+}
+
+.risk-docreq-form-intro {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    border: 1px solid #dce5db;
+    border-radius: 8px;
+    background: #f7fbf8;
+}
+
+.risk-docreq-form-intro h2 {
+    margin: 0 0 4px;
+    color: #1f2933;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.risk-docreq-form-intro p {
+    margin: 0;
+    color: #667085;
+}
+
+.risk-docreq-form-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+    gap: 16px;
+    align-items: start;
+}
+
+.risk-docreq-panel {
+    padding: 14px;
+    border: 1px solid #dce5db;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.risk-docreq-panel-wide {
+    grid-column: span 1;
+}
+
+.risk-docreq-panel-title {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #edf0f2;
+    color: #1f2933;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.risk-docreq-option-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.risk-docreq-option-grid-one {
+    grid-template-columns: 1fr;
+}
+
+.risk-docreq-option {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    min-height: 40px;
+    padding: 6px 10px;
+    border: 1px solid #edf0f2;
+    border-radius: 6px;
+    background: #fbfcfd;
+}
+
+.risk-docreq-option label {
+    margin: 0;
+    color: #1f2933;
+    font-weight: 600;
+}
+
+.risk-docreq-panel textarea {
+    min-height: 110px;
+}
+
+@media (max-width: 1100px) {
+    .risk-docreq-form-grid {
+        grid-template-columns: 1fr;
+    }
+}

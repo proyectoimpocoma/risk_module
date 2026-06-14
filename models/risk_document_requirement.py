@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 DOCUMENT_TYPE_SELECTION = [
@@ -94,6 +94,15 @@ class RiskDocumentRequirement(models.Model):
     requires_color = fields.Boolean(string="Debe estar a color")
     requires_both_sides = fields.Boolean(string="Requiere ambas caras")
     instructions = fields.Text(string="Instrucciones")
+
+    @api.depends("name", "party")
+    def _compute_display_name(self):
+        party_labels = dict(PARTY_SELECTION)
+        for record in self:
+            record.display_name = "%s - %s" % (
+                record.name or "",
+                party_labels.get(record.party, record.party),
+            )
 
     def _applies_to_submission(self, submission):
         self.ensure_one()

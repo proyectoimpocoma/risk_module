@@ -1,4 +1,48 @@
 <odoo>
+    <record id="view_risk_document_requirement_kanban" model="ir.ui.view">
+        <field name="name">risk.document.requirement.kanban</field>
+        <field name="model">risk.document.requirement</field>
+        <field name="arch" type="xml">
+            <kanban string="Documentos por perfil" class="risk-document-requirement-kanban" default_group_by="party" sample="1">
+                <field name="active"/>
+                <field name="name"/>
+                <field name="party"/>
+                <field name="applies_when"/>
+                <field name="required"/>
+                <field name="validity_required"/>
+                <field name="issue_date_required"/>
+                <field name="requires_color"/>
+                <field name="requires_both_sides"/>
+                <field name="skip_when_owner_driver_same"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="risk-docreq-card risk-docreq-card-#{record.party.raw_value}">
+                            <div class="risk-docreq-card-header">
+                                <span class="risk-docreq-profile" t-out="record.party.value"/>
+                                <field name="active" widget="boolean_toggle"/>
+                            </div>
+                            <div class="risk-docreq-title">
+                                <field name="name"/>
+                            </div>
+                            <div class="risk-docreq-rule">
+                                <span>Aplica:</span>
+                                <strong t-out="record.applies_when.value"/>
+                            </div>
+                            <div class="risk-docreq-badges">
+                                <span t-if="record.required.raw_value" class="risk-docreq-badge">Obligatorio</span>
+                                <span t-if="record.validity_required.raw_value" class="risk-docreq-badge">Vigencia</span>
+                                <span t-if="record.issue_date_required.raw_value" class="risk-docreq-badge">Expedicion</span>
+                                <span t-if="record.requires_color.raw_value" class="risk-docreq-badge">Color</span>
+                                <span t-if="record.requires_both_sides.raw_value" class="risk-docreq-badge">Ambas caras</span>
+                                <span t-if="record.skip_when_owner_driver_same.raw_value" class="risk-docreq-badge risk-docreq-badge-muted">Omitir si misma persona</span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <record id="view_risk_document_requirement_list" model="ir.ui.view">
         <field name="name">risk.document.requirement.list</field>
         <field name="model">risk.document.requirement</field>
@@ -59,42 +103,107 @@
         <field name="model">risk.document.requirement</field>
         <field name="arch" type="xml">
             <form string="Documento requerido">
-                <sheet>
-                    <group>
-                        <group>
-                            <field name="active"/>
-                            <field name="sequence"/>
-                            <field name="name"/>
-                            <field name="document_type"/>
-                            <field name="party"/>
-                            <field name="required"/>
-                        </group>
-                        <group string="Regla">
-                            <field name="applies_when"/>
-                            <field name="skip_when_owner_driver_same"/>
-                        </group>
-                    </group>
-                    <group string="Matriz por perfil">
-                        <field name="applies_driver"/>
-                        <field name="applies_vehicle"/>
-                        <field name="applies_owner_natural"/>
-                        <field name="applies_owner_company"/>
-                        <field name="applies_semi_trailer"/>
-                        <field name="applies_owner_valid_study"/>
-                        <field name="applies_driver_valid_study"/>
-                    </group>
-                    <group string="Validaciones del archivo">
-                        <field name="validity_required"/>
-                        <field name="issue_date_required"/>
-                        <field name="reject_expired"/>
-                        <field name="max_age_days"/>
-                        <field name="max_file_size_mb"/>
-                        <field name="allowed_file_extensions"/>
-                        <field name="requires_color"/>
-                        <field name="requires_both_sides"/>
-                    </group>
-                    <group string="Instrucciones">
-                        <field name="instructions" nolabel="1" placeholder="Mensaje que vera el tercero al cargar el documento."/>
+                <sheet class="risk-docreq-form">
+                    <div class="risk-docreq-form-intro">
+                        <div>
+                            <h2>Documento requerido</h2>
+                            <p>Configura cuando se solicita, a quien aplica y que debe validar el archivo.</p>
+                        </div>
+                        <field name="active" widget="boolean_toggle"/>
+                    </div>
+
+                    <div class="risk-docreq-form-grid">
+                        <div class="risk-docreq-panel risk-docreq-panel-wide">
+                            <div class="risk-docreq-panel-title">Informacion basica</div>
+                            <group>
+                                <field name="name" placeholder="Ej: Licencia de conduccion"/>
+                                <field name="document_type"/>
+                                <field name="party"/>
+                                <field name="required"/>
+                            </group>
+                        </div>
+
+                        <div class="risk-docreq-panel">
+                            <div class="risk-docreq-panel-title">Cuando aplica</div>
+                            <group>
+                                <field name="applies_when"/>
+                                <field name="skip_when_owner_driver_same"/>
+                            </group>
+                        </div>
+
+                        <div class="risk-docreq-panel risk-docreq-panel-wide">
+                            <div class="risk-docreq-panel-title">Perfiles donde se solicita</div>
+                            <div class="risk-docreq-option-grid">
+                                <div class="risk-docreq-option">
+                                    <field name="applies_driver" nolabel="1"/>
+                                    <label for="applies_driver"/>
+                                </div>
+                                <div class="risk-docreq-option">
+                                    <field name="applies_vehicle" nolabel="1"/>
+                                    <label for="applies_vehicle"/>
+                                </div>
+                                <div class="risk-docreq-option">
+                                    <field name="applies_owner_natural" nolabel="1"/>
+                                    <label for="applies_owner_natural"/>
+                                </div>
+                                <div class="risk-docreq-option">
+                                    <field name="applies_owner_company" nolabel="1"/>
+                                    <label for="applies_owner_company"/>
+                                </div>
+                                <div class="risk-docreq-option">
+                                    <field name="applies_semi_trailer" nolabel="1"/>
+                                    <label for="applies_semi_trailer"/>
+                                </div>
+                                <div class="risk-docreq-option">
+                                    <field name="applies_owner_valid_study" nolabel="1"/>
+                                    <label for="applies_owner_valid_study"/>
+                                </div>
+                                <div class="risk-docreq-option">
+                                    <field name="applies_driver_valid_study" nolabel="1"/>
+                                    <label for="applies_driver_valid_study"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="risk-docreq-panel">
+                            <div class="risk-docreq-panel-title">Requisitos del archivo</div>
+                            <div class="risk-docreq-option-grid risk-docreq-option-grid-one">
+                                <div class="risk-docreq-option">
+                                    <field name="validity_required" nolabel="1"/>
+                                    <label for="validity_required"/>
+                                </div>
+                                <div class="risk-docreq-option">
+                                    <field name="issue_date_required" nolabel="1"/>
+                                    <label for="issue_date_required"/>
+                                </div>
+                                <div class="risk-docreq-option">
+                                    <field name="reject_expired" nolabel="1"/>
+                                    <label for="reject_expired"/>
+                                </div>
+                                <div class="risk-docreq-option">
+                                    <field name="requires_color" nolabel="1"/>
+                                    <label for="requires_color"/>
+                                </div>
+                                <div class="risk-docreq-option">
+                                    <field name="requires_both_sides" nolabel="1"/>
+                                    <label for="requires_both_sides"/>
+                                </div>
+                            </div>
+                            <group>
+                                <field name="max_age_days"/>
+                                <field name="max_file_size_mb"/>
+                                <field name="allowed_file_extensions" placeholder="pdf,jpg,jpeg,png"/>
+                            </group>
+                        </div>
+
+                        <div class="risk-docreq-panel risk-docreq-panel-wide">
+                            <div class="risk-docreq-panel-title">Instrucciones para el tercero</div>
+                            <field name="instructions" nolabel="1" placeholder="Mensaje que vera el tercero al cargar el documento."/>
+                        </div>
+                    </div>
+
+                    <group string="Orden" groups="risk_module.group_risk_manager">
+                        <field name="sequence"/>
                     </group>
                 </sheet>
             </form>
@@ -126,17 +235,16 @@
     <record id="action_risk_document_requirement" model="ir.actions.act_window">
         <field name="name">Catalogo de documentos</field>
         <field name="res_model">risk.document.requirement</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_risk_document_requirement_search"/>
-        <field name="context">{'search_default_active': 1}</field>
+        <field name="context">{'search_default_active': 1, 'group_by': 'party'}</field>
     </record>
 
     <record id="action_risk_document_requirement_matrix" model="ir.actions.act_window">
         <field name="name">Documentos por perfil</field>
         <field name="res_model">risk.document.requirement</field>
-        <field name="view_mode">list,form</field>
-        <field name="view_id" ref="view_risk_document_requirement_matrix"/>
+        <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_risk_document_requirement_search"/>
-        <field name="context">{'search_default_active': 1}</field>
+        <field name="context">{'search_default_active': 1, 'group_by': 'party'}</field>
     </record>
 </odoo>
