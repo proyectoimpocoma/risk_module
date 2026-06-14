@@ -114,43 +114,6 @@ class RiskMessageTemplate(models.Model):
             )
         return super().write(vals)
 
-    def init(self):
-        mapping = {
-            "document_rejection": "document",
-            "submission_rejection": "final_rejection",
-            "submission_correction": "correction",
-            "document_request": "document",
-            "document_rejected_email": "document",
-        }
-        for category, message_type in mapping.items():
-            defaults = self._category_default_values(category)
-            self.env.cr.execute(
-                """
-                UPDATE risk_message_template
-                   SET message_type = %s
-                 WHERE category = %s
-                   AND (message_type IS NULL OR message_type = 'document')
-                """,
-                [message_type, category],
-            )
-            self.env.cr.execute(
-                """
-                UPDATE risk_message_template
-                   SET channel = COALESCE(NULLIF(channel, ''), %s),
-                       recipient_type = COALESCE(NULLIF(recipient_type, ''), %s),
-                       usage_location = COALESCE(NULLIF(usage_location, ''), %s),
-                       available_variables = COALESCE(NULLIF(available_variables, ''), %s)
-                 WHERE category = %s
-                """,
-                [
-                    defaults.get("channel"),
-                    defaults.get("recipient_type"),
-                    defaults.get("usage_location"),
-                    defaults.get("available_variables"),
-                    category,
-                ],
-            )
-
     def _message_type_from_category(self, category):
         mapping = {
             "document_rejection": "document",
