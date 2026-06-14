@@ -9,6 +9,7 @@ from . import risk_submission_documents
 from . import risk_submission_document
 from . import risk_external_validation
 from . import res_users
+from . import risk_submission_mixins
 
 __all__ = [
     "risk_submission",
@@ -22,4 +23,5 @@ __all__ = [
     "risk_submission_document",
     "risk_external_validation",
     "res_users",
+    "risk_submission_mixins",
 ]
