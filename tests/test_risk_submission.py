@@ -27,6 +27,50 @@ class TestRiskSubmission(RiskModuleTestCase):
         self.assertTrue(self.submission._portal_is_owned_by(self.portal_user))
         self.assertFalse(self.submission._portal_is_owned_by(self.other_portal_user))
 
+    def test_master_records_are_synced_from_submission(self):
+        self.submission.write(
+            {
+                "same_owner_on_license": "no",
+                "registered_owner_document_type": "cc",
+                "registered_owner_document_number": "87654321",
+                "registered_owner_name": "Propietario Registrado",
+                "registered_owner_phone": "3001112233",
+            }
+        )
+
+        self.submission._sync_master_records()
+
+        self.assertEqual(self.submission.vehicle_id.plate, "ABC123")
+        self.assertEqual(self.submission.driver_id.document_number, "12345678")
+        self.assertEqual(self.submission.owner_id.document_number, "123456789-0")
+        self.assertEqual(self.submission.vehicle_owner_link_id.role, "holder")
+        registered_owner = self.env["risk.owner"].search(
+            [
+                ("document_type", "=", "cc"),
+                ("document_number", "=", "87654321"),
+            ],
+            limit=1,
+        )
+        self.assertTrue(registered_owner)
+        self.assertTrue(
+            self.env["risk.vehicle.owner"].search(
+                [
+                    ("vehicle_id", "=", self.submission.vehicle_id.id),
+                    ("owner_id", "=", registered_owner.id),
+                    ("role", "=", "owner"),
+                    ("active", "=", True),
+                ],
+                limit=1,
+            )
+        )
+
+    def test_master_assignment_is_activated_on_approval(self):
+        self.submission._sync_master_records(activate_assignment=True)
+
+        self.assertEqual(self.submission.vehicle_id.current_driver_id, self.submission.driver_id)
+        self.assertEqual(self.submission.driver_id.current_vehicle_id, self.submission.vehicle_id)
+        self.assertEqual(self.submission.vehicle_id.status, "enabled")
+
     def test_portal_state_labels(self):
         expected = {
             "draft": "En revision",

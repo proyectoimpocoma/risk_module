@@ -138,6 +138,8 @@ class RiskSubmissionFormMapperMixin:
                 values.get("vehicle_plate"),
             )
             submission = RiskSubmission.create(values)
+        if state in ("submitted", "correction_submitted"):
+            submission._sync_master_records()
         data["submission_id"] = submission.id
         data["submission_token"] = submission.access_token
         _logger.debug("Risk submission mapped submission_id=%s token_present=%s", submission.id, bool(submission.access_token))

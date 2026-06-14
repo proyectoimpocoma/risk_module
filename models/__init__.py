@@ -7,6 +7,7 @@ from . import risk_vehicle
 from . import risk_driver
 from . import risk_owner
 from . import risk_vehicle_owner
+from . import risk_submission_master_sync
 from . import risk_document_requirement
 from . import risk_message_template
 from . import risk_submission_documents
@@ -25,6 +26,7 @@ __all__ = [
     "risk_driver",
     "risk_owner",
     "risk_vehicle_owner",
+    "risk_submission_master_sync",
     "risk_document_requirement",
     "risk_message_template",
     "risk_submission_documents",

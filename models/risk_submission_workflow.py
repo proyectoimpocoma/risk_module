@@ -140,6 +140,7 @@ class RiskSubmissionWorkflow(models.Model):
                     "correction_submitted_at": False,
                 }
             )
+            record._sync_master_records(activate_assignment=True)
             body = "Solicitud aprobada manualmente."
             if note:
                 body = "%s<br/><br/><strong>Comentario:</strong> %s" % (
