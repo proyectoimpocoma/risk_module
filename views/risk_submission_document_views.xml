@@ -3,11 +3,11 @@
         <field name="name">risk.additional.document.wizard.form</field>
         <field name="model">risk.additional.document.wizard</field>
         <field name="arch" type="xml">
-            <form string="Solicitar documento adicional">
+            <form string="Solicitar documentos adicionales">
                 <sheet class="risk-additional-document-wizard">
                     <div class="risk-template-wizard-intro">
-                        <h2>Solicitar documento adicional</h2>
-                        <p>Selecciona un documento del catalogo. Solo aparecen documentos que aun no han sido solicitados en esta solicitud.</p>
+                        <h2>Solicitar documentos adicionales</h2>
+                        <p>Selecciona uno o varios documentos del catalogo. Solo aparecen documentos que aun no han sido solicitados en esta solicitud.</p>
                     </div>
                     <field name="submission_id" invisible="1"/>
                     <field name="available_requirement_ids" invisible="1"/>
@@ -16,14 +16,15 @@
                         Ya solicitaste todos los documentos disponibles del catalogo para esta solicitud.
                     </div>
                     <group invisible="no_available_documents">
-                        <field name="requirement_id"
+                        <field name="requirement_ids"
+                               widget="many2many_tags"
                                options="{'no_create': True, 'no_open': True}"
-                               placeholder="Selecciona el documento adicional"/>
+                               placeholder="Selecciona los documentos adicionales"/>
                         <field name="notify_third_party"/>
                     </group>
                 </sheet>
                 <footer>
-                    <button name="action_request_document" type="object" string="Solicitar documento" class="btn-primary"
+                    <button name="action_request_document" type="object" string="Solicitar documentos" class="btn-primary"
                             invisible="no_available_documents"/>
                     <button string="Cancelar" special="cancel"/>
                 </footer>

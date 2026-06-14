@@ -10,6 +10,7 @@ from odoo import api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
+_signature_logger = logging.getLogger("risk_module.signatures")
 
 SIGNATURE_CODE_TTL_MINUTES = 15
 SIGNATURE_CODE_RESEND_SECONDS = 60
@@ -1161,7 +1162,7 @@ class RiskSubmission(models.Model):
         email = (self[config["email_field"]] or "").strip()
 
         if not email:
-            _logger.warning(
+            _signature_logger.warning(
                 "Signature code send blocked without email submission_id=%s party=%s",
                 self.id,
                 party,
@@ -1175,7 +1176,7 @@ class RiskSubmission(models.Model):
         now = fields.Datetime.now()
         sent_at = self[config["sent_at"]]
         if sent_at and (now - sent_at).total_seconds() < SIGNATURE_CODE_RESEND_SECONDS:
-            _logger.warning(
+            _signature_logger.warning(
                 "Signature code resend throttled submission_id=%s party=%s email=%s",
                 self.id,
                 party,
@@ -1204,7 +1205,7 @@ class RiskSubmission(models.Model):
 
         template = self.env.ref(config["template"], raise_if_not_found=False)
         if not template:
-            _logger.warning("Signature code template not found party=%s", party)
+            _signature_logger.warning("Signature code template not found party=%s", party)
             return {
                 "ok": False,
                 "message": "No se encontro la plantilla de correo para enviar el codigo.",
@@ -1241,7 +1242,7 @@ class RiskSubmission(models.Model):
             % (config["label"], email),
         )
 
-        _logger.info(
+        _signature_logger.info(
             "Signature code email scheduled after commit submission_id=%s party=%s email=%s expires_at=%s",
             self.id,
             party,
@@ -1298,7 +1299,7 @@ class RiskSubmission(models.Model):
                     config["state"]: state,
                 }
             )
-            _logger.warning(
+            _signature_logger.warning(
                 "Signature code verification failed submission_id=%s party=%s attempts=%s state=%s",
                 self.id,
                 party,
@@ -1327,7 +1328,7 @@ class RiskSubmission(models.Model):
             body="Correo de firma verificado para el %s: %s."
             % (config["label"], self[config["email"]])
         )
-        _logger.info(
+        _signature_logger.info(
             "Signature code verified submission_id=%s party=%s email=%s ip=%s",
             self.id,
             party,

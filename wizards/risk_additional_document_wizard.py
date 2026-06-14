@@ -16,9 +16,12 @@ class RiskAdditionalDocumentWizard(models.TransientModel):
         "risk.document.requirement",
         compute="_compute_available_requirement_ids",
     )
-    requirement_id = fields.Many2one(
+    requirement_ids = fields.Many2many(
         "risk.document.requirement",
-        string="Documento a solicitar",
+        "risk_additional_document_wizard_requirement_rel",
+        "wizard_id",
+        "requirement_id",
+        string="Documentos a solicitar",
         domain="[('id', 'in', available_requirement_ids)]",
         required=True,
     )
@@ -60,40 +63,48 @@ class RiskAdditionalDocumentWizard(models.TransientModel):
     @api.onchange("available_requirement_ids")
     def _onchange_available_requirement_ids(self):
         for wizard in self:
-            if (
-                wizard.requirement_id
-                and wizard.requirement_id not in wizard.available_requirement_ids
-            ):
-                wizard.requirement_id = False
+            wizard.requirement_ids = wizard.requirement_ids & wizard.available_requirement_ids
 
     def action_request_document(self):
         self.ensure_one()
-        if not self.requirement_id:
-            raise ValidationError("Selecciona el documento adicional que deseas solicitar.")
-        existing = self.submission_id.document_ids.filtered(
-            lambda document: (
-                document.document_type == self.requirement_id.document_type
-                and document.party == self.requirement_id.party
-            )
-        )
-        if existing:
+        if not self.requirement_ids:
             raise ValidationError(
-                "Este documento ya fue solicitado en la solicitud actual."
+                "Selecciona al menos un documento adicional para solicitar."
             )
 
-        values = self.requirement_id._to_document_template()
-        document = self.env["risk.module.document"].create(
-            {
-                "submission_id": self.submission_id.id,
-                "source": "manual",
-                **values,
-            }
+        existing_keys = {
+            (document.document_type, document.party)
+            for document in self.submission_id.document_ids
+        }
+        duplicated_requirements = self.requirement_ids.filtered(
+            lambda requirement: (
+                requirement.document_type,
+                requirement.party,
+            )
+            in existing_keys
         )
+        if duplicated_requirements:
+            raise ValidationError(
+                "Uno o mas documentos seleccionados ya fueron solicitados en la solicitud actual."
+            )
+
+        document_values = []
+        for requirement in self.requirement_ids:
+            values = requirement._to_document_template()
+            document_values.append(
+                {
+                    "submission_id": self.submission_id.id,
+                    "source": "manual",
+                    **values,
+                }
+            )
+        documents = self.env["risk.module.document"].create(document_values)
         if self.submission_id.state in ("manual_approval_pending", "documents_review"):
             self.submission_id.state = "documents_requested"
+        document_names = ", ".join(documents.mapped("name"))
         self.submission_id.message_post(
-            body="Documento adicional solicitado: <strong>%s</strong>."
-            % document.name
+            body="Documentos adicionales solicitados: <strong>%s</strong>."
+            % document_names
         )
         if self.notify_third_party:
             self.submission_id.action_send_documents_requested_email()

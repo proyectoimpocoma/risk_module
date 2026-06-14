@@ -6,6 +6,7 @@ from odoo.http import request
 from .risk_submission_form_schema import CC_REGEX
 
 _logger = logging.getLogger(__name__)
+_signature_logger = logging.getLogger("risk_module.signatures")
 
 
 class RiskSubmissionFormSignatureMixin:
@@ -93,7 +94,7 @@ class RiskSubmissionFormSignatureMixin:
         )
         if data.get("single_owner_driver_signature") not in ("yes", "no"):
             data["single_owner_driver_signature"] = "no"
-        _logger.debug(
+        _signature_logger.debug(
             "Updated signature data user_id=%s owner_signature_present=%s driver_signature_present=%s owner_study=%s driver_study=%s",
             request.env.user.id,
             bool(data.get("owner_signature")),
@@ -127,7 +128,7 @@ class RiskSubmissionFormSignatureMixin:
                 "driver_signature_verification_state": data.get("owner_signature_verification_state"),
             }
         )
-        _logger.info("Single owner/driver signature applied user_id=%s", request.env.user.id)
+        _signature_logger.info("Single owner/driver signature applied user_id=%s", request.env.user.id)
 
     def _validate_signature_step(self, data):
         """
@@ -135,13 +136,13 @@ class RiskSubmissionFormSignatureMixin:
         Returns an error message string if any validation fails.
         """
         if data.get("owner_has_valid_study") not in ("yes", "no"):
-            _logger.warning("Signature validation missing owner study flag user_id=%s", request.env.user.id)
+            _signature_logger.warning("Signature validation missing owner study flag user_id=%s", request.env.user.id)
             return "Debes indicar si el propietario cuenta con estudio vigente."
         if data.get("driver_has_valid_study") not in ("yes", "no"):
-            _logger.warning("Signature validation missing driver study flag user_id=%s", request.env.user.id)
+            _signature_logger.warning("Signature validation missing driver study flag user_id=%s", request.env.user.id)
             return "Debes indicar si el conductor cuenta con estudio vigente."
         if not self._signatures_are_valid(data):
-            _logger.warning("Combined signature validation failed user_id=%s", request.env.user.id)
+            _signature_logger.warning("Combined signature validation failed user_id=%s", request.env.user.id)
             return self._signature_error_message(data)
         return None
 
@@ -150,7 +151,7 @@ class RiskSubmissionFormSignatureMixin:
         remote_addr = request.httprequest.remote_addr
         user_agent = request.httprequest.user_agent.string
         if data.get("owner_has_valid_study") != "yes":
-            _logger.info("Owner signature metadata stamped user_id=%s ip=%s", request.env.user.id, remote_addr)
+            _signature_logger.info("Owner signature metadata stamped user_id=%s ip=%s", request.env.user.id, remote_addr)
             data.update(
                 {
                     "owner_signed_at": now,
@@ -159,7 +160,7 @@ class RiskSubmissionFormSignatureMixin:
                 }
             )
         if data.get("driver_has_valid_study") != "yes":
-            _logger.info("Driver signature metadata stamped user_id=%s ip=%s", request.env.user.id, remote_addr)
+            _signature_logger.info("Driver signature metadata stamped user_id=%s ip=%s", request.env.user.id, remote_addr)
             data.update(
                 {
                     "driver_signed_at": now,
@@ -173,7 +174,7 @@ class RiskSubmissionFormSignatureMixin:
         remote_addr = request.httprequest.remote_addr
         user_agent = request.httprequest.user_agent.string
         if data.get("owner_has_valid_study") != "yes":
-            _logger.info("Owner signature metadata stamped user_id=%s ip=%s", request.env.user.id, remote_addr)
+            _signature_logger.info("Owner signature metadata stamped user_id=%s ip=%s", request.env.user.id, remote_addr)
             data.update(
                 {
                     "owner_signed_at": now,
@@ -187,7 +188,7 @@ class RiskSubmissionFormSignatureMixin:
         remote_addr = request.httprequest.remote_addr
         user_agent = request.httprequest.user_agent.string
         if data.get("driver_has_valid_study") != "yes":
-            _logger.info("Driver signature metadata stamped user_id=%s ip=%s", request.env.user.id, remote_addr)
+            _signature_logger.info("Driver signature metadata stamped user_id=%s ip=%s", request.env.user.id, remote_addr)
             data.update(
                 {
                     "driver_signed_at": now,
@@ -217,7 +218,7 @@ class RiskSubmissionFormSignatureMixin:
         )
         owner_email_ok = not self._signature_email_verification_error(data, "owner")
         driver_email_ok = not self._signature_email_verification_error(data, "driver")
-        _logger.debug(
+        _signature_logger.debug(
             "Signature validity evaluated user_id=%s owner_required=%s owner_ok=%s owner_email_ok=%s driver_required=%s driver_ok=%s driver_email_ok=%s",
             request.env.user.id,
             owner_required,
@@ -233,19 +234,19 @@ class RiskSubmissionFormSignatureMixin:
         """Valida únicamente los datos de firma del propietario."""
         verification_error = self._signature_email_verification_error(data, "owner")
         if verification_error:
-            _logger.warning("Owner signature email verification missing user_id=%s", request.env.user.id)
+            _signature_logger.warning("Owner signature email verification missing user_id=%s", request.env.user.id)
             return verification_error
         if data.get("owner_has_valid_study") not in ("yes", "no"):
-            _logger.warning("Owner signature validation missing study flag user_id=%s", request.env.user.id)
+            _signature_logger.warning("Owner signature validation missing study flag user_id=%s", request.env.user.id)
             return "Debes indicar si el propietario cuenta con estudio vigente."
         if data.get("owner_has_valid_study") != "yes":
             if not data.get("owner_signature"):
-                _logger.warning("Owner signature validation missing signature user_id=%s", request.env.user.id)
+                _signature_logger.warning("Owner signature validation missing signature user_id=%s", request.env.user.id)
                 return "Debes firmar como propietario."
             if not data.get("owner_signature_document") or not CC_REGEX.match(
                 data.get("owner_signature_document")
             ):
-                _logger.warning("Owner signature validation invalid document user_id=%s", request.env.user.id)
+                _signature_logger.warning("Owner signature validation invalid document user_id=%s", request.env.user.id)
                 return "Debes ingresar una cédula válida del propietario."
         return None
 
@@ -256,19 +257,19 @@ class RiskSubmissionFormSignatureMixin:
             return None
         verification_error = self._signature_email_verification_error(data, "driver")
         if verification_error:
-            _logger.warning("Driver signature email verification missing user_id=%s", request.env.user.id)
+            _signature_logger.warning("Driver signature email verification missing user_id=%s", request.env.user.id)
             return verification_error
         if data.get("driver_has_valid_study") not in ("yes", "no"):
-            _logger.warning("Driver signature validation missing study flag user_id=%s", request.env.user.id)
+            _signature_logger.warning("Driver signature validation missing study flag user_id=%s", request.env.user.id)
             return "Debes indicar si el conductor cuenta con estudio vigente."
         if data.get("driver_has_valid_study") != "yes":
             if not data.get("driver_signature"):
-                _logger.warning("Driver signature validation missing signature user_id=%s", request.env.user.id)
+                _signature_logger.warning("Driver signature validation missing signature user_id=%s", request.env.user.id)
                 return "Debes firmar como conductor."
             if not data.get("driver_signature_document") or not CC_REGEX.match(
                 data.get("driver_signature_document")
             ):
-                _logger.warning("Driver signature validation invalid document user_id=%s", request.env.user.id)
+                _signature_logger.warning("Driver signature validation invalid document user_id=%s", request.env.user.id)
                 return "Debes ingresar una cédula válida del conductor."
         return None
 
@@ -292,7 +293,7 @@ class RiskSubmissionFormSignatureMixin:
             ):
                 missing.append("cedula del conductor valida")
         if missing:
-            _logger.warning("Signature error message generated user_id=%s missing=%s", request.env.user.id, missing)
+            _signature_logger.warning("Signature error message generated user_id=%s missing=%s", request.env.user.id, missing)
             return "Debes completar: %s." % ", ".join(missing)
         owner_verification_error = self._signature_email_verification_error(data, "owner")
         if owner_verification_error:
