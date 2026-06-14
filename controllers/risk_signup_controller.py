@@ -14,6 +14,9 @@ _logger = logging.getLogger(__name__)
 
 class RiskSignupController(AuthSignupHome):
     def _ensure_open_signup(self):
+        """
+        Force configuration parameters to ensure B2C public signup and password resets are enabled.
+        """
         _logger.debug("Ensuring open portal signup configuration")
         request.env["ir.config_parameter"].sudo().set_param(
             "auth_signup.invitation_scope", "b2c"
@@ -23,6 +26,9 @@ class RiskSignupController(AuthSignupHome):
         )
 
     def get_auth_signup_config(self):
+        """
+        Override standard signup configuration to ensure registration is always enabled.
+        """
         self._ensure_open_signup()
         config = super().get_auth_signup_config()
         config.update(
@@ -36,6 +42,9 @@ class RiskSignupController(AuthSignupHome):
 
     @http.route()
     def web_login(self, *args, **kw):
+        """
+        Override standard web_login to enforce open signup configuration.
+        """
         self._ensure_open_signup()
         _logger.debug("Login page requested redirect=%s", kw.get("redirect") or request.params.get("redirect"))
         return super().web_login(*args, **kw)
@@ -49,6 +58,10 @@ class RiskSignupController(AuthSignupHome):
         captcha="signup",
     )
     def web_auth_signup(self, *args, **kw):
+        """
+        Override auth_signup endpoint to ensure open portal registration is available.
+        Handles the creation of the user and sending the welcome email.
+        """
         self._ensure_open_signup()
         qcontext = self.get_auth_signup_qcontext()
         _logger.info(

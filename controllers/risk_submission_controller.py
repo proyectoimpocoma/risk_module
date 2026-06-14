@@ -173,6 +173,10 @@ class RiskSubmissionController(
         methods=["POST"],
     )
     def send_signature_code(self, party, **post):
+        """
+        Request and send a signature code for a given party (owner or driver).
+        Updates signature data, persists current step, and triggers the code sending process.
+        """
         if party not in ("owner", "driver"):
             return request.not_found()
         data = request.session.get("risk_vehicle_form", {})
@@ -219,6 +223,10 @@ class RiskSubmissionController(
         methods=["POST"],
     )
     def verify_signature_code(self, party, **post):
+        """
+        Verify the signature code submitted by a given party.
+        Checks the code against the submission and updates session state with the result.
+        """
         if party not in ("owner", "driver"):
             return request.not_found()
         data = request.session.get("risk_vehicle_form", {})
@@ -389,6 +397,14 @@ class RiskSubmissionController(
         return request.redirect("/registro-conductor/7")
 
     def _sync_signature_verification_data(self, data, submission, party=None):
+        """
+        Sync signature verification state from the submission model back into the session data.
+        
+        Args:
+            data (dict): The session data dictionary to update.
+            submission (record): The risk.module submission record.
+            party (str, optional): Target party to sync ('owner' or 'driver'). Defaults to both.
+        """
         parties = (party,) if party else ("owner", "driver")
         for item in parties:
             prefix = "owner" if item == "owner" else "driver"
@@ -483,6 +499,10 @@ class RiskSubmissionController(
         return 7
 
     def _is_owner_signature_valid(self, data):
+        """
+        Evaluate if the owner's signature requirement is fulfilled.
+        Returns True if the signature is valid or if the owner already has a valid security study.
+        """
         owner_required = data.get("owner_has_valid_study") != "yes"
         owner_document_ok = data.get("owner_signature_document") and CC_REGEX.match(
             data.get("owner_signature_document")
@@ -490,6 +510,10 @@ class RiskSubmissionController(
         return not owner_required or (data.get("owner_signature") and owner_document_ok)
 
     def _is_driver_signature_valid(self, data):
+        """
+        Evaluate if the driver's signature requirement is fulfilled.
+        Returns True if the signature is valid or if the driver already has a valid security study.
+        """
         driver_required = data.get("driver_has_valid_study") != "yes"
         driver_document_ok = data.get("driver_signature_document") and CC_REGEX.match(
             data.get("driver_signature_document")
@@ -593,6 +617,12 @@ class RiskSubmissionController(
         return request.redirect("/web/signup?%s" % url_encode({"redirect": redirect_url}))
 
     def _safe_create_or_update_submission(self, data, state, error_step):
+        """
+        Safely attempt to create or update the submission, handling expected UserErrors or ValidationErrors.
+        
+        Returns:
+            tuple: (submission_record, None) on success, or (None, error_response) on failure.
+        """
         try:
             return self._create_or_update_submission(data, state), None
         except (ValidationError, UserError) as error:
@@ -616,6 +646,9 @@ class RiskSubmissionController(
             )
 
     def _render_submission_save_error(self, data, message, step):
+        """
+        Helper method to render an error message on a specific form step.
+        """
         data["step_error"] = message
         request.session["risk_vehicle_form"] = data
         return self._render_step(step)

@@ -7,6 +7,16 @@ _logger = logging.getLogger(__name__)
 
 class RiskSubmissionFormMapperMixin:
     def _submission_values(self, data, state):
+        """
+        Map session data to Odoo model fields for creating or updating a submission.
+        
+        Args:
+            data (dict): The session data.
+            state (str): The state to assign to the submission.
+            
+        Returns:
+            dict: Values ready to be written to risk.module.
+        """
         self._merge_persisted_step_data(data)
         plate = data.get("vehicle_plate") or "Sin placa"
         return {
@@ -84,6 +94,16 @@ class RiskSubmissionFormMapperMixin:
         }
 
     def _create_or_update_submission(self, data, state):
+        """
+        Create a new risk.module submission or update the existing one based on session data.
+        
+        Args:
+            data (dict): The current session data.
+            state (str): The state to save the submission in.
+            
+        Returns:
+            record or bool: The created/updated submission record, or False if denied by ownership.
+        """
         self._merge_persisted_step_data(data)
         submission_id = data.get("submission_id") or request.session.get("risk_submission_id")
         RiskSubmission = request.env["risk.module"].sudo().with_context(

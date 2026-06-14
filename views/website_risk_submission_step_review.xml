@@ -1,5 +1,6 @@
 <odoo>
     <template id="register_driver_step_review" name="Registro Vehiculo Paso Revision">
+        <!-- Sección 1: Datos Ocultos y Estado de Validaciones -->
         <input type="hidden" name="terms_accepted" value="1"/>
         <input type="hidden" name="owner_has_valid_study" t-att-value="data.get('owner_has_valid_study')"/>
         <input type="hidden" name="owner_signature" t-att-value="data.get('owner_signature')"/>
@@ -7,6 +8,8 @@
         <input type="hidden" name="driver_has_valid_study" t-att-value="data.get('driver_has_valid_study')"/>
         <input type="hidden" name="driver_signature" t-att-value="data.get('driver_signature')"/>
         <input type="hidden" name="driver_signature_document" t-att-value="data.get('driver_signature_document')"/>
+        
+        <!-- Sección 2: Resumen Final de la Solicitud -->
         <div class="risk-field risk-field-full">
             <section class="risk-review-summary">
                 <div class="risk-review-heading">
@@ -73,6 +76,7 @@
                 </div>
             </section>
         </div>
+        <!-- Sección 3: Observaciones Adicionales -->
         <div class="risk-field risk-field-full">
             <label for="message">Observaciones</label>
             <textarea id="message" name="message" placeholder="Observaciones adicionales"><t t-esc="data.get('message') or ''"/></textarea>

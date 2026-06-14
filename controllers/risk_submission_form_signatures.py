@@ -10,6 +10,9 @@ _logger = logging.getLogger(__name__)
 
 class RiskSubmissionFormSignatureMixin:
     def _signature_verification_config(self, party):
+        """
+        Get the configuration keys for email verification of a given party.
+        """
         configs = {
             "owner": {
                 "label": "propietario",
@@ -29,6 +32,10 @@ class RiskSubmissionFormSignatureMixin:
         return configs[party]
 
     def _signature_email_verification_error(self, data, party):
+        """
+        Validate if the email verification step was successfully completed for the party.
+        Returns an error string if incomplete, otherwise None.
+        """
         if party == "driver" and data.get("single_owner_driver_signature") == "yes":
             party = "owner"
         config = self._signature_verification_config(party)
@@ -44,6 +51,9 @@ class RiskSubmissionFormSignatureMixin:
         return None
 
     def _clean_signature_data(self, signature):
+        """
+        Strip base64 prefix from signature image data if present.
+        """
         if not signature:
             return ""
         prefix = "data:image/png;base64,"
@@ -52,6 +62,9 @@ class RiskSubmissionFormSignatureMixin:
         return signature
 
     def _update_signature_data(self, data, post):
+        """
+        Update the session data dictionary with signature data submitted from the form.
+        """
         owner_signature_document = post.get("owner_signature_document", "").strip()
         driver_signature_document = post.get("driver_signature_document", "").strip()
         owner_signature = self._clean_signature_data(post.get("owner_signature", ""))
@@ -90,6 +103,9 @@ class RiskSubmissionFormSignatureMixin:
         )
 
     def _apply_single_owner_driver_signature(self, data):
+        """
+        If the owner and driver are the same, copy owner signature data to driver fields.
+        """
         if data.get("single_owner_driver_signature") != "yes":
             return
         data.update(
@@ -114,6 +130,10 @@ class RiskSubmissionFormSignatureMixin:
         _logger.info("Single owner/driver signature applied user_id=%s", request.env.user.id)
 
     def _validate_signature_step(self, data):
+        """
+        Perform a combined validation of all signature requirements.
+        Returns an error message string if any validation fails.
+        """
         if data.get("owner_has_valid_study") not in ("yes", "no"):
             _logger.warning("Signature validation missing owner study flag user_id=%s", request.env.user.id)
             return "Debes indicar si el propietario cuenta con estudio vigente."
@@ -177,6 +197,9 @@ class RiskSubmissionFormSignatureMixin:
             )
 
     def _signatures_are_valid(self, data):
+        """
+        Return True if all signature and verification requirements are fully met.
+        """
         self._apply_single_owner_driver_signature(data)
         owner_required = data.get("owner_has_valid_study") != "yes"
         driver_required = data.get("driver_has_valid_study") != "yes"
@@ -250,6 +273,9 @@ class RiskSubmissionFormSignatureMixin:
         return None
 
     def _signature_error_message(self, data):
+        """
+        Generate a comprehensive error message listing all missing signature requirements.
+        """
         missing = []
         if data.get("owner_has_valid_study") != "yes":
             if not data.get("owner_signature"):

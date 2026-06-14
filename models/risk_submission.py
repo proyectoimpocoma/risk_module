@@ -411,6 +411,12 @@ class RiskSubmission(models.Model):
     )
 
     def _is_risk_analyst_without_leader_rights(self):
+        """
+        Check if the current user is a risk analyst without manager rights.
+
+        Returns:
+            bool: True if user is analyst but not manager, False otherwise.
+        """
         if self.env.su or self.env.context.get("skip_risk_form_lock"):
             return False
         user = self.env.user
@@ -421,6 +427,15 @@ class RiskSubmission(models.Model):
         )
 
     def _check_form_locked_fields_for_risk_analyst(self, vals):
+        """
+        Prevent risk analysts from modifying locked form fields.
+
+        Args:
+            vals (dict): Dictionary of values being written.
+            
+        Raises:
+            UserError: If the user attempts to modify locked fields.
+        """
         if self._is_risk_analyst_without_leader_rights():
             locked_fields = self._FORM_LOCKED_FIELDS.intersection(vals)
             if locked_fields:
@@ -436,6 +451,10 @@ class RiskSubmission(models.Model):
 
     @api.depends("document_ids.state", "document_ids.required")
     def _compute_document_summary(self):
+        """
+        Compute summary counts for the requested documents.
+        Calculates total required, pending, received, approved, and rejected.
+        """
         for record in self:
             required_documents = record.document_ids.filtered("required")
             record.document_required_count = len(required_documents)
@@ -509,6 +528,12 @@ class RiskSubmission(models.Model):
         return allowed
 
     def _all_required_documents_uploaded(self):
+        """
+        Check if all required documents for the submission have been uploaded.
+
+        Returns:
+            bool: True if no required documents are pending or rejected, False otherwise.
+        """
         self.ensure_one()
         remaining = self.document_ids.filtered(
             lambda doc: doc.required and doc.state in ("pending", "rejected")
@@ -516,6 +541,9 @@ class RiskSubmission(models.Model):
         return not bool(remaining)
 
     def action_mark_documents_sent_if_complete(self):
+        """
+        Move the submission to the 'documents_review' state if all required documents are uploaded.
+        """
         for record in self:
             if record.state != "documents_requested":
                 continue

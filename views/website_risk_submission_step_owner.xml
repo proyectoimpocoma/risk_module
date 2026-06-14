@@ -1,5 +1,6 @@
 <odoo>
     <template id="register_driver_step_owner" name="Registro Vehiculo Paso Propietario">
+        <!-- Sección 1: Datos de Identificación del Propietario -->
         <div class="risk-inline-doc">
             <div class="risk-field">
                 <label for="owner_name">Nombres y apellidos / Empresa</label>
@@ -19,6 +20,7 @@
             </div>
         </div>
 
+        <!-- Sección 2: Información de Contacto y Ubicación -->
         <div class="risk-field">
             <label for="owner_address">Direccion</label>
             <input id="owner_address" name="owner_address" type="text" t-att-value="data.get('owner_address')" maxlength="140" autocomplete="off" placeholder="Calle 123 #45-67"/>
@@ -40,6 +42,7 @@
             <input id="owner_email" name="owner_email" type="email" t-att-value="data.get('owner_email')" maxlength="120" autocomplete="off" placeholder="ejemplo@dominio.com"/>
         </div>
 
+        <!-- Sección 3: Autorización de Pagos -->
         <div class="risk-choice-row">
             <span>Autorizo la entrega y pago de anticipos a</span>
             <label class="risk-choice">
@@ -52,6 +55,7 @@
             </label>
         </div>
 
+        <!-- Sección 4: Propietario Registrado en Licencia (Condicional) -->
         <t t-set="registered_owner_required" t-value="data.get('same_owner_on_license') == 'no'"/>
         <div class="risk-field risk-field-full risk-switch-card">
             <div>

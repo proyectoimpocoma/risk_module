@@ -56,6 +56,10 @@ class RiskExternalValidation(models.Model):
     completed_by_id = fields.Many2one("res.users", string="Resultado registrado por", readonly=True)
 
     def action_send_to_validiti(self):
+        """
+        Prepares the external validation payload and transitions the record to 'sent'.
+        Updates the related submission's state to 'external_validation_pending'.
+        """
         for record in self:
             payload = record.submission_id._prepare_validiti_payload()
             _logger.info(
@@ -83,6 +87,12 @@ class RiskExternalValidation(models.Model):
             )
 
     def action_open_result_wizard(self):
+        """
+        Open the wizard to manually register the result from Validiti.
+        
+        Returns:
+            dict: Odoo action window dictionary for the wizard.
+        """
         self.ensure_one()
         _logger.info("Opening external validation result wizard validation_id=%s submission_id=%s", self.id, self.submission_id.id)
         return {
@@ -100,6 +110,10 @@ class RiskExternalValidation(models.Model):
         }
 
     def action_skip(self):
+        """
+        Skip the external validation step manually and move the submission forward.
+        Sets the status to 'skipped'.
+        """
         for record in self:
             _logger.info(
                 "Skipping external validation validation_id=%s submission_id=%s user_id=%s",
@@ -119,6 +133,16 @@ class RiskExternalValidation(models.Model):
             _logger.info("External validation skipped validation_id=%s", record.id)
 
     def apply_manual_result(self, decision, summary, risk_score=0.0, response_payload=False, external_reference=False):
+        """
+        Apply a manual result recorded via the result wizard.
+        
+        Args:
+            decision (str): The decision outcome ('approved', 'rejected', 'manual_review', 'error', 'skipped').
+            summary (str): A summary of the result.
+            risk_score (float, optional): The risk score.
+            response_payload (str, optional): The JSON payload of the response.
+            external_reference (str, optional): Reference ID from the external system.
+        """
         for record in self:
             _logger.info(
                 "Applying external validation manual result validation_id=%s submission_id=%s decision=%s risk_score=%s user_id=%s",
@@ -142,6 +166,14 @@ class RiskExternalValidation(models.Model):
             record._apply_result_to_submission(summary)
 
     def _apply_result_to_submission(self, summary):
+        """
+        Update the related submission's state based on the external validation decision.
+        If rejected, it directly rejects the submission. If approved or manual review,
+        it skips the pending external validation state on the submission.
+        
+        Args:
+            summary (str): The summary text to post in the chatter message.
+        """
         self.ensure_one()
         _logger.info(
             "Applying external validation decision to submission validation_id=%s submission_id=%s decision=%s",

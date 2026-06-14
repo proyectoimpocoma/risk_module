@@ -2,7 +2,7 @@
     <template id="register_driver_step_signatures" name="Registro Vehiculo Paso Firmas">
         <div t-if="data.get('signature_error')" class="risk-error" t-esc="data.get('signature_error')"/>
         <div t-if="data.get('signature_info')" class="risk-info" t-esc="data.get('signature_info')"/>
-
+        <!-- Sección 1: Firma y Verificación del Propietario (Paso 5) -->
         <div t-if="step == 5" class="risk-signature-card">
             <h3>Propietario / Tenedor / Representante Legal</h3>
             <div class="risk-field risk-field-full risk-switch-card">
@@ -21,6 +21,8 @@
             <div t-attf-class="risk-single-signature-note #{'' if data.get('single_owner_driver_signature') == 'yes' else 'is-disabled'}" data-single-signature-note="1">
                 Declaro que actuo como propietario/tenedor y conductor, y autorizo que esta firma aplique para ambas responsabilidades dentro de esta solicitud.
             </div>
+            
+            <!-- Subsección 1.1: Verificación de Correo (Propietario) -->
             <div class="risk-verification-box">
                 <div>
                     <strong>Verificacion de correo</strong>
@@ -58,6 +60,8 @@
                     </button>
                 </div>
             </div>
+            
+            <!-- Subsección 1.2: Estudio Vigente y Firma (Propietario) -->
             <p>Si el propietario cuenta con estudio vigente, no debe diligenciar el siguiente espacio.</p>
             <div class="risk-choice-row">
                 <span>Cuenta con estudio vigente?</span>
@@ -86,6 +90,7 @@
             </div>
         </div>
 
+        <!-- Sección 2: Firma y Verificación del Conductor (Paso 6) -->
         <div t-if="step == 6" class="risk-signature-card">
             <h3>Conductor</h3>
             <div class="risk-verification-box">
@@ -125,6 +130,8 @@
                     </button>
                 </div>
             </div>
+            
+            <!-- Subsección 2.2: Estudio Vigente y Firma (Conductor) -->
             <p>Si el conductor cuenta con estudio vigente, no debe diligenciar el siguiente espacio.</p>
             <div class="risk-choice-row">
                 <span>Cuenta con estudio vigente?</span>

@@ -62,6 +62,15 @@ class RiskApprovalWizard(models.TransientModel):
     rejection_reason = fields.Text(string="Mensaje para el usuario")
 
     def _rejection_message(self, reason_code):
+        """
+        Get the rejection message associated with a given reason code.
+        
+        Args:
+            reason_code (str): The code of the rejection reason.
+            
+        Returns:
+            str: The full rejection message from the template or default dictionary.
+        """
         default = self._REJECTION_MESSAGES.get(reason_code or "")
         return self.env["risk.message.template"]._get_body(
             "submission_rejection",
@@ -77,6 +86,13 @@ class RiskApprovalWizard(models.TransientModel):
                 wizard.rejection_reason = message
 
     def action_confirm(self):
+        """
+        Confirm the decision made in the wizard and apply it to the submission.
+        Validates required fields before executing approval or rejection.
+        
+        Returns:
+            dict: An action to close the wizard window.
+        """
         self.ensure_one()
         _logger.info(
             "Approval wizard confirmed submission_id=%s decision=%s user_id=%s",

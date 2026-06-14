@@ -197,6 +197,10 @@ class RiskSubmissionDocument(models.Model):
 
     @api.depends("expiration_date")
     def _compute_expiration_state(self):
+        """
+        Compute the expiration state of the document based on its expiration date.
+        Sets state to 'no_date', 'expired', 'expiring', or 'valid'.
+        """
         today = fields.Date.context_today(self)
         soon_limit = today + timedelta(days=30)
         for record in self:
@@ -225,6 +229,15 @@ class RiskSubmissionDocument(models.Model):
                 record.observations = message
 
     def _rejection_reason_message(self, reason):
+        """
+        Get the rejection message for a given reason using risk.message.template.
+        
+        Args:
+            reason (str): The rejection reason code.
+            
+        Returns:
+            str: The fully formatted rejection message.
+        """
         default = self._REJECTION_MESSAGES.get(reason or "")
         return self.env["risk.message.template"]._get_body(
             "document_rejection",
@@ -412,6 +425,9 @@ class RiskSubmissionDocument(models.Model):
         return result
 
     def action_mark_received(self):
+        """
+        Mark selected documents as received.
+        """
         _logger.info(
             "Marking risk documents received document_ids=%s user_id=%s",
             self.ids,
@@ -464,6 +480,10 @@ class RiskSubmissionDocument(models.Model):
         }
 
     def action_approve(self):
+        """
+        Approve the document if it has an attached file.
+        Raises ValidationError if conditions for approval are not met.
+        """
         for record in self:
             if not record.file:
                 _logger.warning(

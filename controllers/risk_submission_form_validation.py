@@ -17,6 +17,13 @@ _logger = logging.getLogger(__name__)
 
 class RiskSubmissionFormValidationMixin:
     def _normalize_step_data(self, step, data):
+        """
+        Normalize and cleanup form data before validation or saving.
+        
+        Args:
+            step (int): The current step number of the form.
+            data (dict): The raw form data dictionary to be normalized in-place.
+        """
         before_plate = data.get("vehicle_plate")
         before_semi = data.get("semi_trailer_plate")
         if step == 1:
@@ -51,6 +58,16 @@ class RiskSubmissionFormValidationMixin:
             )
 
     def _validate_step(self, step, data):
+        """
+        Validate all data for a given form step.
+        
+        Args:
+            step (int): The step number to validate.
+            data (dict): The normalized form data.
+            
+        Returns:
+            str or None: Error message if validation fails, None if successful.
+        """
         _logger.debug("Validating risk registration step=%s", step)
         length_error = self._validate_text_lengths(data)
         if length_error:
@@ -189,6 +206,15 @@ class RiskSubmissionFormValidationMixin:
         return None
 
     def _validate_text_lengths(self, data):
+        """
+        Validate that text fields do not exceed maximum lengths and choices are valid.
+        
+        Args:
+            data (dict): The form data.
+            
+        Returns:
+            str or None: Error message if any length or choice is invalid, None otherwise.
+        """
         for field, max_length in TEXT_LIMITS.items():
             value = data.get(field)
             if value and len(value) > max_length:
@@ -203,6 +229,18 @@ class RiskSubmissionFormValidationMixin:
         return None
 
     def _validate_document(self, document_type, document_number, label, required=True):
+        """
+        Validate document type and number for CC and NIT.
+        
+        Args:
+            document_type (str): 'cc' or 'nit'.
+            document_number (str): The document number.
+            label (str): Label for error messages (e.g., 'documento del propietario').
+            required (bool): Whether the document is mandatory.
+            
+        Returns:
+            str or None: Error message if invalid, None if valid.
+        """
         if not document_type and not document_number and not required:
             return None
         if not document_type:

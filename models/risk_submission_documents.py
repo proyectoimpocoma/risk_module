@@ -31,6 +31,10 @@ class RiskSubmissionDocuments(models.Model):
     }
 
     def action_request_documents(self):
+        """
+        Transition the submission to 'documents_requested' state.
+        Generates required documents based on rules and sends a notification email.
+        """
         for record in self:
             _logger.info("Requesting documents submission_id=%s user_id=%s", record.id, self.env.user.id)
             created_count = record._ensure_required_documents()
@@ -48,6 +52,10 @@ class RiskSubmissionDocuments(models.Model):
             )
 
     def action_start_document_review(self):
+        """
+        Start the document review phase.
+        Raises ValidationError if any required documents are still pending.
+        """
         for record in self:
             missing = record.document_ids.filtered(
                 lambda doc: doc.required and doc.state == "pending"
@@ -99,6 +107,12 @@ class RiskSubmissionDocuments(models.Model):
         return templates
 
     def _same_owner_and_driver_person(self):
+        """
+        Check if the owner and driver are logically the same person.
+        
+        Returns:
+            bool: True if they are the same person, False otherwise.
+        """
         self.ensure_one()
         if self.single_owner_driver_signature == "yes":
             return True
@@ -193,6 +207,10 @@ class RiskSubmissionDocuments(models.Model):
         return len(values)
 
     def _check_documents_ready_for_approval(self):
+        """
+        Verify that all required documents are approved before submission approval.
+        Raises ValidationError if any required document is not approved.
+        """
         self.ensure_one()
         if not self.document_ids:
             _logger.warning("Approval blocked without documents submission_id=%s", self.id)
