@@ -79,3 +79,24 @@ class RiskVehicle(models.Model):
             vals["plate"] = vals["plate"].strip().upper()
         if "semi_trailer_plate" in vals and vals.get("semi_trailer_plate"):
             vals["semi_trailer_plate"] = vals["semi_trailer_plate"].strip().upper()
+
+    @api.model
+    def find_by_plate(self, plate):
+        plate = (plate or "").strip().upper()
+        if not plate:
+            return self.browse()
+        return self.sudo().with_context(active_test=False).search(
+            [("plate", "=", plate)],
+            limit=1,
+        )
+
+    def assignment_conflict_for_driver(self, driver_document_number):
+        self.ensure_one()
+        driver_document_number = (driver_document_number or "").strip()
+        if (
+            not self.current_driver_id
+            or not driver_document_number
+            or self.current_driver_id.document_number == driver_document_number
+        ):
+            return False
+        return self.current_driver_id

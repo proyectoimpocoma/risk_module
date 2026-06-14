@@ -83,3 +83,24 @@ class RiskDriver(models.Model):
             vals["document_number"] = vals["document_number"].strip()
         if "email" in vals and vals.get("email"):
             vals["email"] = vals["email"].strip().lower()
+
+    @api.model
+    def find_by_document(self, document_number):
+        document_number = (document_number or "").strip()
+        if not document_number:
+            return self.browse()
+        return self.sudo().with_context(active_test=False).search(
+            [("document_number", "=", document_number)],
+            limit=1,
+        )
+
+    def assignment_conflict_for_vehicle(self, vehicle_plate):
+        self.ensure_one()
+        vehicle_plate = (vehicle_plate or "").strip().upper()
+        if (
+            not self.current_vehicle_id
+            or not vehicle_plate
+            or self.current_vehicle_id.plate == vehicle_plate
+        ):
+            return False
+        return self.current_vehicle_id

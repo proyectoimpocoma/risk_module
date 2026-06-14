@@ -242,6 +242,31 @@ class TestRiskSubmission(RiskModuleTestCase):
             self.submission._portal_document_upload_allowed(document, self.portal_user)
         )
 
+    def test_portal_can_replace_rejected_document_during_review(self):
+        self.submission.action_request_documents()
+        rejected_document = self.submission.document_ids.filtered(
+            lambda item: item.state == "pending"
+        )[:1]
+        pending_document = (self.submission.document_ids - rejected_document)[:1]
+        self.submission.state = "documents_review"
+        rejected_document.write(
+            {
+                "state": "rejected",
+                "observations": "No es legible",
+            }
+        )
+
+        self.assertTrue(
+            self.submission._portal_document_upload_allowed(
+                rejected_document, self.portal_user
+            )
+        )
+        self.assertFalse(
+            self.submission._portal_document_upload_allowed(
+                pending_document, self.portal_user
+            )
+        )
+
     def test_autotransition_to_documents_review_when_last_required_document_uploaded(
         self,
     ):
@@ -362,6 +387,56 @@ class TestRiskSubmission(RiskModuleTestCase):
             state="documents_review",
             plate="DRV124",
             driver_document_number="33333333",
+        )
+        self.approve_document(self.make_document(current))
+
+        with self.assertRaises(ValidationError):
+            current.action_confirm_approval("Revision completa")
+
+    def test_approval_blocks_master_vehicle_with_another_active_driver(self):
+        driver = self.env["risk.driver"].create(
+            {
+                "name": "Conductor Actual",
+                "document_number": "55555555",
+            }
+        )
+        self.env["risk.vehicle"].create(
+            {
+                "plate": "MST123",
+                "status": "enabled",
+                "current_driver_id": driver.id,
+            }
+        )
+        current = self.make_submission(
+            owner=self.other_portal_user,
+            state="documents_review",
+            plate="MST123",
+            driver_document_number="66666666",
+        )
+        self.approve_document(self.make_document(current))
+
+        with self.assertRaises(ValidationError):
+            current.action_confirm_approval("Revision completa")
+
+    def test_approval_blocks_master_driver_with_another_active_vehicle(self):
+        vehicle = self.env["risk.vehicle"].create(
+            {
+                "plate": "MST124",
+                "status": "enabled",
+            }
+        )
+        self.env["risk.driver"].create(
+            {
+                "name": "Conductor Actual",
+                "document_number": "77777777",
+                "current_vehicle_id": vehicle.id,
+            }
+        )
+        current = self.make_submission(
+            owner=self.other_portal_user,
+            state="documents_review",
+            plate="MST125",
+            driver_document_number="77777777",
         )
         self.approve_document(self.make_document(current))
 

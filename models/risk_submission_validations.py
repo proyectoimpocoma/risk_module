@@ -249,6 +249,7 @@ class RiskSubmissionValidations(models.Model):
     def _check_active_vehicle_driver_assignment(self):
         """Validate one active driver per vehicle and one active vehicle per driver."""
         for record in self:
+            record._check_master_assignment_conflicts()
             vehicle_conflict = record._approved_vehicle_driver_conflict()
             if vehicle_conflict:
                 raise ValidationError(

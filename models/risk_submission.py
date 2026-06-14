@@ -617,9 +617,9 @@ class RiskSubmission(models.Model):
     def _portal_document_upload_allowed(self, document, user=None):
         """Return whether a portal user may upload the given document.
 
-        A document upload is only allowed when the submission is in the
-        documents_requested state, the document belongs to this submission and
-        the document state is pending or rejected.
+        A document upload is allowed when the submission is collecting the
+        initial requested documents, or when a rejected document needs to be
+        replaced during document review.
         """
         self.ensure_one()
         if user and not self._portal_is_owned_by(user):
@@ -630,11 +630,10 @@ class RiskSubmission(models.Model):
                 user.id,
             )
             return False
-        allowed = (
-            self.state == "documents_requested"
-            and document
-            and document.submission_id == self
-            and document.state in ("pending", "rejected")
+        document_belongs_to_submission = bool(document and document.submission_id == self)
+        allowed = document_belongs_to_submission and (
+            (self.state == "documents_requested" and document.state in ("pending", "rejected"))
+            or (self.state == "documents_review" and document.state == "rejected")
         )
         _logger.debug(
             "Portal document upload rule evaluated submission_id=%s document_id=%s submission_state=%s document_state=%s allowed=%s",

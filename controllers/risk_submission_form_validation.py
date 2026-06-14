@@ -109,6 +109,9 @@ class RiskSubmissionFormValidationMixin:
         active_error = self._validate_no_active_submission_for_plate(data)
         if active_error:
             return active_error
+        master_error = self._validate_vehicle_master_state(data)
+        if master_error:
+            return master_error
         if has_semi_trailer not in ("yes", "no"):
             return "Debes indicar si el vehiculo tiene semi/remolque."
         if has_semi_trailer == "yes" and not semi_trailer_plate:
@@ -174,6 +177,9 @@ class RiskSubmissionFormValidationMixin:
         driver_assignment_error = self._validate_driver_not_active_on_other_vehicle(data)
         if driver_assignment_error:
             return driver_assignment_error
+        master_assignment_error = self._validate_driver_master_assignment(data)
+        if master_assignment_error:
+            return master_assignment_error
 
         for phone, label, validator in (
             (
@@ -213,6 +219,39 @@ class RiskSubmissionFormValidationMixin:
             return "Debes indicar si el conductor esta capacitado y entrenado."
         if data.get("driver_is_trained") != "yes":
             return "Para continuar, el conductor debe confirmar que esta capacitado y entrenado para contingencias y prevencion de accidentes en carretera."
+        return None
+
+    def _validate_vehicle_master_state(self, data):
+        plate = data.get("vehicle_plate")
+        vehicle = request.env["risk.vehicle"].find_by_plate(plate)
+        if not vehicle:
+            return None
+        if vehicle.status == "blocked":
+            return (
+                "El vehiculo %s se encuentra bloqueado para nuevas habilitaciones. "
+                "Por favor contacta al equipo de riesgo."
+            ) % vehicle.plate
+        return None
+
+    def _validate_driver_master_assignment(self, data):
+        driver_document_number = data.get("driver_document_number")
+        vehicle_plate = data.get("vehicle_plate")
+        vehicle = request.env["risk.vehicle"].find_by_plate(vehicle_plate)
+        if vehicle:
+            driver = vehicle.assignment_conflict_for_driver(driver_document_number)
+            if driver:
+                return (
+                    "El vehiculo %s ya se encuentra habilitado con el conductor %s. "
+                    "Si necesitas actualizarlo, solicita revision al equipo de riesgo."
+                ) % (vehicle.plate, driver.document_number)
+        driver = request.env["risk.driver"].find_by_document(driver_document_number)
+        if driver:
+            conflict_vehicle = driver.assignment_conflict_for_vehicle(vehicle_plate)
+            if conflict_vehicle:
+                return (
+                    "El conductor con cedula %s ya se encuentra habilitado para el "
+                    "vehiculo %s. Un conductor solo puede estar activo en un vehiculo."
+                ) % (driver.document_number, conflict_vehicle.plate)
         return None
 
     def _validate_no_active_submission_for_plate(self, data):

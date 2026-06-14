@@ -1,6 +1,7 @@
 import logging
 
 from odoo import fields, models
+from odoo.exceptions import ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -36,6 +37,75 @@ class RiskSubmissionMasterSync(models.Model):
         copy=False,
         tracking=True,
     )
+    master_validation_summary = fields.Char(
+        string="Resumen maestros",
+        compute="_compute_master_validation_summary",
+    )
+
+    def _compute_master_validation_summary(self):
+        for record in self:
+            messages = []
+            vehicle = record.vehicle_id or record._master_vehicle_for_plate()
+            driver = record.driver_id or record._master_driver_for_document()
+            if vehicle:
+                if vehicle.status == "blocked":
+                    messages.append("Vehiculo bloqueado")
+                if vehicle.current_driver_id:
+                    messages.append(
+                        "Vehiculo asociado a %s" % vehicle.current_driver_id.display_name
+                    )
+            if driver and driver.current_vehicle_id:
+                messages.append(
+                    "Conductor asociado a %s" % driver.current_vehicle_id.display_name
+                )
+            if record.vehicle_owner_link_id:
+                messages.append("Propietario/tenedor relacionado")
+            record.master_validation_summary = "; ".join(messages) or "Sin conflictos en maestros"
+
+    def _master_vehicle_for_plate(self):
+        self.ensure_one()
+        return self.env["risk.vehicle"].find_by_plate(self.vehicle_plate)
+
+    def _master_driver_for_document(self):
+        self.ensure_one()
+        return self.env["risk.driver"].find_by_document(self.driver_document_number)
+
+    def _master_vehicle_conflict_message(self):
+        self.ensure_one()
+        vehicle = self._master_vehicle_for_plate()
+        if not vehicle:
+            return False
+        if vehicle.status == "blocked":
+            return (
+                "El vehiculo %s se encuentra bloqueado para nuevas habilitaciones. "
+                "Por favor contacta al equipo de riesgo."
+            ) % vehicle.plate
+        driver = vehicle.assignment_conflict_for_driver(self.driver_document_number)
+        if driver:
+            return (
+                "El vehiculo %s ya se encuentra habilitado con el conductor %s. "
+                "Si necesitas actualizarlo, solicita revision al equipo de riesgo."
+            ) % (vehicle.plate, driver.document_number)
+        return False
+
+    def _master_driver_conflict_message(self):
+        self.ensure_one()
+        driver = self._master_driver_for_document()
+        if not driver:
+            return False
+        vehicle = driver.assignment_conflict_for_vehicle(self.vehicle_plate)
+        if vehicle:
+            return (
+                "El conductor con cedula %s ya se encuentra habilitado para el "
+                "vehiculo %s. Un conductor solo puede estar activo en un vehiculo."
+            ) % (driver.document_number, vehicle.plate)
+        return False
+
+    def _check_master_assignment_conflicts(self):
+        for record in self:
+            message = record._master_vehicle_conflict_message() or record._master_driver_conflict_message()
+            if message:
+                raise ValidationError(message)
 
     def _sync_master_records(self, activate_assignment=False):
         for record in self:
