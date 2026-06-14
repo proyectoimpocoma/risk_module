@@ -555,7 +555,7 @@ class RiskSubmission(models.Model):
             "external_validation_pending": "En revision",
             "manual_approval_pending": "En revision",
             "documents_requested": "Documentos solicitados",
-            "documents_review": "Documentos en revision",
+            "documents_review": "Documentos enviados",
             "correction_required": "Requiere correccion",
             "correction_submitted": "Correccion enviada",
             "approved": "Aprobada",
