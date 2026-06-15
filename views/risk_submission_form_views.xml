@@ -150,6 +150,19 @@
                                     <field name="registered_owner_phone" placeholder="Teléfono del propietario registrado"/>
                                 </group>
                             </group>
+                            <group string="Propietarios Adicionales">
+                                <field name="submission_owner_ids" nolabel="1">
+                                    <list editable="bottom">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="name"/>
+                                        <field name="document_type"/>
+                                        <field name="document_number"/>
+                                        <field name="role"/>
+                                        <field name="phone"/>
+                                        <field name="email"/>
+                                    </list>
+                                </field>
+                            </group>
                         </page>
 
                         <!-- Pestaña 2: Conductor -->

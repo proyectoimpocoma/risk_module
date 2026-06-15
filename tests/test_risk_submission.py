@@ -287,6 +287,44 @@ class TestRiskSubmission(RiskModuleTestCase):
                 "Rejected document must be replaceable while in %s" % state,
             )
 
+    def test_additional_owners_sync_to_master(self):
+        submission = self.make_submission(
+            owner=self.portal_user,
+            state="submitted",
+            plate="AOW123",
+            submission_owner_ids=[
+                (
+                    0,
+                    0,
+                    {
+                        "name": "Copropietario Demo",
+                        "document_type": "cc",
+                        "document_number": "987654",
+                        "role": "possessor",
+                        "phone": "3009998888",
+                    },
+                )
+            ],
+        )
+        submission._sync_master_records()
+        master_owner = self.env["risk.owner"].search(
+            [("document_number", "=", "987654")], limit=1
+        )
+        self.assertTrue(master_owner, "Additional owner must create a master owner")
+        vehicle = self.env["risk.vehicle"].find_by_plate(submission.vehicle_plate)
+        self.assertTrue(vehicle)
+        link = self.env["risk.vehicle.owner"].search(
+            [
+                ("vehicle_id", "=", vehicle.id),
+                ("owner_id", "=", master_owner.id),
+                ("role", "=", "possessor"),
+            ],
+            limit=1,
+        )
+        self.assertTrue(
+            link, "Additional owner must be linked to the vehicle with its role"
+        )
+
     def test_autotransition_to_documents_review_when_last_required_document_uploaded(
         self,
     ):

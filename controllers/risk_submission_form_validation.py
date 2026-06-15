@@ -81,9 +81,37 @@ class RiskSubmissionFormValidationMixin:
         if step == 1:
             return self._validate_vehicle_step(data)
         if step == 2:
-            return self._validate_owner_step(data)
+            owner_error = self._validate_owner_step(data)
+            if owner_error:
+                return owner_error
+            return self._validate_extra_owners(data)
         if step == 3:
             return self._validate_driver_step(data)
+        return None
+
+    def _validate_extra_owners(self, data):
+        """Validate each additional owner line collected in step 2."""
+        owners = data.get("extra_owners") or []
+        roles = ("owner", "holder", "possessor")
+        for index, owner in enumerate(owners, start=1):
+            if not owner.get("name"):
+                return "El nombre del propietario adicional %s es obligatorio." % index
+            document_error = self._validate_document(
+                owner.get("document_type"),
+                owner.get("document_number"),
+                "documento del propietario adicional %s" % index,
+            )
+            if document_error:
+                return document_error
+            if owner.get("role") not in roles:
+                return "Debes indicar la relacion del propietario adicional %s." % index
+            phone_error = self._validate_mobile_phone(
+                owner.get("phone"), "celular del propietario adicional %s" % index
+            )
+            if phone_error:
+                return phone_error
+            if owner.get("email") and not EMAIL_REGEX.match(owner.get("email")):
+                return "El correo del propietario adicional %s no tiene un formato valido." % index
         return None
 
     def _validate_vehicle_step(self, data):

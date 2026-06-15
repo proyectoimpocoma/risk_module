@@ -120,6 +120,7 @@ class RiskSubmissionMasterSync(models.Model):
             )
             link = record._sync_master_vehicle_owner_link(vehicle, owner)
             record._sync_registered_owner_link(vehicle, owner)
+            record._sync_additional_owner_links(vehicle)
 
             values = {}
             if vehicle and record.vehicle_id != vehicle:
@@ -230,6 +231,28 @@ class RiskSubmissionMasterSync(models.Model):
         if not registered_owner or registered_owner == main_owner:
             return self.env["risk.vehicle.owner"]
         return self._get_or_create_vehicle_owner_link(vehicle, registered_owner, "owner")
+
+    def _sync_additional_owner_links(self, vehicle):
+        """Sync every additional owner line to the master data, creating the
+        risk.owner record and its vehicle-owner relation with the chosen role."""
+        self.ensure_one()
+        if not vehicle:
+            return self.env["risk.vehicle.owner"]
+        links = self.env["risk.vehicle.owner"]
+        for line in self.submission_owner_ids:
+            owner = self._sync_master_owner(
+                line.document_type,
+                line.document_number,
+                line.name,
+                line.phone,
+                line.email,
+            )
+            if not owner:
+                continue
+            links |= self._get_or_create_vehicle_owner_link(
+                vehicle, owner, line.role or "owner"
+            )
+        return links
 
     def _get_or_create_vehicle_owner_link(self, vehicle, owner, role):
         self.ensure_one()

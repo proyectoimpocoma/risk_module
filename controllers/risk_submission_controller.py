@@ -167,6 +167,9 @@ class RiskSubmissionController(
         for field in STEP_FIELDS.get(step, ()):
             data[field] = post.get(field, "").strip()
 
+        if step == 2:
+            data["extra_owners"] = self._collect_extra_owners()
+
         self._normalize_step_data(step, data)
         validation_error = self._validate_step(step, data)
         if validation_error:
@@ -189,6 +192,48 @@ class RiskSubmissionController(
             return request.redirect("/registro-conductor/%s" % (step + 1))
 
         return self._submit_final_step(data)
+
+    def _collect_extra_owners(self):
+        """Build the list of additional owners from the repeated step-2 form
+        fields. Fully empty rows are ignored."""
+        form = request.httprequest.form
+        columns = {
+            "name": form.getlist("extra_owner_name"),
+            "document_type": form.getlist("extra_owner_document_type"),
+            "document_number": form.getlist("extra_owner_document_number"),
+            "role": form.getlist("extra_owner_role"),
+            "phone": form.getlist("extra_owner_phone"),
+            "email": form.getlist("extra_owner_email"),
+            "address": form.getlist("extra_owner_address"),
+            "neighborhood": form.getlist("extra_owner_neighborhood"),
+            "city": form.getlist("extra_owner_city"),
+        }
+        row_count = max((len(values) for values in columns.values()), default=0)
+
+        def cell(key, index, default=""):
+            values = columns[key]
+            return (values[index] if index < len(values) else default).strip()
+
+        owners = []
+        for index in range(row_count):
+            name = cell("name", index)
+            document_number = cell("document_number", index)
+            if not name and not document_number:
+                continue
+            owners.append(
+                {
+                    "name": name,
+                    "document_type": cell("document_type", index, "cc") or "cc",
+                    "document_number": document_number,
+                    "role": cell("role", index, "owner") or "owner",
+                    "phone": cell("phone", index),
+                    "email": cell("email", index),
+                    "address": cell("address", index),
+                    "neighborhood": cell("neighborhood", index),
+                    "city": cell("city", index),
+                }
+            )
+        return owners
 
     @http.route(
         "/registro-conductor/firma/<string:party>/enviar-codigo",
@@ -660,6 +705,20 @@ class RiskSubmissionController(
         else:
             request.session["risk_terms_accepted"] = None
         data["correction_reason"] = submission.correction_reason or ""
+        data["extra_owners"] = [
+            {
+                "name": line.name or "",
+                "document_type": line.document_type or "cc",
+                "document_number": line.document_number or "",
+                "role": line.role or "owner",
+                "phone": line.phone or "",
+                "email": line.email or "",
+                "address": line.address or "",
+                "neighborhood": line.neighborhood or "",
+                "city": line.city or "",
+            }
+            for line in submission.submission_owner_ids
+        ]
         request.session["risk_submission_id"] = submission.id
         request.session["risk_vehicle_form"] = data
         for step in STEP_SESSION_KEYS:

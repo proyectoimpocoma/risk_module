@@ -1036,3 +1036,59 @@
 .risk-select-wrapper select {
     padding-right: 36px;
 }
+
+/* Additional owners — dynamic repeater (step 2) */
+.risk-extra-owners {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--risk-border, #dec1af);
+}
+.risk-extra-owners-head {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+}
+.risk-extra-owner {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid var(--risk-border, #dec1af);
+    border-radius: 12px;
+    background: var(--risk-surface, #f9f9ff);
+}
+.risk-extra-owner .risk-field { margin: 0; }
+.risk-extra-owner-remove {
+    grid-column: 1 / -1;
+    justify-self: end;
+    background: transparent;
+    border: 1px solid #ba1a1a;
+    color: #ba1a1a;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.risk-extra-owner-remove:hover { background: #ba1a1a; color: #fff; }
+.risk-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid var(--risk-primary, #f77c00);
+    color: var(--risk-primary, #f77c00);
+    font-weight: 700;
+    font-size: 14px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.risk-btn-secondary:hover { background: var(--risk-primary, #f77c00); color: #fff; }
+@media (max-width: 640px) {
+    .risk-extra-owner { grid-template-columns: 1fr; }
+}

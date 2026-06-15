@@ -90,8 +90,34 @@ class RiskSubmissionFormMapperMixin:
             "driver_signature_code_attempts": int(data.get("driver_signature_code_attempts") or 0),
             "driver_signature_verification_state": data.get("driver_signature_verification_state") or "not_sent",
             "message": data.get("message"),
+            "submission_owner_ids": self._extra_owner_commands(data),
             **request.env["risk.module"]._portal_ownership_values(request.env.user),
         }
+
+    def _extra_owner_commands(self, data):
+        """Build One2many write commands for the additional owners: clear the
+        existing lines and recreate them from the session data."""
+        commands = [(5, 0, 0)]
+        for index, owner in enumerate(data.get("extra_owners") or []):
+            commands.append(
+                (
+                    0,
+                    0,
+                    {
+                        "sequence": (index + 1) * 10,
+                        "name": owner.get("name"),
+                        "document_type": owner.get("document_type") or "cc",
+                        "document_number": owner.get("document_number"),
+                        "role": owner.get("role") or "owner",
+                        "phone": owner.get("phone") or False,
+                        "email": owner.get("email") or False,
+                        "address": owner.get("address") or False,
+                        "neighborhood": owner.get("neighborhood") or False,
+                        "city": owner.get("city") or False,
+                    },
+                )
+            )
+        return commands
 
     def _create_or_update_submission(self, data, state):
         """

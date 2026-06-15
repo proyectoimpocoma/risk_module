@@ -9,6 +9,8 @@ access_risk_owner,risk.owner.analyst,model_risk_owner,risk_module.group_risk_use
 access_risk_owner_manager,risk.owner.leader,model_risk_owner,risk_module.group_risk_manager,1,1,1,0
 access_risk_vehicle_owner,risk.vehicle.owner.analyst,model_risk_vehicle_owner,risk_module.group_risk_user,1,1,1,0
 access_risk_vehicle_owner_manager,risk.vehicle.owner.leader,model_risk_vehicle_owner,risk_module.group_risk_manager,1,1,1,0
+access_risk_submission_owner,risk.submission.owner.analyst,model_risk_submission_owner,risk_module.group_risk_user,1,1,1,1
+access_risk_submission_owner_manager,risk.submission.owner.leader,model_risk_submission_owner,risk_module.group_risk_manager,1,1,1,1
 access_risk_module_document,risk.module.document.analyst,model_risk_module_document,risk_module.group_risk_user,1,1,1,0
 access_risk_module_document_manager,risk.module.document.leader,model_risk_module_document,risk_module.group_risk_manager,1,1,1,0
 access_risk_document_requirement,risk.document.requirement.analyst,model_risk_document_requirement,risk_module.group_risk_user,1,1,1,0

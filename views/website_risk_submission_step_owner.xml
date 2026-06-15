@@ -95,5 +95,64 @@
             <label for="registered_owner_phone">Celular</label>
             <input id="registered_owner_phone" name="registered_owner_phone" type="tel" t-att-value="data.get('registered_owner_phone')" t-att-disabled="None if registered_owner_required else 'disabled'" t-att-required="'required' if registered_owner_required else None" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
         </div>
+
+        <!-- Sección 5: Propietarios adicionales (lista dinámica) -->
+        <div class="risk-field-full risk-extra-owners">
+            <div class="risk-extra-owners-head">
+                <span class="risk-switch-title">Otros propietarios</span>
+                <span class="risk-switch-help">Agrega copropietarios, tenedores o poseedores adicionales si aplica.</span>
+            </div>
+            <div id="extra-owners-list">
+                <t t-foreach="data.get('extra_owners') or []" t-as="owner">
+                    <t t-call="risk_module.register_driver_extra_owner_row"/>
+                </t>
+            </div>
+            <div class="d-none" id="extra-owner-template">
+                <t t-set="owner" t-value="{}"/>
+                <t t-call="risk_module.register_driver_extra_owner_row"/>
+            </div>
+            <button type="button" class="risk-btn-secondary" id="add-extra-owner">
+                + Agregar propietario
+            </button>
+        </div>
+    </template>
+
+    <template id="register_driver_extra_owner_row" name="Fila Propietario Adicional">
+        <div class="risk-extra-owner" data-extra-owner-row="1">
+            <div class="risk-field">
+                <label>Nombres y apellidos / Empresa</label>
+                <input type="text" name="extra_owner_name" t-att-value="owner.get('name')" maxlength="140" autocomplete="off" placeholder="Ej: Juan Perez o Transportes XYZ"/>
+            </div>
+            <div class="risk-field">
+                <label>Tipo</label>
+                <select name="extra_owner_document_type">
+                    <option value="cc" t-att-selected="'selected' if owner.get('document_type') == 'cc' else None">CC</option>
+                    <option value="nit" t-att-selected="'selected' if owner.get('document_type') == 'nit' else None">NIT</option>
+                </select>
+            </div>
+            <div class="risk-field">
+                <label>Numero</label>
+                <input type="text" name="extra_owner_document_number" t-att-value="owner.get('document_number')" maxlength="11" pattern="[0-9]{6,10}(-[0-9])?" title="CC: 6 a 10 digitos. NIT: 123456789 o 123456789-0" autocomplete="off" placeholder="Solo numeros, sin puntos"/>
+            </div>
+            <div class="risk-field">
+                <label>Relacion</label>
+                <select name="extra_owner_role">
+                    <option value="owner" t-att-selected="'selected' if owner.get('role') == 'owner' else None">Propietario</option>
+                    <option value="holder" t-att-selected="'selected' if owner.get('role') == 'holder' else None">Tenedor</option>
+                    <option value="possessor" t-att-selected="'selected' if owner.get('role') == 'possessor' else None">Poseedor</option>
+                </select>
+            </div>
+            <div class="risk-field">
+                <label>Celular</label>
+                <input type="tel" name="extra_owner_phone" t-att-value="owner.get('phone')" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
+            </div>
+            <div class="risk-field">
+                <label>Correo electronico</label>
+                <input type="email" name="extra_owner_email" t-att-value="owner.get('email')" maxlength="120" autocomplete="off" placeholder="ejemplo@dominio.com"/>
+            </div>
+            <button type="button" class="risk-extra-owner-remove" data-extra-owner-remove="1" title="Eliminar propietario">
+                Eliminar
+            </button>
+        </div>
     </template>
 </odoo>
