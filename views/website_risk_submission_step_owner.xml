@@ -71,33 +71,12 @@
             <input id="same_owner_on_license" name="same_owner_on_license" type="hidden" t-att-value="data.get('same_owner_on_license') or 'yes'"/>
         </div>
 
-        <p t-attf-class="risk-section-note risk-registered-owner-field #{'' if registered_owner_required else 'is-disabled'}" data-registered-owner-field="1">En caso de que su respuesta sea NO, por favor diligenciar la siguiente informacion del propietario:</p>
-        <div t-attf-class="risk-inline-doc risk-registered-owner-field #{'' if registered_owner_required else 'is-disabled'}" data-registered-owner-field="1">
-            <div></div>
-            <label class="risk-choice">
-                <span>CC</span>
-                <input type="radio" name="registered_owner_document_type" value="cc" t-att-disabled="None if registered_owner_required else 'disabled'" t-att-required="'required' if registered_owner_required else None" t-att-checked="'checked' if data.get('registered_owner_document_type') == 'cc' else None"/>
-            </label>
-            <label class="risk-choice">
-                <span>Nit</span>
-                <input type="radio" name="registered_owner_document_type" value="nit" t-att-disabled="None if registered_owner_required else 'disabled'" t-att-checked="'checked' if data.get('registered_owner_document_type') == 'nit' else None"/>
-            </label>
-            <div class="risk-field">
-                <label for="registered_owner_document_number">Numero</label>
-                <input id="registered_owner_document_number" name="registered_owner_document_number" type="text" t-att-value="data.get('registered_owner_document_number')" t-att-disabled="None if registered_owner_required else 'disabled'" t-att-required="'required' if registered_owner_required else None" maxlength="11" pattern="[0-9]{6,10}(-[0-9])?" title="CC: 6 a 10 digitos. NIT: 123456789 o 123456789-0" autocomplete="off" placeholder="Documento registrado"/>
-            </div>
-        </div>
-        <div t-attf-class="risk-field risk-registered-owner-field #{'' if registered_owner_required else 'is-disabled'}" data-registered-owner-field="1">
-            <label for="registered_owner_name">Nombres y apellidos</label>
-            <input id="registered_owner_name" name="registered_owner_name" type="text" t-att-value="data.get('registered_owner_name')" t-att-disabled="None if registered_owner_required else 'disabled'" t-att-required="'required' if registered_owner_required else None" maxlength="140" autocomplete="off" placeholder="Nombres y apellidos del propietario registrado"/>
-        </div>
-        <div t-attf-class="risk-field risk-registered-owner-field #{'' if registered_owner_required else 'is-disabled'}" data-registered-owner-field="1">
-            <label for="registered_owner_phone">Celular</label>
-            <input id="registered_owner_phone" name="registered_owner_phone" type="tel" t-att-value="data.get('registered_owner_phone')" t-att-disabled="None if registered_owner_required else 'disabled'" t-att-required="'required' if registered_owner_required else None" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
-        </div>
+        <p t-attf-class="risk-section-note risk-registered-owner-field #{'' if registered_owner_required else 'is-disabled'}" data-registered-owner-field="1">En caso de que su respuesta sea NO, agrega el o los propietarios registrados en la siguiente seccion.</p>
 
-        <!-- Sección 5: Propietarios adicionales (lista dinámica) -->
-        <div class="risk-field-full risk-extra-owners">
+        <!-- Sección 5: Propietarios adicionales (lista dinámica).
+             Visible solo cuando el switch "registrado en licencia" está en NO,
+             reutilizando el mismo gating data-registered-owner-field. -->
+        <div t-attf-class="risk-field-full risk-extra-owners risk-registered-owner-field #{'' if registered_owner_required else 'is-disabled'}" data-registered-owner-field="1">
             <div class="risk-extra-owners-head">
                 <span class="risk-switch-title">Otros propietarios</span>
                 <span class="risk-switch-help">Agrega copropietarios, tenedores o poseedores adicionales si aplica.</span>

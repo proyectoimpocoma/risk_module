@@ -175,18 +175,18 @@ class RiskSubmissionFormValidationMixin:
         if data.get("same_owner_on_license") not in ("yes", "no"):
             return "Debes indicar si el propietario registrado en licencia es el mismo."
 
+        # The registered owner is no longer captured with fixed fields; when the
+        # tenedor is not the registered owner, it is declared through the
+        # "Otros propietarios" dynamic list. Only validate the legacy fields'
+        # format if they happen to carry a value (e.g. older drafts/backoffice).
         registered_owner_document_error = self._validate_document(
             data.get("registered_owner_document_type"),
             data.get("registered_owner_document_number"),
             "documento del propietario registrado",
-            required=data.get("same_owner_on_license") == "no",
+            required=False,
         )
         if registered_owner_document_error:
             return registered_owner_document_error
-        if data.get("same_owner_on_license") == "no" and not data.get("registered_owner_name"):
-            return "Debes diligenciar los nombres y apellidos del propietario registrado."
-        if data.get("same_owner_on_license") == "no" and not data.get("registered_owner_phone"):
-            return "Debes diligenciar el celular del propietario registrado."
 
         return self._validate_mobile_phone(
             data.get("registered_owner_phone"),
