@@ -159,31 +159,33 @@ class RiskSubmission(models.Model):
         compute="_compute_portal_state_label",
     )
     form_date = fields.Date(string="Fecha", default=fields.Date.context_today)
-    vehicle_plate = fields.Char(string="Placa", required=True)
-    semi_trailer_plate = fields.Char(string="Semi/Remolque")
-    satellite_company = fields.Char(string="Empresa satelital")
-    satellite_user = fields.Char(string="Usuario satelital")
+    vehicle_plate = fields.Char(string="Placa", required=True, tracking=True)
+    semi_trailer_plate = fields.Char(string="Semi/Remolque", tracking=True)
+    satellite_company = fields.Char(string="Empresa satelital", tracking=True)
+    satellite_user = fields.Char(string="Usuario satelital", tracking=True)
     satellite_password = fields.Char(string="Clave satelital")
-    owner_name = fields.Char(string="Nombres y apellidos / Empresa")
+    owner_name = fields.Char(string="Nombres y apellidos / Empresa", tracking=True)
     owner_document_type = fields.Selection(
         [
             ("cc", "CC"),
             ("nit", "Nit"),
         ],
         string="Tipo de documento",
+        tracking=True,
     )
-    owner_document_number = fields.Char(string="Numero de documento")
-    owner_address = fields.Char(string="Direccion")
-    owner_neighborhood = fields.Char(string="Barrio")
-    owner_city = fields.Char(string="Ciudad")
-    owner_phone = fields.Char(string="Celular notificaciones")
-    owner_email = fields.Char(string="Correo facturacion y notificaciones")
+    owner_document_number = fields.Char(string="Numero de documento", tracking=True)
+    owner_address = fields.Char(string="Direccion", tracking=True)
+    owner_neighborhood = fields.Char(string="Barrio", tracking=True)
+    owner_city = fields.Char(string="Ciudad", tracking=True)
+    owner_phone = fields.Char(string="Celular notificaciones", tracking=True)
+    owner_email = fields.Char(string="Correo facturacion y notificaciones", tracking=True)
     advance_payment_to = fields.Selection(
         [
             ("driver", "Conductor"),
             ("owner", "Propietario"),
         ],
         string="Entrega y pago de anticipos a",
+        tracking=True,
     )
     same_owner_on_license = fields.Selection(
         [
@@ -191,6 +193,7 @@ class RiskSubmission(models.Model):
             ("no", "No"),
         ],
         string="Corresponde al propietario en licencia",
+        tracking=True,
     )
     registered_owner_document_type = fields.Selection(
         [
@@ -198,26 +201,29 @@ class RiskSubmission(models.Model):
             ("nit", "Nit"),
         ],
         string="Tipo documento propietario",
+        tracking=True,
     )
     registered_owner_document_number = fields.Char(
-        string="Numero documento propietario"
+        string="Numero documento propietario",
+        tracking=True,
     )
-    registered_owner_name = fields.Char(string="Nombres y apellidos propietario")
-    registered_owner_phone = fields.Char(string="Celular propietario")
-    driver_name = fields.Char(string="Nombres y apellidos conductor")
-    driver_document_number = fields.Char(string="Numero de cedula conductor")
-    driver_address = fields.Char(string="Direccion conductor")
-    driver_neighborhood = fields.Char(string="Barrio conductor")
-    driver_city = fields.Char(string="Ciudad conductor")
-    driver_phone = fields.Char(string="Celular conductor")
-    driver_optional_phone = fields.Char(string="Telefono opcional conductor")
-    driver_email = fields.Char(string="Correo autorizacion conductor")
+    registered_owner_name = fields.Char(string="Nombres y apellidos propietario", tracking=True)
+    registered_owner_phone = fields.Char(string="Celular propietario", tracking=True)
+    driver_name = fields.Char(string="Nombres y apellidos conductor", tracking=True)
+    driver_document_number = fields.Char(string="Numero de cedula conductor", tracking=True)
+    driver_address = fields.Char(string="Direccion conductor", tracking=True)
+    driver_neighborhood = fields.Char(string="Barrio conductor", tracking=True)
+    driver_city = fields.Char(string="Ciudad conductor", tracking=True)
+    driver_phone = fields.Char(string="Celular conductor", tracking=True)
+    driver_optional_phone = fields.Char(string="Telefono opcional conductor", tracking=True)
+    driver_email = fields.Char(string="Correo autorizacion conductor", tracking=True)
     driver_is_fit = fields.Selection(
         [
             ("yes", "Si"),
             ("no", "No"),
         ],
         string="Apto fisica, mental y psicotecnicamente",
+        tracking=True,
     )
     driver_is_trained = fields.Selection(
         [
@@ -225,12 +231,13 @@ class RiskSubmission(models.Model):
             ("no", "No"),
         ],
         string="Capacitado y entrenado",
+        tracking=True,
     )
-    family_reference_name = fields.Char(string="Referencia familiar")
-    family_reference_relationship = fields.Char(string="Parentesco referencia familiar")
-    family_reference_phone = fields.Char(string="Celular referencia familiar")
-    cargo_reference_name = fields.Char(string="Referencia transporte de carga")
-    cargo_reference_phone = fields.Char(string="Celular referencia transporte de carga")
+    family_reference_name = fields.Char(string="Referencia familiar", tracking=True)
+    family_reference_relationship = fields.Char(string="Parentesco referencia familiar", tracking=True)
+    family_reference_phone = fields.Char(string="Celular referencia familiar", tracking=True)
+    cargo_reference_name = fields.Char(string="Referencia transporte de carga", tracking=True)
+    cargo_reference_phone = fields.Char(string="Celular referencia transporte de carga", tracking=True)
     banking_info_accepted = fields.Boolean(string="Acepto informacion bancaria")
     compensation_accepted = fields.Boolean(string="Acepto compensacion general")
     personal_data_accepted = fields.Boolean(

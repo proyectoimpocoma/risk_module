@@ -10,17 +10,23 @@ class RiskDriver(models.Model):
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "name, document_number"
 
-    active = fields.Boolean(default=True)
+    active = fields.Boolean(default=True, tracking=True)
     name = fields.Char(string="Nombres y apellidos", required=True, tracking=True)
     document_number = fields.Char(string="Cedula", required=True, index=True, tracking=True)
     phone = fields.Char(string="Celular", tracking=True)
-    optional_phone = fields.Char(string="Telefono opcional")
-    email = fields.Char(string="Correo electronico")
+    optional_phone = fields.Char(string="Telefono opcional", tracking=True)
+    email = fields.Char(string="Correo electronico", tracking=True)
     current_vehicle_id = fields.Many2one(
         "risk.vehicle",
         string="Vehiculo actual",
         tracking=True,
         copy=False,
+    )
+
+    driver_document_ids = fields.Many2many(
+        "risk.module.document",
+        string="Documentos del conductor",
+        compute="_compute_driver_document_ids",
     )
 
     _sql_constraints = [
@@ -30,6 +36,24 @@ class RiskDriver(models.Model):
             "Ya existe un conductor con esta cedula.",
         ),
     ]
+
+    @api.depends("document_number")
+    def _compute_driver_document_ids(self):
+        """Gather documents related to this driver (party driver) across all its
+        submissions, excluding rejected ones."""
+        Document = self.env["risk.module.document"].sudo()
+        for record in self:
+            if not record.id:
+                record.driver_document_ids = False
+                continue
+            record.driver_document_ids = Document.search(
+                [
+                    ("submission_id.driver_id", "=", record.id),
+                    ("party", "=", "driver"),
+                    ("state", "in", ["pending", "received", "approved"]),
+                ],
+                order="submission_id desc, sequence, id",
+            )
 
     @api.model_create_multi
     def create(self, vals_list):

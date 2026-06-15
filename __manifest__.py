@@ -30,6 +30,7 @@
         "views/risk_approval_wizard_views.xml",
         "views/risk_external_validation_result_wizard_views.xml",
         "views/risk_submission_menus.xml",
+        "views/risk_process_views.xml",
         "views/website_risk_submission_step_vehicle.xml",
         "views/website_risk_submission_step_owner.xml",
         "views/website_risk_submission_step_driver.xml",

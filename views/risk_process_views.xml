@@ -1,0 +1,209 @@
+<odoo>
+    <record id="action_risk_process_flow" model="ir.actions.act_url">
+        <field name="name">Proceso</field>
+        <field name="url">/riesgo/proceso</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_risk_module_process"
+              name="Proceso"
+              parent="menu_risk_module_root"
+              action="action_risk_process_flow"
+              sequence="45"
+              groups="risk_module.group_risk_user"/>
+
+    <template id="process_flow_page" name="Proceso de habilitacion (diagrama)">
+        <html lang="es">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+                <title>Proceso de habilitación de terceros</title>
+                <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+                <style>
+                    body { font-family: 'Montserrat', system-ui, sans-serif; background: #f9f9ff; color: #121c2c; margin: 0; padding: 32px 16px 64px; }
+                    .rp-wrap { max-width: 980px; margin: 0 auto; }
+                    .rp-head { border-left: 6px solid #f77c00; background: #fff; border: 1px solid #dec1af; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,.05); padding: 20px 24px; margin-bottom: 24px; position: relative; overflow: hidden; }
+                    .rp-head::before { content: ""; position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: #f77c00; }
+                    .rp-head h1 { margin: 0 0 4px; color: #f77c00; font-size: 26px; }
+                    .rp-head p { margin: 0; color: #574235; }
+                    .rp-card { background: #fff; border: 1px solid #dec1af; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,.05); padding: 18px; margin-bottom: 24px; }
+                    .rp-card svg { width: 100%; height: auto; }
+                    h2 { color: #003b73; font-size: 18px; margin: 0 0 12px; }
+                    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+                    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #e7eeff; vertical-align: top; }
+                    th { color: #003b73; text-transform: uppercase; font-size: 11px; letter-spacing: .04em; }
+                    .who-t { color: #003b73; font-weight: 600; }
+                    .who-a { color: #b35a00; font-weight: 600; }
+                </style>
+            </head>
+            <body>
+                <div class="rp-wrap">
+                    <div class="rp-head">
+                        <h1>Proceso de habilitación de terceros</h1>
+                        <p>Flujo de estados de una solicitud, desde el registro del tercero hasta la aprobación o rechazo.</p>
+                    </div>
+
+                    <div class="rp-card">
+                        <svg viewBox="0 0 860 660" xmlns="http://www.w3.org/2000/svg" role="img" font-family="'Montserrat', system-ui, sans-serif">
+                            <title>Flujo de la solicitud de habilitación de terceros</title>
+                            <desc>Diagrama de estados: desde Borrador hasta Aprobado o Rechazado, con ramas de documentos y corrección que vuelven a Aprobación manual.</desc>
+                            <style>
+                                .lbl { font-size: 13px; font-weight: 700; }
+                                .sub { font-size: 10px; font-weight: 500; }
+                                .terc { fill: #d5e3ff; stroke: #003b73; }
+                                .anal { fill: #ffdcc7; stroke: #f77c00; }
+                                .ok   { fill: #dff5e1; stroke: #1b6d24; }
+                                .no   { fill: #ffdad6; stroke: #ba1a1a; }
+                                .hub  { fill: #f77c00; stroke: #c95f00; }
+                                .tlbl { fill: #003b73; } .albl { fill: #6b3500; } .oklbl { fill: #1b6d24; } .nolbl { fill: #93000a; } .hlbl { fill: #ffffff; }
+                                .edge { stroke: #8b7263; stroke-width: 1.6; fill: none; }
+                                .back { stroke: #8b7263; stroke-width: 1.4; fill: none; stroke-dasharray: 5 4; }
+                                .etxt { font-size: 10px; fill: #574235; font-weight: 600; }
+                            </style>
+                            <defs>
+                                <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#8b7263"/></marker>
+                            </defs>
+
+                            <rect rx="10" class="terc" x="60" y="35" width="220" height="50"/>
+                            <text class="lbl tlbl" x="170" y="56" text-anchor="middle">Borrador</text>
+                            <text class="sub tlbl" x="170" y="72" text-anchor="middle">tercero llena el formulario</text>
+                            <rect rx="10" class="anal" x="60" y="125" width="220" height="50"/>
+                            <text class="lbl albl" x="170" y="146" text-anchor="middle">Enviado</text>
+                            <text class="sub albl" x="170" y="162" text-anchor="middle">por revisar</text>
+                            <rect rx="10" class="anal" x="60" y="215" width="220" height="50"/>
+                            <text class="lbl albl" x="170" y="236" text-anchor="middle">Revisión de riesgo</text>
+                            <text class="sub albl" x="170" y="252" text-anchor="middle">analista evalúa</text>
+                            <rect rx="10" class="anal" x="60" y="305" width="220" height="50"/>
+                            <text class="lbl albl" x="170" y="326" text-anchor="middle">Validación externa</text>
+                            <text class="sub albl" x="170" y="342" text-anchor="middle">Validiti (manual)</text>
+                            <rect rx="10" class="hub" x="60" y="400" width="220" height="56"/>
+                            <text class="lbl hlbl" x="170" y="423" text-anchor="middle">Aprobación manual</text>
+                            <text class="sub hlbl" x="170" y="439" text-anchor="middle">centro de decisión</text>
+
+                            <path class="edge" d="M170,85 L170,123" marker-end="url(#arr)"/>
+                            <text class="etxt" x="178" y="108">enviar formulario</text>
+                            <path class="edge" d="M170,175 L170,213" marker-end="url(#arr)"/>
+                            <text class="etxt" x="178" y="198">iniciar revisión</text>
+                            <path class="edge" d="M170,265 L170,303" marker-end="url(#arr)"/>
+                            <text class="etxt" x="178" y="288">enviar a Validiti</text>
+                            <path class="edge" d="M170,355 L170,398" marker-end="url(#arr)"/>
+                            <text class="etxt" x="178" y="380">registrar resultado</text>
+                            <path class="back" d="M60,240 C20,240 20,428 58,428" marker-end="url(#arr)"/>
+                            <text class="etxt" x="6" y="338">omitir</text>
+
+                            <rect rx="10" class="terc" x="560" y="45" width="240" height="50"/>
+                            <text class="lbl tlbl" x="680" y="66" text-anchor="middle">Documentos solicitados</text>
+                            <text class="sub tlbl" x="680" y="82" text-anchor="middle">tercero carga en el portal</text>
+                            <rect rx="10" class="anal" x="560" y="130" width="240" height="50"/>
+                            <text class="lbl albl" x="680" y="151" text-anchor="middle">Documentos en revisión</text>
+                            <text class="sub albl" x="680" y="167" text-anchor="middle">aprobar / rechazar c/u</text>
+                            <rect rx="10" class="terc" x="560" y="285" width="240" height="50"/>
+                            <text class="lbl tlbl" x="680" y="306" text-anchor="middle">Requiere corrección</text>
+                            <text class="sub tlbl" x="680" y="322" text-anchor="middle">tercero corrige</text>
+                            <rect rx="10" class="anal" x="560" y="370" width="240" height="50"/>
+                            <text class="lbl albl" x="680" y="391" text-anchor="middle">Corrección enviada</text>
+                            <text class="sub albl" x="680" y="407" text-anchor="middle">re-revisar</text>
+                            <rect rx="10" class="ok" x="560" y="480" width="240" height="50"/>
+                            <text class="lbl oklbl" x="680" y="501" text-anchor="middle">Aprobado</text>
+                            <text class="sub oklbl" x="680" y="517" text-anchor="middle">habilita vehículo + conductor</text>
+                            <rect rx="10" class="no" x="560" y="560" width="240" height="50"/>
+                            <text class="lbl nolbl" x="680" y="581" text-anchor="middle">Rechazado</text>
+                            <text class="sub nolbl" x="680" y="597" text-anchor="middle">fin con motivo</text>
+
+                            <path class="edge" d="M280,420 L360,420 L360,70 L558,70" marker-end="url(#arr)"/>
+                            <text class="etxt" x="366" y="120">solicitar docs</text>
+                            <path class="edge" d="M280,428 L388,428 L388,310 L558,310" marker-end="url(#arr)"/>
+                            <text class="etxt" x="394" y="300">devolver a corregir</text>
+                            <path class="edge" d="M280,436 L416,436 L416,505 L558,505" marker-end="url(#arr)"/>
+                            <text class="etxt" x="422" y="497">aprobar</text>
+                            <path class="edge" d="M280,444 L444,444 L444,585 L558,585" marker-end="url(#arr)"/>
+                            <text class="etxt" x="450" y="577">rechazar</text>
+
+                            <path class="edge" d="M680,95 L680,128" marker-end="url(#arr)"/>
+                            <text class="etxt" x="688" y="116">sube docs</text>
+                            <path class="edge" d="M680,335 L680,368" marker-end="url(#arr)"/>
+                            <text class="etxt" x="688" y="356">corrige</text>
+
+                            <path class="back" d="M560,155 L520,155 L520,432 L282,432" marker-end="url(#arr)"/>
+                            <text class="etxt" x="498" y="148" text-anchor="end">re-revisar</text>
+                            <path class="back" d="M560,395 L536,395 L536,440 L282,440" marker-end="url(#arr)"/>
+
+                            <rect x="60" y="500" width="430" height="120" rx="10" fill="#f0f3ff" stroke="#dec1af"/>
+                            <text x="76" y="522" font-size="12" font-weight="700" fill="#003b73">Leyenda</text>
+                            <rect x="76" y="534" width="16" height="14" rx="3" class="terc"/><text x="100" y="546" font-size="11" fill="#574235">Acción del tercero</text>
+                            <rect x="240" y="534" width="16" height="14" rx="3" class="anal"/><text x="264" y="546" font-size="11" fill="#574235">Acción del analista</text>
+                            <rect x="76" y="558" width="16" height="14" rx="3" class="ok"/><text x="100" y="570" font-size="11" fill="#574235">Aprobado (final)</text>
+                            <rect x="240" y="558" width="16" height="14" rx="3" class="no"/><text x="264" y="570" font-size="11" fill="#574235">Rechazado (final)</text>
+                            <line x1="76" y1="588" x2="100" y2="588" class="back"/><text x="108" y="592" font-size="11" fill="#574235">vuelve a Aprobación manual (bucle)</text>
+                            <text x="76" y="611" font-size="10" fill="#8b7263">Documentos y corrección regresan al centro de decisión hasta aprobar o rechazar.</text>
+                        </svg>
+                    </div>
+
+                    <div class="rp-card">
+                        <h2>Resumen de estados</h2>
+                        <table>
+                            <thead>
+                                <tr><th>Estado</th><th>Quién actúa</th><th>Acción siguiente</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Borrador</td><td class="who-t">Tercero</td><td>Completar y enviar el formulario.</td></tr>
+                                <tr><td>Enviado</td><td class="who-a">Analista</td><td>Iniciar revisión de riesgo.</td></tr>
+                                <tr><td>Revisión de riesgo</td><td class="who-a">Analista</td><td>Enviar a Validiti u omitir.</td></tr>
+                                <tr><td>Validación externa</td><td class="who-a">Analista</td><td>Registrar resultado (manual).</td></tr>
+                                <tr><td>Aprobación manual</td><td class="who-a">Analista</td><td>Solicitar docs · devolver a corregir · aprobar · rechazar.</td></tr>
+                                <tr><td>Documentos solicitados</td><td class="who-t">Tercero</td><td>Cargar los documentos en el portal.</td></tr>
+                                <tr><td>Documentos en revisión</td><td class="who-a">Analista</td><td>Aprobar o rechazar cada documento.</td></tr>
+                                <tr><td>Requiere corrección</td><td class="who-t">Tercero</td><td>Corregir la solicitud o el documento.</td></tr>
+                                <tr><td>Corrección enviada</td><td class="who-a">Analista</td><td>Re-revisar y continuar.</td></tr>
+                                <tr><td>Aprobado</td><td>—</td><td>Final: habilita vehículo y conductor en maestros.</td></tr>
+                                <tr><td>Rechazado</td><td>—</td><td>Final: queda con motivo de rechazo.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="rp-card">
+                        <h2>Relación de maestros (vehículo, propietario, conductor)</h2>
+                        <svg viewBox="0 0 860 520" xmlns="http://www.w3.org/2000/svg" font-family="'Montserrat', system-ui, sans-serif" role="img">
+                            <title>Relación maestros: Vehículo, Propietario y Conductor</title>
+                            <desc>El vehículo se vincula a propietarios por roles (N:N, al enviar) y a un conductor por asignación activa única (al aprobar).</desc>
+                            <defs>
+                                <marker id="ma" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#c95f00"/></marker>
+                                <marker id="mb" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#003b73"/></marker>
+                            </defs>
+                            <rect x="320" y="40" width="220" height="78" rx="12" fill="#f77c00" stroke="#c95f00"/>
+                            <text x="430" y="70" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">Vehículo</text>
+                            <text x="430" y="90" text-anchor="middle" font-size="11" fill="#fff">placa única</text>
+                            <text x="430" y="106" text-anchor="middle" font-size="11" fill="#ffe6cf">estado: Disponible / Habilitado / Bloqueado</text>
+                            <rect x="40" y="330" width="240" height="86" rx="12" fill="#d5e3ff" stroke="#003b73"/>
+                            <text x="160" y="360" text-anchor="middle" font-size="16" font-weight="700" fill="#003b73">Propietario</text>
+                            <text x="160" y="380" text-anchor="middle" font-size="11" fill="#1d4b84">documento único (CC / NIT)</text>
+                            <text x="160" y="398" text-anchor="middle" font-size="11" fill="#1d4b84">tenedor · poseedor · empresa</text>
+                            <rect x="580" y="330" width="240" height="86" rx="12" fill="#d5e3ff" stroke="#003b73"/>
+                            <text x="700" y="360" text-anchor="middle" font-size="16" font-weight="700" fill="#003b73">Conductor</text>
+                            <text x="700" y="380" text-anchor="middle" font-size="11" fill="#1d4b84">cédula única</text>
+                            <text x="700" y="398" text-anchor="middle" font-size="11" fill="#1d4b84">current_vehicle_id</text>
+                            <rect x="150" y="200" width="230" height="56" rx="10" fill="#f0f3ff" stroke="#dec1af" stroke-dasharray="5 4"/>
+                            <text x="265" y="223" text-anchor="middle" font-size="12" font-weight="700" fill="#574235">risk.vehicle.owner</text>
+                            <text x="265" y="240" text-anchor="middle" font-size="10" fill="#8b7263">rol + fechas · varios por vehículo</text>
+                            <path d="M360,118 L300,200" fill="none" stroke="#8b7263" stroke-width="1.8" stroke-dasharray="5 4"/>
+                            <path d="M210,256 L160,328" fill="none" stroke="#8b7263" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#mb)"/>
+                            <text x="120" y="290" font-size="11" font-weight="700" fill="#003b73">N : N</text>
+                            <path d="M520,110 L660,328" fill="none" stroke="#c95f00" stroke-width="2.4" marker-end="url(#ma)"/>
+                            <text x="600" y="210" font-size="12" font-weight="700" fill="#c95f00">current_driver_id</text>
+                            <text x="600" y="226" font-size="11" fill="#b35a00">1 activo ↔ 1</text>
+                            <path d="M690,330 L560,116" fill="none" stroke="#8b7263" stroke-width="1.2" stroke-dasharray="4 4" marker-end="url(#mb)"/>
+                            <rect x="40" y="438" width="360" height="30" rx="8" fill="#d5e3ff"/>
+                            <text x="56" y="458" font-size="11" font-weight="600" fill="#003b73">Vínculo propietario → se crea al ENVIAR el formulario</text>
+                            <rect x="430" y="438" width="390" height="30" rx="8" fill="#ffdcc7"/>
+                            <text x="446" y="458" font-size="11" font-weight="600" fill="#6b3500">Asignación de conductor → se activa al APROBAR (Habilitado)</text>
+                            <line x1="430" y1="40" x2="470" y2="40" stroke="#c95f00" stroke-width="2.4"/>
+                            <text x="478" y="44" font-size="10" fill="#574235">asignación activa</text>
+                            <line x1="600" y1="40" x2="640" y2="40" stroke="#8b7263" stroke-width="1.8" stroke-dasharray="5 4"/>
+                            <text x="648" y="44" font-size="10" fill="#574235">relación con rol</text>
+                        </svg>
+                    </div>
+                </div>
+            </body>
+        </html>
+    </template>
+</odoo>

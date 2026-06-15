@@ -1,13 +1,13 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_risk_module,risk.module.analyst,model_risk_module,risk_module.group_risk_user,1,1,0,0
 access_risk_module_manager,risk.module.leader,model_risk_module,risk_module.group_risk_manager,1,1,1,0
-access_risk_vehicle,risk.vehicle.analyst,model_risk_vehicle,risk_module.group_risk_user,1,1,1,0
+access_risk_vehicle,risk.vehicle.analyst,model_risk_vehicle,risk_module.group_risk_user,1,0,0,0
 access_risk_vehicle_manager,risk.vehicle.leader,model_risk_vehicle,risk_module.group_risk_manager,1,1,1,0
-access_risk_driver,risk.driver.analyst,model_risk_driver,risk_module.group_risk_user,1,1,1,0
+access_risk_driver,risk.driver.analyst,model_risk_driver,risk_module.group_risk_user,1,0,0,0
 access_risk_driver_manager,risk.driver.leader,model_risk_driver,risk_module.group_risk_manager,1,1,1,0
-access_risk_owner,risk.owner.analyst,model_risk_owner,risk_module.group_risk_user,1,1,1,0
+access_risk_owner,risk.owner.analyst,model_risk_owner,risk_module.group_risk_user,1,0,0,0
 access_risk_owner_manager,risk.owner.leader,model_risk_owner,risk_module.group_risk_manager,1,1,1,0
-access_risk_vehicle_owner,risk.vehicle.owner.analyst,model_risk_vehicle_owner,risk_module.group_risk_user,1,1,1,0
+access_risk_vehicle_owner,risk.vehicle.owner.analyst,model_risk_vehicle_owner,risk_module.group_risk_user,1,0,0,0
 access_risk_vehicle_owner_manager,risk.vehicle.owner.leader,model_risk_vehicle_owner,risk_module.group_risk_manager,1,1,1,0
 access_risk_submission_owner,risk.submission.owner.analyst,model_risk_submission_owner,risk_module.group_risk_user,1,1,1,1
 access_risk_submission_owner_manager,risk.submission.owner.leader,model_risk_submission_owner,risk_module.group_risk_manager,1,1,1,1

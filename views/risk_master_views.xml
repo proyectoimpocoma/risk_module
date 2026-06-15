@@ -44,12 +44,28 @@
                     <notebook>
                         <page string="Propietarios / tenedores" name="owners">
                             <field name="owner_link_ids" context="{'default_vehicle_id': id}">
-                                <list editable="bottom">
+                                <list>
                                     <field name="active" widget="boolean_toggle"/>
-                                    <field name="owner_id"/>
+                                    <field name="owner_id" widget="many2one" options="{'no_open': False}"/>
                                     <field name="role"/>
                                     <field name="date_from"/>
                                     <field name="date_to"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Documentos del vehículo" name="vehicle_documents">
+                            <field name="vehicle_document_ids" readonly="1">
+                                <list create="false" delete="false" edit="false">
+                                    <field name="name"/>
+                                    <field name="party"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'approved'"
+                                           decoration-info="state == 'received'"
+                                           decoration-warning="state == 'pending'"/>
+                                    <field name="expiration_state"/>
+                                    <field name="expiration_date"/>
+                                    <field name="submission_id"/>
+                                    <field name="uploaded_at"/>
                                 </list>
                             </field>
                         </page>
@@ -126,6 +142,23 @@
                             <field name="email" placeholder="correo@dominio.com"/>
                         </group>
                     </group>
+                    <notebook>
+                        <page string="Documentos del conductor" name="driver_documents">
+                            <field name="driver_document_ids" readonly="1">
+                                <list create="false" delete="false" edit="false">
+                                    <field name="name"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'approved'"
+                                           decoration-info="state == 'received'"
+                                           decoration-warning="state == 'pending'"/>
+                                    <field name="expiration_state"/>
+                                    <field name="expiration_date"/>
+                                    <field name="submission_id"/>
+                                    <field name="uploaded_at"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
                 <chatter/>
             </form>
@@ -202,12 +235,27 @@
                     <notebook>
                         <page string="Vehiculos relacionados" name="vehicles">
                             <field name="vehicle_link_ids" context="{'default_owner_id': id}">
-                                <list editable="bottom">
+                                <list>
                                     <field name="active" widget="boolean_toggle"/>
                                     <field name="vehicle_id"/>
                                     <field name="role"/>
                                     <field name="date_from"/>
                                     <field name="date_to"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Documentos del propietario" name="owner_documents">
+                            <field name="owner_document_ids" readonly="1">
+                                <list create="false" delete="false" edit="false">
+                                    <field name="name"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'approved'"
+                                           decoration-info="state == 'received'"
+                                           decoration-warning="state == 'pending'"/>
+                                    <field name="expiration_state"/>
+                                    <field name="expiration_date"/>
+                                    <field name="submission_id"/>
+                                    <field name="uploaded_at"/>
                                 </list>
                             </field>
                         </page>

@@ -545,6 +545,10 @@ class RiskSubmissionDocument(models.Model):
             record.message_post(
                 body="Documento aprobado: %s" % record.name,
             )
+            if record.submission_id:
+                record.submission_id.message_post(
+                    body="Documento aprobado: %s" % record.name,
+                )
 
     def action_reject(self):
         return self.action_open_reject_wizard()
@@ -570,13 +574,12 @@ class RiskSubmissionDocument(models.Model):
         )
         self.write({"state": "rejected"})
         for record in self:
-            record.message_post(
-                body="Documento rechazado: %s. Observaciones: %s"
-                % (
-                    record.name,
-                    (record.observations or "").strip(),
-                ),
+            body = "Documento rechazado: %s. Observaciones: %s" % (
+                record.name,
+                (record.observations or "").strip(),
             )
+            record.message_post(body=body)
             if record.submission_id:
+                record.submission_id.message_post(body=body)
                 record.submission_id.action_send_document_rejected_email(record)
             record.write({"rejection_message_sent_at": fields.Datetime.now()})

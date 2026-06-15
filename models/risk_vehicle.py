@@ -11,7 +11,7 @@ class RiskVehicle(models.Model):
     _rec_name = "plate"
     _order = "plate"
 
-    active = fields.Boolean(default=True)
+    active = fields.Boolean(default=True, tracking=True)
     plate = fields.Char(string="Placa", required=True, index=True, tracking=True)
     semi_trailer_plate = fields.Char(string="Semi/Remolque", tracking=True)
     current_driver_id = fields.Many2one(
@@ -37,9 +37,33 @@ class RiskVehicle(models.Model):
         tracking=True,
     )
 
+    vehicle_document_ids = fields.Many2many(
+        "risk.module.document",
+        string="Documentos del vehiculo",
+        compute="_compute_vehicle_document_ids",
+    )
+
     _sql_constraints = [
         ("plate_unique", "unique(plate)", "Ya existe un vehiculo con esta placa."),
     ]
+
+    @api.depends("plate")
+    def _compute_vehicle_document_ids(self):
+        """Gather documents related to this vehicle (party vehicle/semi-trailer)
+        across all its submissions, excluding rejected ones."""
+        Document = self.env["risk.module.document"].sudo()
+        for record in self:
+            if not record.id:
+                record.vehicle_document_ids = False
+                continue
+            record.vehicle_document_ids = Document.search(
+                [
+                    ("submission_id.vehicle_id", "=", record.id),
+                    ("party", "in", ["vehicle", "semi_trailer"]),
+                    ("state", "in", ["pending", "received", "approved"]),
+                ],
+                order="submission_id desc, sequence, id",
+            )
 
     @api.model_create_multi
     def create(self, vals_list):

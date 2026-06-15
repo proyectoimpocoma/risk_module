@@ -10,7 +10,7 @@ class RiskOwner(models.Model):
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "name, document_number"
 
-    active = fields.Boolean(default=True)
+    active = fields.Boolean(default=True, tracking=True)
     name = fields.Char(string="Nombres y apellidos / Empresa", required=True, tracking=True)
     document_type = fields.Selection(
         [
@@ -24,7 +24,7 @@ class RiskOwner(models.Model):
     )
     document_number = fields.Char(string="Numero de documento", required=True, index=True, tracking=True)
     phone = fields.Char(string="Celular", tracking=True)
-    email = fields.Char(string="Correo electronico")
+    email = fields.Char(string="Correo electronico", tracking=True)
     owner_kind = fields.Selection(
         [
             ("natural", "Persona natural"),
@@ -39,6 +39,11 @@ class RiskOwner(models.Model):
         "owner_id",
         string="Vehiculos relacionados",
     )
+    owner_document_ids = fields.Many2many(
+        "risk.module.document",
+        string="Documentos del propietario",
+        compute="_compute_owner_document_ids",
+    )
 
     _sql_constraints = [
         (
@@ -47,6 +52,33 @@ class RiskOwner(models.Model):
             "Ya existe un propietario con este documento.",
         ),
     ]
+
+    @api.depends("document_number")
+    def _compute_owner_document_ids(self):
+        """Gather documents (party owner) from this owner's submissions,
+        excluding rejected. Covers the owner both as the primary owner of a
+        submission and as a registered/additional owner: the latter are linked
+        to the vehicle through risk.vehicle.owner, so we also pull the
+        owner-documents of the submissions of those vehicles."""
+        Document = self.env["risk.module.document"].sudo()
+        Link = self.env["risk.vehicle.owner"].sudo().with_context(active_test=False)
+        for record in self:
+            if not record.id:
+                record.owner_document_ids = False
+                continue
+            vehicle_ids = Link.search(
+                [("owner_id", "=", record.id)]
+            ).mapped("vehicle_id").ids
+            record.owner_document_ids = Document.search(
+                [
+                    ("party", "=", "owner"),
+                    ("state", "in", ["pending", "received", "approved"]),
+                    "|",
+                    ("submission_id.owner_id", "=", record.id),
+                    ("submission_id.vehicle_id", "in", vehicle_ids),
+                ],
+                order="submission_id desc, sequence, id",
+            )
 
     @api.depends("document_type")
     def _compute_owner_kind(self):
