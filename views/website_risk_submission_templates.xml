@@ -4,7 +4,50 @@
             <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
             <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&amp;display=swap" rel="stylesheet"/>
             <datalist id="risk-co-municipios"></datalist>
-            <main class="risk-step-page">
+            <main t-if="step == 1" class="risk-step-page risk-vehicle-redesign-page">
+                <header class="risk-vr-appbar">
+                    <div class="risk-vr-appbar-title">
+                        <span class="material-symbols-outlined">local_shipping</span>
+                        <h1>Habilitación Terceros</h1>
+                    </div>
+                    <a href="/" class="risk-vr-close" aria-label="Cerrar">
+                        <span class="material-symbols-outlined">close</span>
+                    </a>
+                </header>
+
+                <div class="risk-vr-main">
+                    <div class="risk-vr-progress">
+                        <div class="risk-vr-progress-meta">
+                            <span>Paso 1 de 4</span>
+                            <span>Información del Vehículo</span>
+                        </div>
+                        <div class="risk-vr-progress-track">
+                            <div class="risk-vr-progress-value"></div>
+                        </div>
+                    </div>
+
+                    <form t-attf-action="/registro-conductor/submit/#{step}" method="post" class="risk-vr-form">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <div class="risk-vr-card">
+                            <div class="risk-vr-card-title">
+                                <span class="material-symbols-outlined">directions_car</span>
+                                <h2>Información del Vehículo</h2>
+                            </div>
+                            <div t-if="data.get('step_error')" class="risk-vr-error" t-esc="data.get('step_error')"/>
+                            <t t-call="risk_module.register_driver_step_vehicle"/>
+                        </div>
+
+                        <div class="risk-vr-actions">
+                            <button type="submit" class="risk-vr-next" id="risk-submit-button">
+                                SIGUIENTE
+                                <span class="material-symbols-outlined">arrow_forward</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </main>
+
+            <main t-if="step != 1" class="risk-step-page">
                 <section class="risk-brand-header" aria-label="Impocoma Riesgos">
                     <div class="risk-brand-mark">
                         <img src="/risk_module/static/src/img/impocoma_logo.jpeg" alt="Impocoma"/>

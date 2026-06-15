@@ -36,15 +36,21 @@ publicWidget.registry.RiskSubmissionVehicle = publicWidget.Widget.extend({
     _onTogglePassword: function (ev) {
         ev.preventDefault();
         var $input = this.$('#satellite_password');
-        var $icon = this.$(ev.currentTarget).find('i');
+        var $icon = this.$(ev.currentTarget).find('i, .material-symbols-outlined');
         
         if ($input.attr('type') === 'password') {
             $input.attr('type', 'text');
             $icon.removeClass('fa-eye').addClass('fa-eye-slash');
+            if ($icon.hasClass('material-symbols-outlined')) {
+                $icon.text('visibility_off');
+            }
             this.$(ev.currentTarget).attr('aria-label', 'Ocultar contraseña');
         } else {
             $input.attr('type', 'password');
             $icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            if ($icon.hasClass('material-symbols-outlined')) {
+                $icon.text('visibility');
+            }
             this.$(ev.currentTarget).attr('aria-label', 'Mostrar contraseña');
         }
     },

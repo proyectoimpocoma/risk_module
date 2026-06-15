@@ -1334,3 +1334,541 @@
     padding: 12px 16px;
     font-weight: 600;
 }
+
+/* ============================================================
+   Paso 1 - Diseno fiel a referencia Material/Tailwind adjunta
+   ============================================================ */
+.risk-vehicle-redesign-page {
+    --vr-surface-container-lowest: #ffffff;
+    --vr-on-primary-fixed-variant: #723600;
+    --vr-tertiary-container: #60b05e;
+    --vr-secondary-fixed: #d5e3ff;
+    --vr-inverse-surface: #273141;
+    --vr-surface-container-low: #f0f3ff;
+    --vr-surface-container-high: #dee8ff;
+    --vr-on-primary-container: #582800;
+    --vr-inverse-on-surface: #ebf1ff;
+    --vr-surface-container-highest: #d9e3f9;
+    --vr-tertiary-fixed: #a3f69c;
+    --vr-surface-dim: #d0daf0;
+    --vr-primary-container: #f77c00;
+    --vr-tertiary: #1b6d24;
+    --vr-surface-bright: #f9f9ff;
+    --vr-background: #f5f7fa;
+    --vr-on-surface: #121c2c;
+    --vr-on-primary-fixed: #311300;
+    --vr-primary: #f77c00;
+    --vr-inverse-primary: #ffb787;
+    --vr-outline: #8b7263;
+    --vr-on-secondary-fixed: #001c3b;
+    --vr-surface-container: #e7eeff;
+    --vr-error-container: #ffdad6;
+    --vr-on-secondary-fixed-variant: #174780;
+    --vr-on-surface-variant: #574235;
+    --vr-secondary-container: #95bdfd;
+    --vr-secondary-fixed-dim: #a7c8ff;
+    --vr-on-primary: #ffffff;
+    --vr-error: #ba1a1a;
+    --vr-primary-fixed: #ffdcc7;
+    --vr-outline-variant: #cbd5e0;
+    --vr-on-secondary: #ffffff;
+    --vr-on-tertiary-fixed: #002204;
+    --vr-on-error: #ffffff;
+    --vr-on-tertiary: #ffffff;
+    --vr-on-secondary-container: #1d4b84;
+    --vr-surface-tint: #964900;
+    --vr-on-error-container: #93000a;
+    --vr-surface: #ffffff;
+    --vr-primary-fixed-dim: #ffb787;
+    --vr-surface-variant: #d9e3f9;
+    --vr-secondary: #003b73;
+
+    width: 100%;
+    max-width: none;
+    min-height: max(884px, 100dvh);
+    margin: 0;
+    padding: 0;
+    background: var(--vr-background);
+    color: var(--vr-on-background, #121c2c);
+    font-family: "Montserrat", sans-serif;
+}
+
+.risk-vr-appbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 80px;
+    padding: 0 16px;
+    border-bottom: 4px solid var(--vr-primary);
+    background: var(--vr-surface);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.risk-vr-appbar-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.risk-vr-appbar-title .material-symbols-outlined {
+    color: var(--vr-primary);
+    font-size: 30px;
+}
+
+.risk-vr-appbar-title h1 {
+    margin: 0;
+    color: var(--vr-secondary);
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 700;
+}
+
+.risk-vr-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 9999px;
+    color: var(--vr-on-surface-variant);
+    text-decoration: none;
+    transition: background-color 150ms ease, color 150ms ease;
+}
+
+.risk-vr-close:hover {
+    background: var(--vr-surface-container-high);
+    color: var(--vr-on-surface-variant);
+    text-decoration: none;
+}
+
+.risk-vr-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    padding: 48px 16px 80px;
+}
+
+.risk-vr-progress,
+.risk-vr-form,
+.risk-vr-card,
+.risk-vr-actions {
+    width: 100%;
+    max-width: 768px;
+}
+
+.risk-vr-progress {
+    margin-bottom: 48px;
+}
+
+.risk-vr-progress-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.risk-vr-progress-meta span:first-child {
+    color: var(--vr-secondary);
+}
+
+.risk-vr-progress-meta span:last-child {
+    color: var(--vr-on-surface-variant);
+}
+
+.risk-vr-progress-track {
+    width: 100%;
+    height: 8px;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: var(--vr-surface-variant);
+}
+
+.risk-vr-progress-value {
+    width: 25%;
+    height: 8px;
+    border-radius: 9999px;
+    background: var(--vr-primary);
+    transition: width 500ms ease-in-out;
+}
+
+.risk-vr-card {
+    padding: 24px;
+    border: 1px solid var(--vr-outline-variant);
+    border-radius: 12px;
+    background: var(--vr-surface);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.risk-vr-card-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 48px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--vr-outline-variant);
+}
+
+.risk-vr-card-title .material-symbols-outlined {
+    color: var(--vr-primary);
+    font-size: 30px;
+}
+
+.risk-vr-card-title h2 {
+    margin: 0;
+    color: var(--vr-secondary);
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
+}
+
+.risk-vr-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+}
+
+.risk-vr-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+}
+
+.risk-vr-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.risk-vr-field-full {
+    grid-column: 1 / -1;
+}
+
+.risk-vr-field label {
+    margin: 0;
+    color: var(--vr-on-surface-variant);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.risk-vr-field input,
+.risk-vr-field select {
+    width: 100%;
+    min-height: 50px;
+    padding: 12px;
+    border: 1px solid var(--vr-outline-variant);
+    border-radius: 8px;
+    background: var(--vr-surface);
+    color: var(--vr-on-surface);
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    outline: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.risk-vr-field input:focus,
+.risk-vr-field select:focus {
+    border-color: var(--vr-secondary);
+    box-shadow: 0 0 0 2px rgba(0, 59, 115, 0.2);
+}
+
+.risk-vr-field #vehicle_plate,
+.risk-vr-field #semi_trailer_plate {
+    color: var(--vr-secondary);
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.risk-vr-semi {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 24px;
+    border: 1px solid var(--vr-outline-variant);
+    border-radius: 8px;
+    background: var(--vr-surface-bright);
+}
+
+.risk-vr-semi-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.risk-vr-semi h3 {
+    margin: 0;
+    color: var(--vr-secondary);
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.risk-vr-semi p {
+    margin: 0;
+    color: var(--vr-on-surface-variant);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+}
+
+.risk-vr-toggle-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.risk-vr-toggle-wrap > span {
+    color: var(--vr-on-surface-variant);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 700;
+}
+
+.risk-vr-toggle-wrap .risk-vr-toggle-yes {
+    color: var(--vr-primary);
+}
+
+.risk-vr-toggle {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 24px;
+    margin-right: 8px;
+    vertical-align: middle;
+    user-select: none;
+}
+
+.risk-vr-toggle-checkbox {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    display: block;
+    width: 24px !important;
+    height: 24px !important;
+    min-height: 24px !important;
+    margin: 0;
+    padding: 0;
+    border: 4px solid var(--vr-outline-variant);
+    border-radius: 9999px;
+    background: #ffffff;
+    appearance: none;
+    cursor: pointer;
+    transition: transform 300ms ease, border-color 300ms ease;
+}
+
+.risk-vr-toggle-label {
+    display: block;
+    width: 48px;
+    height: 24px;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: var(--vr-surface-variant);
+    cursor: pointer;
+    transition: background-color 300ms ease;
+}
+
+.risk-vr-toggle-checkbox:checked {
+    transform: translateX(100%);
+    border-color: var(--vr-primary);
+}
+
+.risk-vr-toggle-checkbox:checked + .risk-vr-toggle-label {
+    background: var(--vr-primary);
+}
+
+.risk-vr-semi-plate {
+    padding-left: 24px;
+    border-left: 2px solid var(--vr-primary-fixed);
+    transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.risk-vr-semi-plate.is-disabled {
+    display: none;
+}
+
+.risk-vr-satellite {
+    padding-top: 48px;
+    border-top: 1px solid var(--vr-outline-variant);
+}
+
+.risk-vr-satellite h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 24px;
+    color: var(--vr-secondary);
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
+}
+
+.risk-vr-satellite h3 .material-symbols-outlined {
+    color: var(--vr-primary);
+}
+
+.risk-vr-select-wrap,
+.risk-vr-password {
+    position: relative;
+}
+
+.risk-vr-select-wrap select {
+    appearance: none;
+    padding-right: 44px;
+}
+
+.risk-vr-select-wrap > .material-symbols-outlined {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    pointer-events: none;
+    color: var(--vr-on-surface-variant);
+    transform: translateY(-50%);
+}
+
+.risk-vr-password input {
+    padding-right: 48px;
+}
+
+.risk-vr-password button {
+    position: absolute;
+    inset: 0 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    border: 0;
+    background: transparent;
+    color: var(--vr-on-surface-variant);
+    cursor: pointer;
+    transition: color 150ms ease;
+}
+
+.risk-vr-password button:hover {
+    color: var(--vr-secondary);
+}
+
+.risk-vr-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 48px;
+    padding-bottom: 80px;
+}
+
+.risk-vr-next {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 56px;
+    padding: 16px 32px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--vr-primary);
+    color: var(--vr-on-primary);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.12);
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    transition: background 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.risk-vr-next:hover {
+    background: #d96c00;
+    color: var(--vr-on-primary);
+    box-shadow: 0 8px 14px rgba(0, 0, 0, 0.14);
+}
+
+.risk-vr-next:active {
+    transform: translateY(1px);
+}
+
+.risk-vr-error {
+    margin: -24px 0 24px;
+    padding: 12px 16px;
+    border: 1px solid var(--vr-error);
+    border-radius: 8px;
+    background: var(--vr-error-container);
+    color: var(--vr-on-error-container);
+    font-weight: 600;
+}
+
+@media (min-width: 768px) {
+    .risk-vr-appbar {
+        padding: 0 64px;
+    }
+
+    .risk-vr-main {
+        padding-right: 64px;
+        padding-left: 64px;
+    }
+
+    .risk-vr-card {
+        padding: 48px;
+    }
+
+    .risk-vr-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .risk-vr-appbar-title h1 {
+        font-size: 20px;
+        line-height: 28px;
+    }
+
+    .risk-vr-main {
+        padding-top: 32px;
+    }
+
+    .risk-vr-progress {
+        margin-bottom: 32px;
+    }
+
+    .risk-vr-progress-meta,
+    .risk-vr-semi-head {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .risk-vr-card-title {
+        margin-bottom: 32px;
+    }
+
+    .risk-vr-fields {
+        gap: 32px;
+    }
+
+    .risk-vr-semi,
+    .risk-vr-card {
+        padding: 24px;
+    }
+
+    .risk-vr-satellite {
+        padding-top: 32px;
+    }
+
+    .risk-vr-actions {
+        padding-bottom: 32px;
+    }
+}
