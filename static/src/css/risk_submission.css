@@ -1190,6 +1190,125 @@
     color: var(--risk-secondary);
 }
 
+/* Verificación de identidad por correo (firma) */
+.risk-step-page .risk-verify {
+    border: 1px solid var(--risk-line);
+    border-left: 4px solid var(--risk-primary);
+    border-radius: 12px;
+    background: var(--risk-fill);
+    padding: 18px;
+    margin: 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.risk-step-page .risk-verify.is-verified { border-left-color: var(--risk-tertiary); }
+.risk-step-page .risk-verify-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+.risk-step-page .risk-verify-head > .material-symbols-outlined {
+    color: var(--risk-primary);
+    font-size: 26px;
+}
+.risk-step-page .risk-verify-titles { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.risk-step-page .risk-verify-titles strong { color: var(--risk-secondary); font-size: 16px; }
+.risk-step-page .risk-verify-sub { color: var(--risk-muted); font-size: 13px; }
+.risk-step-page .risk-state {
+    align-self: flex-start;
+    flex: 0 0 auto;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    white-space: nowrap;
+}
+.risk-step-page .risk-state-approved { background: #dff5e1; color: var(--risk-tertiary); }
+.risk-step-page .risk-state-warning { background: var(--risk-alert-bg); color: var(--risk-primary); }
+.risk-step-page .risk-verify-email { margin: 0; }
+.risk-step-page .risk-verify-steps { display: flex; flex-direction: column; gap: 14px; }
+.risk-step-page .risk-verify-step { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.risk-step-page .risk-verify-num {
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    border-radius: 9999px;
+    background: var(--risk-primary);
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.risk-step-page .risk-verify-code { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.risk-step-page .risk-verify-code label {
+    width: 100%;
+    margin: 0 0 2px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--risk-muted);
+}
+.risk-step-page .risk-otp-input {
+    width: 180px;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.5em;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+.risk-step-page .risk-otp-send[disabled] { opacity: 0.55; cursor: not-allowed; }
+.risk-step-page .risk-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--risk-primary);
+    color: #fff;
+    border: none;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.risk-step-page .risk-action-btn:hover { background: var(--risk-primary-dark); }
+.risk-step-page .risk-action-btn .material-symbols-outlined,
+.risk-step-page .risk-otp-send .material-symbols-outlined { font-size: 18px; }
+.risk-step-page .risk-verify-meta { font-size: 13px; color: var(--risk-muted); }
+.risk-step-page .risk-verify-attempts { font-size: 13px; color: var(--risk-primary-dark); margin: 0; }
+.risk-step-page .risk-verify-ok {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    color: var(--risk-tertiary);
+    font-weight: 600;
+}
+
+/* Bloqueo de la firma hasta verificar el correo */
+.risk-step-page .risk-signature-pad { position: relative; }
+.risk-step-page .risk-signature-pad.is-locked > canvas,
+.risk-step-page .risk-signature-pad.is-locked > .risk-clear-signature { opacity: 0.4; pointer-events: none; }
+.risk-step-page .risk-signature-lock {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(240, 243, 255, 0.7);
+    border-radius: 10px;
+    color: var(--risk-muted);
+    font-weight: 600;
+    font-size: 14px;
+}
+.risk-step-page .risk-signature-lock .material-symbols-outlined { color: var(--risk-primary); }
+
 /* Separador "Rastreo Satelital" como header de sub-sección */
 .risk-step-page .risk-section-divider {
     display: flex;

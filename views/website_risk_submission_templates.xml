@@ -3,6 +3,7 @@
         <t t-call="website.layout">
             <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
             <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&amp;display=swap" rel="stylesheet"/>
+            <datalist id="risk-co-municipios"></datalist>
             <main class="risk-step-page">
                 <section class="risk-brand-header" aria-label="Impocoma Riesgos">
                     <div class="risk-brand-mark">

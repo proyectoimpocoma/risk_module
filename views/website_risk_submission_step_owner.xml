@@ -31,7 +31,7 @@
         </div>
         <div class="risk-field">
             <label for="owner_city">Ciudad</label>
-            <input id="owner_city" name="owner_city" type="text" t-att-value="data.get('owner_city')" maxlength="80" autocomplete="off" placeholder="Ciudad"/>
+            <input id="owner_city" name="owner_city" type="text" list="risk-co-municipios" t-att-value="data.get('owner_city')" maxlength="80" autocomplete="off" placeholder="Escribe o selecciona el municipio"/>
         </div>
         <div class="risk-field">
             <label for="owner_phone">Numero de celular para notificaciones y autorizaciones electronicas</label>

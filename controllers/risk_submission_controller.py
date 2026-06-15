@@ -193,6 +193,14 @@ class RiskSubmissionController(
 
         return self._submit_final_step(data)
 
+    def _capture_signature_email(self, data, party, post):
+        """Persist the email typed in the signature step so the OTP can be sent
+        even when it was left empty in step 2/3 (avoids a dead-end)."""
+        email_field = "%s_email" % party
+        posted_email = (post.get(email_field) or "").strip()
+        if posted_email:
+            data[email_field] = posted_email
+
     def _collect_extra_owners(self):
         """Build the list of additional owners from the repeated step-2 form
         fields. Fully empty rows are ignored."""
@@ -251,6 +259,7 @@ class RiskSubmissionController(
             return request.not_found()
         data = request.session.get("risk_vehicle_form", {})
         self._update_signature_data(data, post)
+        self._capture_signature_email(data, party, post)
         step = 5 if party == "owner" else 6
         self._persist_step_data(step, data)
         request.session["risk_vehicle_form"] = data
@@ -301,6 +310,7 @@ class RiskSubmissionController(
             return request.not_found()
         data = request.session.get("risk_vehicle_form", {})
         self._update_signature_data(data, post)
+        self._capture_signature_email(data, party, post)
         step = 5 if party == "owner" else 6
         self._persist_step_data(step, data)
         request.session["risk_vehicle_form"] = data

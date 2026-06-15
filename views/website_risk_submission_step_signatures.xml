@@ -23,44 +23,10 @@
             </div>
             
             <!-- Subsección 1.1: Verificación de Correo (Propietario) -->
-            <div class="risk-verification-box">
-                <div>
-                    <strong>Verificacion de correo</strong>
-                    <p>
-                        Correo:
-                        <span t-esc="data.get('owner_email') or 'No registrado'"/>
-                    </p>
-                    <p t-if="data.get('owner_signature_verification_state') == 'verified' and data.get('owner_signature_email') == data.get('owner_email')" class="risk-verification-ok">
-                        Correo verificado.
-                    </p>
-                    <p t-else="" class="risk-verification-pending">
-                        Debes verificar el correo del propietario antes de continuar.
-                    </p>
-                </div>
-                <button type="submit"
-                        class="btn btn-secondary"
-                        formmethod="post"
-                        formaction="/registro-conductor/firma/owner/enviar-codigo">
-                    Enviar codigo
-                </button>
-                <div class="risk-verification-code">
-                    <label for="owner_signature_verification_code">Codigo recibido</label>
-                    <input id="owner_signature_verification_code"
-                           name="owner_signature_verification_code"
-                           type="text"
-                           inputmode="numeric"
-                           pattern="[0-9]{6}"
-                           maxlength="6"
-                           autocomplete="one-time-code"/>
-                    <button type="submit"
-                            class="btn btn-primary"
-                            formmethod="post"
-                            formaction="/registro-conductor/firma/owner/verificar-codigo">
-                        Verificar
-                    </button>
-                </div>
-            </div>
-            
+            <t t-set="party" t-value="'owner'"/>
+            <t t-call="risk_module.register_driver_signature_verification"/>
+            <t t-set="owner_verified" t-value="data.get('owner_signature_verification_state') == 'verified' and data.get('owner_email') and data.get('owner_signature_email') == data.get('owner_email')"/>
+
             <!-- Subsección 1.2: Estudio Vigente y Firma (Propietario) -->
             <p>Si el propietario cuenta con estudio vigente, no debe diligenciar el siguiente espacio.</p>
             <div class="risk-choice-row">
@@ -74,7 +40,11 @@
                     <input type="radio" name="owner_has_valid_study" value="no" t-att-checked="'checked' if data.get('owner_has_valid_study') != 'yes' else None"/>
                 </label>
             </div>
-            <div class="risk-signature-pad" data-signature-pad="owner">
+            <div t-attf-class="risk-signature-pad #{'' if owner_verified else 'is-locked'}" data-signature-pad="owner">
+                <div t-if="not owner_verified" class="risk-signature-lock">
+                    <span class="material-symbols-outlined">lock</span>
+                    Verifica el correo para habilitar la firma.
+                </div>
                 <canvas id="owner-signature-canvas" width="720" height="190"></canvas>
                 <input id="owner-signature-input" type="hidden" name="owner_signature" t-att-value="'data:image/png;base64,%s' % data.get('owner_signature') if data.get('owner_signature') else ''"/>
                 <button type="button" class="btn btn-secondary risk-clear-signature" data-clear-signature="owner">Limpiar firma</button>
@@ -93,44 +63,10 @@
         <!-- Sección 2: Firma y Verificación del Conductor (Paso 6) -->
         <div t-if="step == 6" class="risk-signature-card">
             <h3>Conductor</h3>
-            <div class="risk-verification-box">
-                <div>
-                    <strong>Verificacion de correo</strong>
-                    <p>
-                        Correo:
-                        <span t-esc="data.get('driver_email') or 'No registrado'"/>
-                    </p>
-                    <p t-if="data.get('driver_signature_verification_state') == 'verified' and data.get('driver_signature_email') == data.get('driver_email')" class="risk-verification-ok">
-                        Correo verificado.
-                    </p>
-                    <p t-else="" class="risk-verification-pending">
-                        Debes verificar el correo del conductor antes de continuar.
-                    </p>
-                </div>
-                <button type="submit"
-                        class="btn btn-secondary"
-                        formmethod="post"
-                        formaction="/registro-conductor/firma/driver/enviar-codigo">
-                    Enviar codigo
-                </button>
-                <div class="risk-verification-code">
-                    <label for="driver_signature_verification_code">Codigo recibido</label>
-                    <input id="driver_signature_verification_code"
-                           name="driver_signature_verification_code"
-                           type="text"
-                           inputmode="numeric"
-                           pattern="[0-9]{6}"
-                           maxlength="6"
-                           autocomplete="one-time-code"/>
-                    <button type="submit"
-                            class="btn btn-primary"
-                            formmethod="post"
-                            formaction="/registro-conductor/firma/driver/verificar-codigo">
-                        Verificar
-                    </button>
-                </div>
-            </div>
-            
+            <t t-set="party" t-value="'driver'"/>
+            <t t-call="risk_module.register_driver_signature_verification"/>
+            <t t-set="driver_verified" t-value="data.get('driver_signature_verification_state') == 'verified' and data.get('driver_email') and data.get('driver_signature_email') == data.get('driver_email')"/>
+
             <!-- Subsección 2.2: Estudio Vigente y Firma (Conductor) -->
             <p>Si el conductor cuenta con estudio vigente, no debe diligenciar el siguiente espacio.</p>
             <div class="risk-choice-row">
@@ -144,7 +80,11 @@
                     <input type="radio" name="driver_has_valid_study" value="no" t-att-checked="'checked' if data.get('driver_has_valid_study') != 'yes' else None"/>
                 </label>
             </div>
-            <div class="risk-signature-pad" data-signature-pad="driver">
+            <div t-attf-class="risk-signature-pad #{'' if driver_verified else 'is-locked'}" data-signature-pad="driver">
+                <div t-if="not driver_verified" class="risk-signature-lock">
+                    <span class="material-symbols-outlined">lock</span>
+                    Verifica el correo para habilitar la firma.
+                </div>
                 <canvas id="driver-signature-canvas" width="720" height="190"></canvas>
                 <input id="driver-signature-input" type="hidden" name="driver_signature" t-att-value="'data:image/png;base64,%s' % data.get('driver_signature') if data.get('driver_signature') else ''"/>
                 <button type="button" class="btn btn-secondary risk-clear-signature" data-clear-signature="driver">Limpiar firma</button>
@@ -157,6 +97,72 @@
 
         <div class="risk-signature-note">
             <strong>Nota:</strong> En caso de creacion de nuevo vehiculo, el propietario/tenedor debe firmar sin ninguna excepcion. Para los casos que se requiera cambio de conductor y este cuente con estudio vigente, tanto el propietario/tenedor y conductor deberan firmar sin ninguna excepcion.
+        </div>
+    </template>
+
+    <template id="register_driver_signature_verification" name="Verificacion de identidad por correo (firma)">
+        <t t-set="email" t-value="data.get(party + '_email')"/>
+        <t t-set="verified_email" t-value="data.get(party + '_signature_email')"/>
+        <t t-set="is_verified" t-value="data.get(party + '_signature_verification_state') == 'verified' and email and verified_email == email"/>
+        <t t-set="party_label" t-value="'propietario' if party == 'owner' else 'conductor'"/>
+        <div t-attf-class="risk-verify #{'is-verified' if is_verified else 'is-pending'}">
+            <div class="risk-verify-head">
+                <span class="material-symbols-outlined">mark_email_read</span>
+                <div class="risk-verify-titles">
+                    <strong>Verificacion de identidad por correo</strong>
+                    <span class="risk-verify-sub">Confirmamos tu correo para autorizar la firma electronica del <t t-esc="party_label"/>.</span>
+                </div>
+                <span t-attf-class="risk-state #{'risk-state-approved' if is_verified else 'risk-state-warning'}">
+                    <t t-if="is_verified">Verificado</t>
+                    <t t-else="">Pendiente</t>
+                </span>
+            </div>
+
+            <div class="risk-field risk-verify-email">
+                <label t-attf-for="#{party}_email_input">Correo electronico</label>
+                <input t-attf-id="#{party}_email_input" t-attf-name="#{party}_email" type="email"
+                       t-att-value="email" maxlength="120" autocomplete="email"
+                       placeholder="ejemplo@dominio.com"/>
+            </div>
+
+            <div class="risk-verify-steps">
+                <div class="risk-verify-step">
+                    <span class="risk-verify-num">1</span>
+                    <button type="submit" class="risk-btn-secondary risk-otp-send"
+                            formmethod="post" t-attf-formaction="/registro-conductor/firma/#{party}/enviar-codigo"
+                            t-att-data-otp-sent="data.get(party + '_signature_code_sent_at') or None">
+                        <span class="material-symbols-outlined">send</span>
+                        <span class="risk-otp-send-label">Enviar codigo</span>
+                    </button>
+                    <span t-if="data.get(party + '_signature_code_sent_at') and not is_verified" class="risk-verify-meta"
+                          t-att-data-otp-expires="data.get(party + '_signature_code_expires_at') or None">
+                        Codigo enviado a <t t-esc="email"/>.
+                    </span>
+                </div>
+
+                <div t-if="not is_verified" class="risk-verify-step">
+                    <span class="risk-verify-num">2</span>
+                    <div class="risk-verify-code">
+                        <label t-attf-for="#{party}_signature_verification_code">Codigo recibido</label>
+                        <input t-attf-id="#{party}_signature_verification_code" t-attf-name="#{party}_signature_verification_code"
+                               type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+                               autocomplete="one-time-code" class="risk-otp-input" placeholder="——————"/>
+                        <button type="submit" class="risk-action-btn"
+                                formmethod="post" t-attf-formaction="/registro-conductor/firma/#{party}/verificar-codigo">
+                            <span class="material-symbols-outlined">check</span>
+                            Verificar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <p t-if="not is_verified and data.get(party + '_signature_code_attempts')" class="risk-verify-attempts">
+                Intentos usados: <t t-esc="data.get(party + '_signature_code_attempts')"/> de 5.
+            </p>
+            <p t-if="is_verified" class="risk-verify-ok">
+                <span class="material-symbols-outlined">check_circle</span>
+                Correo verificado: <t t-esc="email"/>
+            </p>
         </div>
     </template>
 </odoo>

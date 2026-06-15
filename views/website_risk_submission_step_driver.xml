@@ -44,7 +44,7 @@
         </div>
         <div class="risk-field">
             <label for="driver_city">Ciudad</label>
-            <input id="driver_city" name="driver_city" type="text" t-att-value="data.get('driver_city')" maxlength="80" autocomplete="off" placeholder="Ciudad"/>
+            <input id="driver_city" name="driver_city" type="text" list="risk-co-municipios" t-att-value="data.get('driver_city')" maxlength="80" autocomplete="off" placeholder="Escribe o selecciona el municipio"/>
         </div>
         <div class="risk-field">
             <label for="driver_phone">Numero de celular para notificaciones y autorizaciones electronicas</label>
