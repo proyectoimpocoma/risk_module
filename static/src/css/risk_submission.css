@@ -1049,20 +1049,31 @@
     margin-bottom: 12px;
 }
 .risk-extra-owner {
-    position: relative;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
-    border: 1px solid var(--risk-border, #dec1af);
-    border-radius: 12px;
-    background: var(--risk-surface, #f9f9ff);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    align-items: start;
+    padding-top: 18px;
+    margin-top: 18px;
+    border-top: 1px dashed var(--risk-line);
 }
-.risk-extra-owner .risk-field { margin: 0; }
+.risk-extra-owner:first-child {
+    margin-top: 8px;
+    padding-top: 0;
+    border-top: 0;
+}
+.risk-extra-owner-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.risk-extra-owner-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--risk-secondary);
+}
 .risk-extra-owner-remove {
-    grid-column: 1 / -1;
-    justify-self: end;
     background: transparent;
     border: 1px solid #ba1a1a;
     color: #ba1a1a;

@@ -98,12 +98,18 @@
 
     <template id="register_driver_extra_owner_row" name="Fila Propietario Adicional">
         <div class="risk-extra-owner" data-extra-owner-row="1">
+            <div class="risk-extra-owner-head risk-field-full">
+                <span class="risk-extra-owner-title">Propietario adicional</span>
+                <button type="button" class="risk-extra-owner-remove" data-extra-owner-remove="1" title="Eliminar propietario">
+                    Eliminar
+                </button>
+            </div>
             <div class="risk-field">
                 <label>Nombres y apellidos / Empresa</label>
                 <input type="text" name="extra_owner_name" t-att-value="owner.get('name')" maxlength="140" autocomplete="off" placeholder="Ej: Juan Perez o Transportes XYZ"/>
             </div>
             <div class="risk-field">
-                <label>Tipo</label>
+                <label>Tipo de documento</label>
                 <select name="extra_owner_document_type">
                     <option value="cc" t-att-selected="'selected' if owner.get('document_type') == 'cc' else None">CC</option>
                     <option value="nit" t-att-selected="'selected' if owner.get('document_type') == 'nit' else None">NIT</option>
@@ -129,9 +135,6 @@
                 <label>Correo electronico</label>
                 <input type="email" name="extra_owner_email" t-att-value="owner.get('email')" maxlength="120" autocomplete="off" placeholder="ejemplo@dominio.com"/>
             </div>
-            <button type="button" class="risk-extra-owner-remove" data-extra-owner-remove="1" title="Eliminar propietario">
-                Eliminar
-            </button>
         </div>
     </template>
 </odoo>
