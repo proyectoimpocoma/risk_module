@@ -1,305 +1,270 @@
 <odoo>
     <template id="portal_risk_submission_list" name="Mis Solicitudes de Riesgo">
         <t t-call="website.layout">
-            <main class="risk-portal-page">
-                <section class="risk-brand-header risk-brand-header-compact" aria-label="Impocoma Riesgos">
-                    <div class="risk-brand-mark">
-                        <img src="/risk_module/static/src/img/impocoma_logo.jpeg" alt="Impocoma"/>
-                    </div>
-                    <div class="risk-brand-copy">
-                        <p>Portal de terceros</p>
-                        <h1>Mis solicitudes de riesgo</h1>
-                        <span>Consulta el avance de tus registros y los documentos pendientes.</span>
-                    </div>
-                </section>
+            <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+            <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&amp;display=swap" rel="stylesheet"/>
 
-                <div class="risk-portal-toolbar">
-                    <h2>Solicitudes registradas</h2>
-                    <a href="/registro-conductor" class="btn btn-primary">Nueva solicitud</a>
+            <main class="rpd">
+                <div class="rpd-list-head">
+                    <div>
+                        <h1 class="rpd-list-title">Mis solicitudes de riesgo</h1>
+                        <p class="rpd-list-sub">Consulta el avance de tus registros y los documentos pendientes.</p>
+                    </div>
+                    <a href="/registro-conductor" class="rpd-new-btn">
+                        <span class="material-symbols-outlined">add</span>
+                        Nueva solicitud
+                    </a>
                 </div>
-                <div t-if="not submissions" class="alert alert-info">
-                    No tienes solicitudes registradas.
+
+                <!-- Empty state -->
+                <div t-if="not submissions" class="rpd-emptystate">
+                    <span class="material-symbols-outlined">inbox</span>
+                    <h2>Aún no tienes solicitudes</h2>
+                    <p>Cuando registres una habilitación de conductor o vehículo aparecerá aquí.</p>
+                    <a href="/registro-conductor" class="rpd-new-btn">
+                        <span class="material-symbols-outlined">add</span>
+                        Crear primera solicitud
+                    </a>
                 </div>
-                <div t-if="submissions" class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead>
-                            <tr>
-                                <th>Placa</th>
-                                <th>Fecha</th>
-                                <th>Estado</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr t-foreach="submissions" t-as="submission">
-                                <td><strong t-esc="submission.vehicle_plate"/></td>
-                                <td t-esc="submission.form_date or ''"/>
-                                <td><span class="badge text-bg-secondary" t-esc="submission.portal_state_label"/></td>
-                                <td class="text-end">
-                                    <a t-attf-href="/mis-solicitudes-riesgo/#{submission.id}" class="btn btn-sm btn-outline-primary">Ver detalle</a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+
+                <!-- Cards grid -->
+                <div t-if="submissions" class="rpd-cards">
+                    <t t-foreach="submissions" t-as="submission">
+                        <t t-set="bucket"
+                           t-value="{'approved': 'approved', 'rejected': 'rejected', 'correction_required': 'warning', 'correction_submitted': 'warning'}.get(submission.state, 'info')"/>
+                        <t t-set="req" t-value="submission.document_ids.filtered(lambda d: d.required)"/>
+                        <t t-set="req_total" t-value="len(req)"/>
+                        <t t-set="req_done" t-value="len(req.filtered(lambda d: d.state == 'approved'))"/>
+                        <t t-set="pct" t-value="round(req_done * 100.0 / req_total) if req_total else 0"/>
+
+                        <div t-attf-class="rpd-card rpd-card-#{bucket}">
+                            <div class="rpd-card-head">
+                                <div>
+                                    <h2 class="rpd-plate" t-esc="submission.vehicle_plate"/>
+                                    <span t-if="submission.semi_trailer_plate" class="rpd-plate-sub">
+                                        <span class="material-symbols-outlined">rv_hookup</span>
+                                        <t t-esc="submission.semi_trailer_plate"/>
+                                    </span>
+                                </div>
+                                <span t-attf-class="rpd-state rpd-state-#{bucket}" t-esc="submission.portal_state_label"/>
+                            </div>
+
+                            <div class="rpd-card-meta">
+                                <div t-if="submission.driver_name" class="rpd-meta">
+                                    <span class="material-symbols-outlined">person</span>
+                                    <span><strong t-esc="submission.driver_name"/></span>
+                                </div>
+                                <div t-if="submission.owner_name" class="rpd-meta">
+                                    <span class="material-symbols-outlined">business_center</span>
+                                    <span t-esc="submission.owner_name"/>
+                                </div>
+                                <div t-if="submission.form_date" class="rpd-meta">
+                                    <span class="material-symbols-outlined">calendar_today</span>
+                                    <span t-esc="submission.form_date"/>
+                                </div>
+                            </div>
+
+                            <div t-if="req_total" class="rpd-progress">
+                                <div class="rpd-progress-label">
+                                    <span>Documentos aprobados</span>
+                                    <span><t t-esc="req_done"/>/<t t-esc="req_total"/></span>
+                                </div>
+                                <div class="rpd-progress-track">
+                                    <div class="rpd-progress-bar" t-attf-style="width: #{pct}%;"/>
+                                </div>
+                            </div>
+
+                            <div class="rpd-card-actions">
+                                <a t-attf-href="/mis-solicitudes-riesgo/#{submission.id}" class="rpd-detail-btn">
+                                    Ver detalle
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </a>
+                            </div>
+                        </div>
+                    </t>
                 </div>
             </main>
         </t>
     </template>
 
+    <!-- Single document card, reused across the four party sections. -->
+    <template id="portal_risk_document_card" name="Tarjeta de documento (portal)">
+        <t t-set="doc_state_class"
+           t-value="{'pending': 'rpd-state-pending', 'received': 'rpd-state-received', 'approved': 'rpd-state-approved', 'rejected': 'rpd-state-rejected'}.get(document.state, 'rpd-state-pending')"/>
+        <t t-set="is_flagged" t-value="document.state == 'rejected'"/>
+        <div t-attf-class="rpd-doc #{'rpd-doc-flagged' if is_flagged else ''}">
+            <span t-if="is_flagged" class="rpd-doc-flag">
+                <span class="material-symbols-outlined">priority_high</span>
+            </span>
+            <div class="rpd-doc-row">
+                <div class="rpd-doc-main">
+                    <span class="material-symbols-outlined rpd-doc-icon" t-esc="document._portal_material_icon()"/>
+                    <div>
+                        <h4 class="rpd-doc-title" t-esc="document.name"/>
+                        <p t-if="document.instructions" class="rpd-doc-hint" t-esc="document.instructions"/>
+                        <div class="rpd-chips">
+                            <span t-if="document.requires_color" class="rpd-chip">A color</span>
+                            <span t-if="document.requires_both_sides" class="rpd-chip">Ambas caras</span>
+                            <span t-if="document.validity_required" class="rpd-chip">Vigente</span>
+                            <span t-if="document.issue_date_required" class="rpd-chip">Fecha expedición</span>
+                            <span t-if="document.max_age_days" class="rpd-chip">Máx <t t-esc="document.max_age_days"/> días</span>
+                        </div>
+                        <p t-if="document.observations" class="rpd-doc-obs" t-esc="document.observations"/>
+                    </div>
+                </div>
+                <span t-attf-class="rpd-state #{doc_state_class}"
+                      t-esc="dict(document._fields['state'].selection).get(document.state)"/>
+            </div>
+            <form t-if="submission._portal_document_upload_allowed(document)"
+                  t-attf-action="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/subir"
+                  method="post"
+                  enctype="multipart/form-data"
+                  class="rpd-upload">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <label t-if="document.issue_date_required or document.max_age_days">
+                    Fecha de expedición
+                    <input type="date" name="issue_date" class="form-control form-control-sm" required="required" t-att-value="document.issue_date or ''"/>
+                </label>
+                <label t-if="document.validity_required">
+                    Fecha de vencimiento
+                    <input type="date" name="expiration_date" class="form-control form-control-sm" required="required" t-att-value="document.expiration_date or ''"/>
+                </label>
+                <input type="file" name="document_file" class="form-control form-control-sm" required="required"/>
+                <button type="submit" class="rpd-upload-btn">Subir</button>
+            </form>
+        </div>
+    </template>
+
     <template id="portal_risk_submission_detail" name="Detalle Solicitud de Riesgo">
         <t t-call="website.layout">
-            <main class="risk-portal-page">
-                <section class="risk-brand-header risk-brand-header-compact" aria-label="Impocoma Riesgos">
-                    <div class="risk-brand-mark">
-                        <img src="/risk_module/static/src/img/impocoma_logo.jpeg" alt="Impocoma"/>
+            <!-- Fonts used by the detail design -->
+            <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+            <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&amp;display=swap" rel="stylesheet"/>
+
+            <main class="rpd">
+                <a href="/mis-solicitudes-riesgo" class="rpd-back">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    Volver a mis solicitudes
+                </a>
+
+                <!-- Upload feedback banners -->
+                <div t-if="request.params.get('upload_success')" class="alert alert-success">Documento cargado correctamente.</div>
+                <div t-if="request.params.get('upload_error') == 'missing'" class="alert alert-danger">Debes seleccionar un archivo para cargar.</div>
+                <div t-if="request.params.get('upload_error') == 'not_allowed'" class="alert alert-warning">La carga no esta habilitada para este documento en este momento.</div>
+                <div t-if="request.params.get('upload_error') == 'too_large'" class="alert alert-danger">El archivo supera el tamano maximo permitido.</div>
+                <div t-if="request.params.get('upload_error') == 'invalid_type'" class="alert alert-danger">Solo puedes cargar archivos PDF, JPG o PNG.</div>
+                <div t-if="request.params.get('upload_error') == 'missing_issue_date'" class="alert alert-danger">Debes indicar la fecha de expedicion del documento.</div>
+                <div t-if="request.params.get('upload_error') == 'missing_expiration_date'" class="alert alert-danger">Debes indicar la fecha de vencimiento del documento.</div>
+                <div t-if="request.params.get('upload_error') == 'invalid_date'" class="alert alert-danger">La fecha ingresada no es valida. Por favor revisala e intenta nuevamente.</div>
+                <div t-if="request.params.get('upload_error') == 'expired_date'" class="alert alert-danger">El documento se encuentra vencido. Por favor carga una version vigente.</div>
+                <div t-if="request.params.get('upload_error') == 'old_issue_date'" class="alert alert-danger">La fecha de expedicion supera la antiguedad maxima permitida para este documento.</div>
+
+                <!-- Header card -->
+                <t t-set="needs_correction" t-value="submission.state == 'correction_required'"/>
+                <div class="rpd-header">
+                    <div class="rpd-header-row">
+                        <div>
+                            <h1 class="rpd-title">Detalle de Solicitud</h1>
+                            <div class="rpd-subtitle">
+                                <span t-if="submission.name" class="rpd-code" t-esc="submission.name"/>
+                                <span class="rpd-subtitle-text">Habilitación vehículo <t t-esc="submission.vehicle_plate"/></span>
+                            </div>
+                        </div>
+                        <div t-attf-class="rpd-status #{'rpd-status-warning' if needs_correction else 'rpd-status-neutral'}">
+                            <span t-if="needs_correction" class="material-symbols-outlined">warning</span>
+                            <span t-esc="submission.portal_state_label"/>
+                        </div>
                     </div>
-                    <div class="risk-brand-copy">
-                        <p>Detalle de solicitud</p>
-                        <h1>Solicitud <span t-esc="submission.vehicle_plate"/></h1>
-                        <span t-esc="submission.name or 'Seguimiento documental'"/>
-                    </div>
-                </section>
-
-                <div class="mb-4">
-                    <a href="/mis-solicitudes-riesgo" class="btn btn-link px-0">Volver a mis solicitudes</a>
                 </div>
 
-                <div t-if="request.params.get('upload_success')" class="alert alert-success">
-                    Documento cargado correctamente.
-                </div>
-                <div t-if="request.params.get('upload_error') == 'missing'" class="alert alert-danger">
-                    Debes seleccionar un archivo para cargar.
-                </div>
-                <div t-if="request.params.get('upload_error') == 'not_allowed'" class="alert alert-warning">
-                    La carga no esta habilitada para este documento en este momento.
-                </div>
-                <div t-if="request.params.get('upload_error') == 'too_large'" class="alert alert-danger">
-                    El archivo supera el tamano maximo permitido de 10 MB.
-                </div>
-                <div t-if="request.params.get('upload_error') == 'invalid_type'" class="alert alert-danger">
-                    Solo puedes cargar archivos PDF, JPG o PNG.
-                </div>
-                <div t-if="request.params.get('upload_error') == 'missing_issue_date'" class="alert alert-danger">
-                    Debes indicar la fecha de expedicion del documento.
-                </div>
-                <div t-if="request.params.get('upload_error') == 'missing_expiration_date'" class="alert alert-danger">
-                    Debes indicar la fecha de vencimiento del documento.
-                </div>
-                <div t-if="request.params.get('upload_error') == 'invalid_date'" class="alert alert-danger">
-                    La fecha ingresada no es valida. Por favor revisala e intenta nuevamente.
-                </div>
-                <div t-if="request.params.get('upload_error') == 'expired_date'" class="alert alert-danger">
-                    El documento se encuentra vencido. Por favor carga una version vigente.
-                </div>
-                <div t-if="request.params.get('upload_error') == 'old_issue_date'" class="alert alert-danger">
-                    La fecha de expedicion supera la antiguedad maxima permitida para este documento.
-                </div>
-
-                <section class="mb-4">
-                    <h2 class="h5">Estado</h2>
-                    <p><span class="badge text-bg-secondary" t-esc="submission.portal_state_label"/></p>
-                    <div t-if="submission.state == 'correction_required'" class="alert alert-warning">
-                        <p class="mb-2">
-                            Tu solicitud requiere correccion antes de continuar.
+                <!-- Correction reason banner -->
+                <div t-if="needs_correction" class="rpd-alert">
+                    <span class="material-symbols-outlined">info</span>
+                    <div class="rpd-alert-body">
+                        <h3>Motivo:</h3>
+                        <p t-if="submission.correction_reason" t-esc="submission.correction_reason"/>
+                        <p t-else="">Tu solicitud requiere corrección antes de continuar.</p>
+                        <p t-if="submission._correction_section_labels()" class="rpd-doc-hint" style="margin-top:8px;">
+                            <strong>Secciones:</strong> <span t-esc="submission._correction_section_labels()"/>
                         </p>
-                        <p t-if="submission.correction_reason" class="mb-2">
-                            <strong>Motivo:</strong>
-                            <span t-esc="submission.correction_reason"/>
-                        </p>
-                        <p class="mb-3">
-                            <strong>Secciones:</strong>
-                            <span t-esc="submission._correction_section_labels()"/>
-                        </p>
-                        <a t-attf-href="/registro-conductor/corregir/#{submission.id}" class="btn btn-primary">
+                        <a t-attf-href="/registro-conductor/corregir/#{submission.id}" class="rpd-action-btn rpd-correct-inline">
+                            <span class="material-symbols-outlined">edit</span>
                             Corregir solicitud
                         </a>
                     </div>
-                    <p t-if="submission.rejection_reason" class="alert alert-danger" t-esc="submission.rejection_reason"/>
-                    <p t-if="submission.message" class="alert alert-light" t-esc="submission.message"/>
-                </section>
+                </div>
+                <div t-if="submission.rejection_reason" class="alert alert-danger" t-esc="submission.rejection_reason"/>
+                <div t-if="submission.message" class="alert alert-light" t-esc="submission.message"/>
 
-                <section>
-                    <h2 class="h5">Documentos solicitados</h2>
-                    <t t-set="required_documents" t-value="submission.document_ids.filtered(lambda d: d.required)"/>
-                    <div t-if="not required_documents" class="alert alert-info">
-                        Aun no tienes documentos solicitados.
-                    </div>
-                    <div t-if="required_documents">
-                        <t t-set="driver_documents" t-value="required_documents.filtered(lambda d: d.party == 'driver')"/>
-                        <t t-set="vehicle_documents" t-value="required_documents.filtered(lambda d: d.party in ('vehicle', 'semi_trailer'))"/>
-                        <t t-set="owner_documents" t-value="required_documents.filtered(lambda d: d.party == 'owner')"/>
-                        <t t-set="other_documents" t-value="required_documents.filtered(lambda d: d.party not in ('driver', 'vehicle', 'semi_trailer', 'owner'))"/>
+                <!-- Documents -->
+                <t t-set="required_documents" t-value="submission.document_ids.filtered(lambda d: d.required)"/>
+                <div t-if="not required_documents" class="rpd-empty">
+                    Aún no tienes documentos solicitados.
+                </div>
+                <div t-if="required_documents" class="rpd-grid">
+                    <t t-set="driver_documents" t-value="required_documents.filtered(lambda d: d.party == 'driver')"/>
+                    <t t-set="vehicle_documents" t-value="required_documents.filtered(lambda d: d.party in ('vehicle', 'semi_trailer'))"/>
+                    <t t-set="owner_documents" t-value="required_documents.filtered(lambda d: d.party == 'owner')"/>
+                    <t t-set="other_documents" t-value="required_documents.filtered(lambda d: d.party not in ('driver', 'vehicle', 'semi_trailer', 'owner'))"/>
 
-                        <div t-if="driver_documents">
-                            <h3 class="h6">Conductor</h3>
-                            <div class="list-group mb-3">
-                                <div t-foreach="driver_documents.sorted('sequence')" t-as="document" class="list-group-item">
-                                    <div class="d-flex justify-content-between gap-3">
-                                        <div>
-                                            <strong t-esc="document.name"/>
-                                            <div class="text-muted small">
-                                                Estado: <span t-esc="dict(document._fields['state'].selection).get(document.state)"/>
-                                            </div>
-                                            <div t-if="document.instructions" class="small" t-esc="document.instructions"/>
-                                            <div class="small text-muted">
-                                                <span t-if="document.requires_color" class="badge text-bg-light">A color</span>
-                                                <span t-if="document.requires_both_sides" class="badge text-bg-light">Ambas caras</span>
-                                                <span t-if="document.validity_required" class="badge text-bg-light">Vigente</span>
-                                                <span t-if="document.issue_date_required" class="badge text-bg-light">Fecha expedicion</span>
-                                                <span t-if="document.max_age_days" class="badge text-bg-light">Max. <t t-esc="document.max_age_days"/> dias</span>
-                                            </div>
-                                            <div t-if="document.observations" class="text-danger small" t-esc="document.observations"/>
-                                        </div>
-                                        <form t-if="submission._portal_document_upload_allowed(document)"
-                                              t-attf-action="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/subir"
-                                              method="post"
-                                              enctype="multipart/form-data"
-                                              class="risk-portal-upload-form d-flex align-items-end gap-2 flex-wrap">
-                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                            <label t-if="document.issue_date_required or document.max_age_days" class="small text-muted mb-0">
-                                                Fecha de expedicion
-                                                <input type="date" name="issue_date" class="form-control form-control-sm" required="required" t-att-value="document.issue_date or ''"/>
-                                            </label>
-                                            <label t-if="document.validity_required" class="small text-muted mb-0">
-                                                Fecha de vencimiento
-                                                <input type="date" name="expiration_date" class="form-control form-control-sm" required="required" t-att-value="document.expiration_date or ''"/>
-                                            </label>
-                                            <input type="file" name="document_file" class="form-control form-control-sm" required="required"/>
-                                            <button type="submit" class="btn btn-sm btn-primary">Subir</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
+                    <section t-if="driver_documents" class="rpd-section">
+                        <div class="rpd-section-head">
+                            <span class="material-symbols-outlined">person</span>
+                            <h2>Conductor</h2>
                         </div>
-
-                        <div t-if="vehicle_documents">
-                            <h3 class="h6">Vehículo</h3>
-                            <div class="list-group mb-3">
-                                <div t-foreach="vehicle_documents.sorted('sequence')" t-as="document" class="list-group-item">
-                                    <div class="d-flex justify-content-between gap-3">
-                                        <div>
-                                            <strong t-esc="document.name"/>
-                                            <div class="text-muted small">
-                                                Estado: <span t-esc="dict(document._fields['state'].selection).get(document.state)"/>
-                                            </div>
-                                            <div t-if="document.instructions" class="small" t-esc="document.instructions"/>
-                                            <div class="small text-muted">
-                                                <span t-if="document.requires_color" class="badge text-bg-light">A color</span>
-                                                <span t-if="document.requires_both_sides" class="badge text-bg-light">Ambas caras</span>
-                                                <span t-if="document.validity_required" class="badge text-bg-light">Vigente</span>
-                                                <span t-if="document.issue_date_required" class="badge text-bg-light">Fecha expedicion</span>
-                                                <span t-if="document.max_age_days" class="badge text-bg-light">Max. <t t-esc="document.max_age_days"/> dias</span>
-                                            </div>
-                                            <div t-if="document.observations" class="text-danger small" t-esc="document.observations"/>
-                                        </div>
-                                        <form t-if="submission._portal_document_upload_allowed(document)"
-                                              t-attf-action="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/subir"
-                                              method="post"
-                                              enctype="multipart/form-data"
-                                              class="risk-portal-upload-form d-flex align-items-end gap-2 flex-wrap">
-                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                            <label t-if="document.issue_date_required or document.max_age_days" class="small text-muted mb-0">
-                                                Fecha de expedicion
-                                                <input type="date" name="issue_date" class="form-control form-control-sm" required="required" t-att-value="document.issue_date or ''"/>
-                                            </label>
-                                            <label t-if="document.validity_required" class="small text-muted mb-0">
-                                                Fecha de vencimiento
-                                                <input type="date" name="expiration_date" class="form-control form-control-sm" required="required" t-att-value="document.expiration_date or ''"/>
-                                            </label>
-                                            <input type="file" name="document_file" class="form-control form-control-sm" required="required"/>
-                                            <button type="submit" class="btn btn-sm btn-primary">Subir</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="rpd-section-body">
+                            <t t-foreach="driver_documents.sorted('sequence')" t-as="document">
+                                <t t-call="risk_module.portal_risk_document_card"/>
+                            </t>
                         </div>
+                    </section>
 
-                        <div t-if="owner_documents">
-                            <h3 class="h6">Propietario o Tenedor (Persona natural)</h3>
-                            <div class="list-group mb-3">
-                                <div t-foreach="owner_documents.sorted('sequence')" t-as="document" class="list-group-item">
-                                    <div class="d-flex justify-content-between gap-3">
-                                        <div>
-                                            <strong t-esc="document.name"/>
-                                            <div class="text-muted small">
-                                                Estado: <span t-esc="dict(document._fields['state'].selection).get(document.state)"/>
-                                            </div>
-                                            <div t-if="document.instructions" class="small" t-esc="document.instructions"/>
-                                            <div class="small text-muted">
-                                                <span t-if="document.requires_color" class="badge text-bg-light">A color</span>
-                                                <span t-if="document.requires_both_sides" class="badge text-bg-light">Ambas caras</span>
-                                                <span t-if="document.validity_required" class="badge text-bg-light">Vigente</span>
-                                                <span t-if="document.issue_date_required" class="badge text-bg-light">Fecha expedicion</span>
-                                                <span t-if="document.max_age_days" class="badge text-bg-light">Max. <t t-esc="document.max_age_days"/> dias</span>
-                                            </div>
-                                            <div t-if="document.observations" class="text-danger small" t-esc="document.observations"/>
-                                        </div>
-                                        <form t-if="submission._portal_document_upload_allowed(document)"
-                                              t-attf-action="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/subir"
-                                              method="post"
-                                              enctype="multipart/form-data"
-                                              class="risk-portal-upload-form d-flex align-items-end gap-2 flex-wrap">
-                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                            <label t-if="document.issue_date_required or document.max_age_days" class="small text-muted mb-0">
-                                                Fecha de expedicion
-                                                <input type="date" name="issue_date" class="form-control form-control-sm" required="required" t-att-value="document.issue_date or ''"/>
-                                            </label>
-                                            <label t-if="document.validity_required" class="small text-muted mb-0">
-                                                Fecha de vencimiento
-                                                <input type="date" name="expiration_date" class="form-control form-control-sm" required="required" t-att-value="document.expiration_date or ''"/>
-                                            </label>
-                                            <input type="file" name="document_file" class="form-control form-control-sm" required="required"/>
-                                            <button type="submit" class="btn btn-sm btn-primary">Subir</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
+                    <section t-if="vehicle_documents" class="rpd-section">
+                        <div class="rpd-section-head">
+                            <span class="material-symbols-outlined">local_shipping</span>
+                            <h2>Vehículo</h2>
                         </div>
+                        <div class="rpd-section-body">
+                            <t t-foreach="vehicle_documents.sorted('sequence')" t-as="document">
+                                <t t-call="risk_module.portal_risk_document_card"/>
+                            </t>
+                        </div>
+                    </section>
 
-                        <div t-if="other_documents">
-                            <h3 class="h6">Otros documentos</h3>
-                            <div class="list-group mb-3">
-                                <div t-foreach="other_documents.sorted('sequence')" t-as="document" class="list-group-item">
-                                    <div class="d-flex justify-content-between gap-3">
-                                        <div>
-                                            <strong t-esc="document.name"/>
-                                            <div class="text-muted small">
-                                                Estado: <span t-esc="dict(document._fields['state'].selection).get(document.state)"/>
-                                            </div>
-                                            <div t-if="document.instructions" class="small" t-esc="document.instructions"/>
-                                            <div class="small text-muted">
-                                                <span t-if="document.requires_color" class="badge text-bg-light">A color</span>
-                                                <span t-if="document.requires_both_sides" class="badge text-bg-light">Ambas caras</span>
-                                                <span t-if="document.validity_required" class="badge text-bg-light">Vigente</span>
-                                                <span t-if="document.issue_date_required" class="badge text-bg-light">Fecha expedicion</span>
-                                                <span t-if="document.max_age_days" class="badge text-bg-light">Max. <t t-esc="document.max_age_days"/> dias</span>
-                                            </div>
-                                            <div t-if="document.observations" class="text-danger small" t-esc="document.observations"/>
-                                        </div>
-                                        <form t-if="submission._portal_document_upload_allowed(document)"
-                                              t-attf-action="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/subir"
-                                              method="post"
-                                              enctype="multipart/form-data"
-                                              class="risk-portal-upload-form d-flex align-items-end gap-2 flex-wrap">
-                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                            <label t-if="document.issue_date_required or document.max_age_days" class="small text-muted mb-0">
-                                                Fecha de expedicion
-                                                <input type="date" name="issue_date" class="form-control form-control-sm" required="required" t-att-value="document.issue_date or ''"/>
-                                            </label>
-                                            <label t-if="document.validity_required" class="small text-muted mb-0">
-                                                Fecha de vencimiento
-                                                <input type="date" name="expiration_date" class="form-control form-control-sm" required="required" t-att-value="document.expiration_date or ''"/>
-                                            </label>
-                                            <input type="file" name="document_file" class="form-control form-control-sm" required="required"/>
-                                            <button type="submit" class="btn btn-sm btn-primary">Subir</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
+                    <section t-if="owner_documents" class="rpd-section rpd-section-full">
+                        <div class="rpd-section-head">
+                            <span class="material-symbols-outlined">business_center</span>
+                            <h2>Propietario o Tenedor (Persona natural/jurídica)</h2>
                         </div>
-                    </div>
-                </section>
+                        <div class="rpd-section-body">
+                            <t t-foreach="owner_documents.sorted('sequence')" t-as="document">
+                                <t t-call="risk_module.portal_risk_document_card"/>
+                            </t>
+                        </div>
+                    </section>
+
+                    <section t-if="other_documents" class="rpd-section rpd-section-full">
+                        <div class="rpd-section-head">
+                            <span class="material-symbols-outlined">folder</span>
+                            <h2>Otros documentos</h2>
+                        </div>
+                        <div class="rpd-section-body">
+                            <t t-foreach="other_documents.sorted('sequence')" t-as="document">
+                                <t t-call="risk_module.portal_risk_document_card"/>
+                            </t>
+                        </div>
+                    </section>
+                </div>
             </main>
+
+            <!-- Bottom action bar.
+                 Use submission.state directly: the needs_correction t-set lives inside
+                 <main> and is out of scope for this sibling node. -->
+            <div t-if="submission.state == 'correction_required'" class="rpd-actionbar">
+                <a t-attf-href="/registro-conductor/corregir/#{submission.id}" class="rpd-action-btn">
+                    Corregir Solicitud
+                </a>
+            </div>
         </t>
     </template>
 </odoo>

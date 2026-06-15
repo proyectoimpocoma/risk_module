@@ -1,0 +1,413 @@
+/* Risk portal — submission detail view.
+   Material 3 palette + Impocoma branding translated from the Tailwind mockup.
+   Everything is scoped under .rpd so it never leaks into the rest of the site. */
+.rpd {
+    --rpd-primary: #f77c00;
+    --rpd-primary-hover: #e67300;
+    --rpd-primary-active: #cc6600;
+    --rpd-secondary: #003b73;
+    --rpd-surface: #f9f9ff;
+    --rpd-surface-bright: #f9f9ff;
+    --rpd-surface-container-low: #f0f3ff;
+    --rpd-surface-container: #e7eeff;
+    --rpd-surface-dim: #d0daf0;
+    --rpd-on-surface: #121c2c;
+    --rpd-on-surface-variant: #574235;
+    --rpd-outline-variant: #dec1af;
+    --rpd-alert-bg: #fff4e5;
+    --rpd-tertiary: #1b6d24;
+    --rpd-error: #ba1a1a;
+
+    font-family: 'Montserrat', sans-serif;
+    color: var(--rpd-on-surface);
+    background: var(--rpd-surface);
+    padding: 24px 16px 120px;
+}
+@media (min-width: 768px) {
+    .rpd { padding: 24px 64px 120px; }
+}
+
+/* Back link */
+.rpd-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--rpd-primary);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    margin-bottom: 24px;
+}
+.rpd-back:hover { color: var(--rpd-primary-hover); }
+.rpd-back .material-symbols-outlined { font-size: 18px; }
+
+/* Header card with left accent bar */
+.rpd-header {
+    position: relative;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--rpd-outline-variant);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    margin-bottom: 32px;
+}
+.rpd-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 8px;
+    height: 100%;
+    background: var(--rpd-primary);
+}
+.rpd-header-row {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+}
+@media (min-width: 768px) {
+    .rpd-header-row { flex-direction: row; justify-content: space-between; align-items: center; }
+}
+.rpd-title {
+    color: var(--rpd-primary);
+    font-size: 28px;
+    line-height: 36px;
+    font-weight: 700;
+    margin: 0 0 8px;
+}
+@media (min-width: 768px) {
+    .rpd-title { font-size: 32px; line-height: 40px; }
+}
+.rpd-subtitle { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.rpd-code {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--rpd-on-surface-variant);
+    background: var(--rpd-surface-container);
+    padding: 4px 12px;
+    border-radius: 9999px;
+}
+.rpd-subtitle-text { font-size: 16px; color: var(--rpd-on-surface); }
+
+/* Status pill */
+.rpd-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 0.5rem;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+.rpd-status-warning { background: var(--rpd-alert-bg); border: 1px solid var(--rpd-primary); color: var(--rpd-primary); }
+.rpd-status-neutral { background: var(--rpd-surface-container); border: 1px solid var(--rpd-outline-variant); color: var(--rpd-secondary); }
+
+/* Alert banner */
+.rpd-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: var(--rpd-alert-bg);
+    border-left: 4px solid var(--rpd-primary);
+    border-radius: 0 0.5rem 0.5rem 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    padding: 16px;
+    margin-bottom: 32px;
+}
+.rpd-alert .material-symbols-outlined { color: var(--rpd-primary); margin-top: 2px; }
+.rpd-alert h3 { font-size: 14px; font-weight: 700; letter-spacing: 0.05em; color: var(--rpd-primary); margin: 0 0 4px; }
+.rpd-alert p { font-size: 16px; color: var(--rpd-on-surface-variant); margin: 0; }
+.rpd-alert-body { display: flex; flex-direction: column; }
+.rpd-correct-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    margin-top: 16px;
+    text-decoration: none;
+}
+.rpd-correct-inline .material-symbols-outlined { font-size: 18px; }
+
+/* Bento grid */
+.rpd-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+@media (min-width: 1024px) {
+    .rpd-grid { grid-template-columns: 1fr 1fr; }
+    .rpd-section-full { grid-column: 1 / -1; }
+}
+
+/* Section card */
+.rpd-section {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--rpd-outline-variant);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+.rpd-section-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    background: var(--rpd-surface-container-low);
+    border-bottom: 1px solid var(--rpd-outline-variant);
+}
+.rpd-section-head .material-symbols-outlined { color: var(--rpd-primary); }
+.rpd-section-head h2 { margin: 0; font-size: 20px; font-weight: 600; color: var(--rpd-primary); }
+.rpd-section-body { display: flex; flex-direction: column; gap: 16px; padding: 16px; flex-grow: 1; }
+
+/* Document item card */
+.rpd-doc {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: var(--rpd-surface-bright);
+    border: 1px solid var(--rpd-outline-variant);
+    border-radius: 0.5rem;
+    padding: 16px;
+    transition: box-shadow 0.15s ease;
+}
+.rpd-doc:hover { box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+.rpd-doc-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; width: 100%; }
+.rpd-doc-main { display: flex; align-items: flex-start; gap: 16px; min-width: 0; }
+.rpd-doc-icon { color: var(--rpd-secondary); font-size: 30px; }
+.rpd-doc-title { margin: 0 0 4px; font-size: 14px; font-weight: 600; letter-spacing: 0.05em; color: var(--rpd-on-surface); }
+.rpd-doc-hint { font-size: 10px; color: var(--rpd-on-surface-variant); margin: 0; }
+.rpd-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.rpd-chip {
+    background: var(--rpd-surface-container);
+    color: var(--rpd-on-surface-variant);
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 8px;
+    border-radius: 9999px;
+}
+
+/* Document state badge */
+.rpd-state {
+    align-self: flex-start;
+    flex: 0 0 auto;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    white-space: nowrap;
+}
+.rpd-state-pending { background: var(--rpd-surface-dim); color: var(--rpd-on-surface-variant); }
+.rpd-state-received { background: var(--rpd-surface-container); color: var(--rpd-secondary); }
+.rpd-state-approved { background: #dff5e1; color: var(--rpd-tertiary); }
+.rpd-state-rejected { background: #ffdad6; color: var(--rpd-error); }
+
+/* Rejected / needs-correction highlight */
+.rpd-doc-flagged {
+    position: relative;
+    border: 2px solid var(--rpd-primary);
+    background: var(--rpd-alert-bg);
+}
+.rpd-doc-flag {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--rpd-primary);
+    color: #fff;
+    border-radius: 9999px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+.rpd-doc-flag .material-symbols-outlined { font-size: 14px; }
+.rpd-doc-flagged .rpd-doc-icon { color: var(--rpd-primary); }
+.rpd-doc-obs { color: var(--rpd-error); font-size: 12px; margin: 8px 0 0; }
+
+/* Inline upload form */
+.rpd-upload {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+    width: 100%;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--rpd-outline-variant);
+}
+.rpd-upload label { font-size: 12px; color: var(--rpd-on-surface-variant); margin: 0; }
+.rpd-upload .form-control { font-size: 13px; }
+.rpd-upload-btn {
+    background: var(--rpd-primary);
+    color: #fff;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.rpd-upload-btn:hover { background: var(--rpd-primary-hover); }
+
+/* Bottom action bar */
+.rpd-actionbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    background: #fff;
+    border-top: 1px solid var(--rpd-outline-variant);
+    box-shadow: 0 -10px 30px rgba(0, 59, 115, 0.1);
+    padding: 16px;
+    z-index: 50;
+}
+@media (min-width: 768px) {
+    .rpd-actionbar { padding: 16px 64px; }
+}
+.rpd-action-btn {
+    background: var(--rpd-primary);
+    color: #fff;
+    border: none;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    font-size: 14px;
+    padding: 12px 32px;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+.rpd-action-btn:hover { background: var(--rpd-primary-hover); color: #fff; }
+.rpd-action-btn:active { background: var(--rpd-primary-active); transform: translateY(1px); }
+
+.rpd-empty {
+    background: var(--rpd-surface-container-low);
+    border: 1px solid var(--rpd-outline-variant);
+    border-radius: 0.5rem;
+    padding: 16px;
+    color: var(--rpd-on-surface-variant);
+}
+
+/* ============================================================
+   List view — "Mis solicitudes" cards
+   ============================================================ */
+.rpd-list-head {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+@media (min-width: 768px) {
+    .rpd-list-head { flex-direction: row; justify-content: space-between; align-items: center; }
+}
+.rpd-list-title { margin: 0 0 4px; color: var(--rpd-primary); font-size: 28px; line-height: 36px; font-weight: 700; }
+.rpd-list-sub { margin: 0; color: var(--rpd-on-surface-variant); font-size: 16px; }
+.rpd-new-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--rpd-primary);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 14px;
+    padding: 12px 24px;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    white-space: nowrap;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+.rpd-new-btn:hover { background: var(--rpd-primary-hover); color: #fff; }
+.rpd-new-btn:active { transform: translateY(1px); }
+
+.rpd-cards { display: grid; grid-template-columns: 1fr; gap: 24px; }
+@media (min-width: 640px) { .rpd-cards { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .rpd-cards { grid-template-columns: repeat(3, 1fr); } }
+
+.rpd-card {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: #fff;
+    border: 1px solid var(--rpd-outline-variant);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+.rpd-card:hover { box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1); transform: translateY(-2px); }
+.rpd-card::before { content: ""; position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: var(--rpd-primary); }
+.rpd-card-approved::before { background: var(--rpd-tertiary); }
+.rpd-card-rejected::before { background: var(--rpd-error); }
+.rpd-card-warning::before { background: var(--rpd-primary); }
+.rpd-card-info::before { background: var(--rpd-secondary); }
+.rpd-card-warning { border-color: var(--rpd-primary); }
+
+.rpd-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.rpd-plate { margin: 0; font-size: 24px; font-weight: 700; color: var(--rpd-secondary); letter-spacing: 0.02em; }
+.rpd-plate-sub { display: inline-flex; align-items: center; gap: 4px; margin: 4px 0 0; font-size: 12px; color: var(--rpd-on-surface-variant); }
+.rpd-plate-sub .material-symbols-outlined { font-size: 14px; }
+
+.rpd-card-meta { display: flex; flex-direction: column; gap: 8px; }
+.rpd-meta { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--rpd-on-surface-variant); }
+.rpd-meta .material-symbols-outlined { font-size: 18px; color: var(--rpd-secondary); }
+.rpd-meta strong { color: var(--rpd-on-surface); font-weight: 600; }
+
+.rpd-progress { display: flex; flex-direction: column; gap: 6px; }
+.rpd-progress-label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--rpd-on-surface-variant); }
+.rpd-progress-track { height: 8px; border-radius: 9999px; background: var(--rpd-surface-dim); overflow: hidden; }
+.rpd-progress-bar { height: 100%; border-radius: 9999px; background: var(--rpd-primary); transition: width 0.3s ease; }
+
+.rpd-card-actions { margin-top: auto; }
+.rpd-detail-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    background: var(--rpd-primary);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    font-size: 14px;
+    padding: 10px 16px;
+    border-radius: 0.5rem;
+    transition: background 0.15s ease;
+}
+.rpd-detail-btn:hover { background: var(--rpd-primary-hover); color: #fff; }
+.rpd-detail-btn .material-symbols-outlined { font-size: 18px; }
+
+/* extra submission state buckets (reuse rpd-state-approved / -rejected) */
+.rpd-state-info { background: var(--rpd-surface-container); color: var(--rpd-secondary); }
+.rpd-state-warning { background: var(--rpd-alert-bg); color: var(--rpd-primary); }
+
+/* empty state */
+.rpd-emptystate {
+    text-align: center;
+    padding: 64px 24px;
+    background: #fff;
+    border: 1px solid var(--rpd-outline-variant);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+.rpd-emptystate .material-symbols-outlined { font-size: 64px; color: var(--rpd-surface-dim); }
+.rpd-emptystate h2 { margin: 16px 0 8px; font-size: 20px; font-weight: 600; color: var(--rpd-on-surface); }
+.rpd-emptystate p { margin: 0 0 24px; color: var(--rpd-on-surface-variant); }

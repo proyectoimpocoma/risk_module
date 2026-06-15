@@ -257,6 +257,48 @@ class RiskSubmissionDocument(models.Model):
             values.append(extension)
         return set(values)
 
+    # Material Symbols icon shown for each document in the portal detail view.
+    # Mapped by document_type with a fallback by party so no schema change is
+    # needed; keep in sync with the document_type / party selections above.
+    _PORTAL_ICONS_BY_TYPE = {
+        "driver_id": "badge",
+        "driver_license": "description",
+        "driver_social_security": "assignment_ind",
+        "driver_photo": "photo_camera",
+        "driver_risk_induction": "health_and_safety",
+        "owner_document": "badge",
+        "owner_bank_certificate": "account_balance",
+        "owner_rut": "article",
+        "owner_chamber_commerce": "description",
+        "owner_legal_representative_id": "badge",
+        "vehicle_registration": "directions_car",
+        "vehicle_photo": "photo_camera",
+        "soat": "verified_user",
+        "technical_inspection": "build",
+        "policy": "policy",
+        "third_party_life_sheet": "assignment",
+        "owner_security_study": "security",
+        "driver_security_study": "security",
+        "semi_registration": "rv_hookup",
+        "semi_photo": "photo_camera",
+        "other": "description",
+    }
+    _PORTAL_ICONS_BY_PARTY = {
+        "driver": "person",
+        "owner": "business_center",
+        "vehicle": "local_shipping",
+        "semi_trailer": "rv_hookup",
+        "other": "description",
+    }
+
+    def _portal_material_icon(self):
+        """Material Symbols icon name for this document in the portal view."""
+        self.ensure_one()
+        icon = self._PORTAL_ICONS_BY_TYPE.get(self.document_type)
+        if not icon:
+            icon = self._PORTAL_ICONS_BY_PARTY.get(self.party, "description")
+        return icon
+
     @api.constrains("state", "observations")
     def _check_rejection_observations(self):
         for record in self:

@@ -267,6 +267,26 @@ class TestRiskSubmission(RiskModuleTestCase):
             )
         )
 
+    def test_portal_can_replace_rejected_document_during_correction(self):
+        self.submission.action_request_documents()
+        rejected_document = self.submission.document_ids.filtered(
+            lambda item: item.state == "pending"
+        )[:1]
+        rejected_document.write(
+            {
+                "state": "rejected",
+                "observations": "Documento ilegible",
+            }
+        )
+        for state in ("correction_required", "correction_submitted"):
+            self.submission.state = state
+            self.assertTrue(
+                self.submission._portal_document_upload_allowed(
+                    rejected_document, self.portal_user
+                ),
+                "Rejected document must be replaceable while in %s" % state,
+            )
+
     def test_autotransition_to_documents_review_when_last_required_document_uploaded(
         self,
     ):
