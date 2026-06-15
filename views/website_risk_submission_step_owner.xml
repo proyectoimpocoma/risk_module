@@ -78,7 +78,10 @@
              reutilizando el mismo gating data-registered-owner-field. -->
         <div t-attf-class="risk-field-full risk-extra-owners risk-registered-owner-field #{'' if registered_owner_required else 'is-disabled'}" data-registered-owner-field="1">
             <div class="risk-extra-owners-head">
-                <span class="risk-switch-title">Otros propietarios</span>
+                <span class="risk-extra-owners-title">
+                    <span class="material-symbols-outlined">group</span>
+                    Otros propietarios
+                </span>
                 <span class="risk-switch-help">Agrega copropietarios, tenedores o poseedores adicionales si aplica.</span>
             </div>
             <div id="extra-owners-list">

@@ -1,17 +1,22 @@
 .risk-step-page {
-    /* === Paleta Impocoma: Naranja Operativo + Azul Corporativo === */
+    /* === Paleta Impocoma: Naranja Operativo + Azul Corporativo (Material 3) === */
     --risk-ink: #121c2c;
     --risk-muted: #574235;
-    --risk-line: #cbd5e0;
-    --risk-fill: #f9f9ff;
+    --risk-line: #dec1af;
+    --risk-fill: #f0f3ff;
     --risk-accent: #003b73;
     --risk-primary: #f77c00;
-    --risk-primary-dark: #d96c00;
+    --risk-primary-dark: #e67300;
     --risk-secondary: #003b73;
     --risk-surface: #ffffff;
     --risk-soft: #f5f7fa;
     --risk-surface-variant: #d9e3f9;
     --risk-primary-fixed: #ffdcc7;
+    --risk-tertiary: #1b6d24;
+    --risk-surface-container: #e7eeff;
+    --risk-surface-dim: #d0daf0;
+    --risk-alert-bg: #fff4e5;
+    font-family: 'Montserrat', sans-serif;
     max-width: 1060px;
     margin: 0 auto;
     padding: 32px 16px 56px;
@@ -1048,6 +1053,15 @@
     flex-direction: column;
     margin-bottom: 12px;
 }
+.risk-extra-owners-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--risk-primary);
+}
+.risk-extra-owners-title .material-symbols-outlined { font-size: 20px; }
 .risk-extra-owner {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1102,4 +1116,102 @@
 .risk-btn-secondary:hover { background: var(--risk-primary, #f77c00); color: #fff; }
 @media (max-width: 640px) {
     .risk-extra-owner { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   PILOTO rediseño formulario — paso 1 (paleta "mis solicitudes")
+   Overrides al final para ganar en cascada sin reescribir reglas.
+   ============================================================ */
+
+/* Stepper: activo (naranja) / completado (verde) / pendiente (gris) */
+.risk-step-page .risk-progress-item {
+    position: relative;
+    border-radius: 9999px;
+    min-height: 0;
+    padding: 10px 12px;
+    font-weight: 600;
+    background: var(--risk-surface-container);
+    border-color: transparent;
+    color: var(--risk-muted);
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.risk-step-page .risk-progress-item.is-done {
+    background: #dff5e1;
+    color: var(--risk-tertiary);
+    font-weight: 600;
+}
+.risk-step-page .risk-progress-item.is-active {
+    background: var(--risk-primary);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(247, 124, 0, 0.3);
+}
+
+/* Panel del paso: card con barra de acento naranja a la izquierda */
+.risk-step-page .risk-panel {
+    position: relative;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+.risk-step-page .risk-panel::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    background: var(--risk-primary);
+    z-index: 1;
+}
+.risk-step-page .risk-panel-title {
+    background: var(--risk-fill);
+    color: var(--risk-primary);
+    padding-left: 28px;
+}
+.risk-step-page .risk-panel-title .material-symbols-outlined {
+    color: var(--risk-primary);
+    font-size: 26px;
+}
+
+/* Campos: focus ring naranja consistente */
+.risk-step-page .risk-field input:focus,
+.risk-step-page .risk-field select:focus,
+.risk-step-page .risk-field textarea:focus {
+    border-color: var(--risk-primary);
+    box-shadow: 0 0 0 3px rgba(247, 124, 0, 0.18);
+}
+
+/* Placa con estilo "matrícula" */
+.risk-step-page #vehicle_plate {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--risk-secondary);
+}
+
+/* Separador "Rastreo Satelital" como header de sub-sección */
+.risk-step-page .risk-section-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: var(--risk-fill);
+    border: 1px solid var(--risk-line);
+    color: var(--risk-primary);
+    font-weight: 600;
+}
+.risk-step-page .risk-section-divider .material-symbols-outlined { color: var(--risk-primary); }
+
+/* Error como banner suave naranja */
+.risk-step-page .risk-error {
+    background: var(--risk-alert-bg);
+    border: 1px solid var(--risk-primary);
+    border-left-width: 4px;
+    border-radius: 0 8px 8px 0;
+    color: var(--risk-primary-dark);
+    padding: 12px 16px;
+    font-weight: 600;
 }

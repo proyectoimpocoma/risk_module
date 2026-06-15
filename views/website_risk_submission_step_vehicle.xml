@@ -56,7 +56,7 @@
 
         <!-- Separador: Rastreo Satelital -->
         <div class="risk-section-divider">
-            <i class="fa fa-satellite-dish"></i> Rastreo Satelital
+            <span class="material-symbols-outlined">satellite_alt</span> Rastreo Satelital
         </div>
 
         <!-- Campos satelitales en grid 2 columnas -->
