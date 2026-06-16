@@ -230,6 +230,20 @@ class RiskSubmissionFormValidationMixin:
             return (
                 "La cedula del conductor debe contener entre 6 y 10 digitos numericos."
             )
+        for field_name, label in (
+            ("driver_address", "la direccion del conductor"),
+            ("driver_neighborhood", "el barrio del conductor"),
+            ("driver_city", "la ciudad del conductor"),
+            ("driver_phone", "el celular del conductor"),
+            ("driver_email", "el correo del conductor"),
+            ("family_reference_name", "la referencia familiar"),
+            ("family_reference_relationship", "el parentesco de la referencia familiar"),
+            ("family_reference_phone", "el celular de la referencia familiar"),
+            ("cargo_reference_name", "la referencia de transporte de carga"),
+            ("cargo_reference_phone", "el celular de la referencia de carga"),
+        ):
+            if not (data.get(field_name) or "").strip():
+                return "Debes diligenciar %s." % label
         driver_assignment_error = self._validate_driver_not_active_on_other_vehicle(data)
         if driver_assignment_error:
             return driver_assignment_error

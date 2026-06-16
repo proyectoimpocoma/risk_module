@@ -1,14 +1,16 @@
 (function () {
     function initCopyOwnerToDriver() {
-        var button = document.getElementById("risk-copy-owner-to-driver");
+        var toggle = document.getElementById("risk-copy-owner-toggle");
         var ownerData = document.getElementById("risk-owner-data");
         var feedback = document.getElementById("risk-copy-owner-feedback");
 
-        if (!button || !ownerData) {
+        if (!toggle || !ownerData) {
             return;
         }
 
         var ownerIsCompany = ownerData.dataset.ownerDocumentType === "nit";
+
+        // dataset key (owner) -> id del input destino (conductor).
         var fieldMap = {
             ownerName: "driver_name",
             ownerDocumentNumber: "driver_document_number",
@@ -23,25 +25,48 @@
             if (!feedback) {
                 return;
             }
-            feedback.textContent = message;
+            feedback.textContent = message || "";
             feedback.classList.toggle("is-error", Boolean(isError));
         }
 
-        function copyValue(dataKey, fieldId) {
-            var value = ownerData.dataset[dataKey] || "";
-            var field = document.getElementById(fieldId);
-            if (!field || !value) {
-                return false;
-            }
-            field.value = value;
-            field.dispatchEvent(new Event("input", { bubbles: true }));
-            field.dispatchEvent(new Event("change", { bubbles: true }));
-            return true;
+        function targetFields() {
+            return Object.keys(fieldMap)
+                .map(function (key) {
+                    return document.getElementById(fieldMap[key]);
+                })
+                .filter(Boolean);
         }
 
+        // Bloqueo con readonly (NO disabled): los disabled no se envian en el POST
+        // y se perderia la informacion del conductor.
+        function setLocked(locked) {
+            targetFields().forEach(function (field) {
+                field.readOnly = locked;
+            });
+        }
+
+        function copyOwnerData() {
+            var copied = 0;
+            Object.keys(fieldMap).forEach(function (dataKey) {
+                var value = ownerData.dataset[dataKey] || "";
+                var field = document.getElementById(fieldMap[dataKey]);
+                if (!field) {
+                    return;
+                }
+                field.value = value;
+                field.dispatchEvent(new Event("input", { bubbles: true }));
+                field.dispatchEvent(new Event("change", { bubbles: true }));
+                if (value) {
+                    copied += 1;
+                }
+            });
+            return copied;
+        }
+
+        // Propietario empresa (NIT): no se puede copiar; el conductor es persona natural.
         if (ownerIsCompany) {
-            button.disabled = true;
-            button.classList.add("d-none");
+            toggle.checked = false;
+            toggle.disabled = true;
             setFeedback(
                 "El propietario registrado con NIT es una empresa. El conductor debe registrarse con sus propios datos.",
                 true
@@ -49,19 +74,23 @@
             return;
         }
 
-        button.addEventListener("click", function () {
-            var copied = 0;
-            Object.keys(fieldMap).forEach(function (dataKey) {
-                if (copyValue(dataKey, fieldMap[dataKey])) {
-                    copied += 1;
+        toggle.addEventListener("change", function () {
+            if (toggle.checked) {
+                var copied = copyOwnerData();
+                if (!copied) {
+                    toggle.checked = false;
+                    setFeedback("No hay datos del propietario disponibles para copiar.", true);
+                    return;
                 }
-            });
-
-            if (!copied) {
-                setFeedback("No hay datos del propietario disponibles para copiar.", true);
-                return;
+                setLocked(true);
+                setFeedback(
+                    "Datos del propietario copiados. Los campos quedan bloqueados; desactiva el interruptor para editarlos.",
+                    false
+                );
+            } else {
+                setLocked(false);
+                setFeedback("", false);
             }
-            setFeedback("Datos del propietario copiados. Puedes ajustarlos si el conductor tiene informacion diferente.", false);
         });
     }
 

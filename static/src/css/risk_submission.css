@@ -2530,3 +2530,10 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
+
+/* Inputs bloqueados (readonly) — usado al activar "Conductor igual al propietario". */
+.risk-vr-field input[readonly] {
+    background: var(--vr-surface-variant);
+    color: var(--vr-on-surface-variant);
+    cursor: not-allowed;
+}
