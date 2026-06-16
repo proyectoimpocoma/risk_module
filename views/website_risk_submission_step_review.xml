@@ -1,85 +1,92 @@
 <odoo>
     <template id="register_driver_step_review" name="Registro Vehiculo Paso Revision">
-        <!-- Sección 1: Datos Ocultos y Estado de Validaciones -->
-        <input type="hidden" name="terms_accepted" value="1"/>
-        <input type="hidden" name="owner_has_valid_study" t-att-value="data.get('owner_has_valid_study')"/>
-        <input type="hidden" name="owner_signature" t-att-value="data.get('owner_signature')"/>
-        <input type="hidden" name="owner_signature_document" t-att-value="data.get('owner_signature_document')"/>
-        <input type="hidden" name="driver_has_valid_study" t-att-value="data.get('driver_has_valid_study')"/>
-        <input type="hidden" name="driver_signature" t-att-value="data.get('driver_signature')"/>
-        <input type="hidden" name="driver_signature_document" t-att-value="data.get('driver_signature_document')"/>
-        
-        <!-- Sección 2: Resumen Final de la Solicitud -->
-        <div class="risk-field risk-field-full">
-            <section class="risk-review-summary">
-                <div class="risk-review-heading">
-                    <span>Revision final</span>
-                    <p>Confirma que la informacion registrada sea correcta antes de enviar la solicitud.</p>
-                </div>
+        <div class="risk-vr-fields">
+            <!-- Datos reenviados (defensivo; el envio final usa la sesion) -->
+            <input type="hidden" name="terms_accepted" value="1"/>
+            <input type="hidden" name="owner_has_valid_study" t-att-value="data.get('owner_has_valid_study')"/>
+            <input type="hidden" name="owner_signature" t-att-value="data.get('owner_signature')"/>
+            <input type="hidden" name="owner_signature_document" t-att-value="data.get('owner_signature_document')"/>
+            <input type="hidden" name="driver_has_valid_study" t-att-value="data.get('driver_has_valid_study')"/>
+            <input type="hidden" name="driver_signature" t-att-value="data.get('driver_signature')"/>
+            <input type="hidden" name="driver_signature_document" t-att-value="data.get('driver_signature_document')"/>
 
-                <div class="risk-review-grid">
-                    <article class="risk-review-card">
-                        <h3>Vehiculo</h3>
-                        <dl>
-                            <dt>Fecha</dt>
-                            <dd t-esc="data.get('form_date') or 'Sin registrar'"/>
-                            <dt>Placa</dt>
-                            <dd t-esc="data.get('vehicle_plate') or 'Sin registrar'"/>
-                            <dt>Semi/remolque</dt>
-                            <dd t-esc="data.get('semi_trailer_plate') or 'No aplica'"/>
-                            <dt>Empresa satelital</dt>
-                            <dd t-esc="data.get('satellite_company') or 'Sin registrar'"/>
-                        </dl>
-                    </article>
+            <p class="risk-vr-note">Confirma que la informacion registrada sea correcta antes de enviar la solicitud.</p>
 
-                    <article class="risk-review-card">
-                        <h3>Propietario / Tenedor</h3>
-                        <dl>
-                            <dt>Nombre</dt>
-                            <dd t-esc="data.get('owner_name') or 'Sin registrar'"/>
-                            <dt>Documento</dt>
-                            <dd t-esc="data.get('owner_document_number') or 'Sin registrar'"/>
-                            <dt>Celular</dt>
-                            <dd t-esc="data.get('owner_phone') or 'Sin registrar'"/>
-                            <dt>Correo</dt>
-                            <dd t-esc="data.get('owner_email') or 'Sin registrar'"/>
-                        </dl>
-                    </article>
+            <div class="risk-vr-review-grid">
+                <article class="risk-vr-review-card">
+                    <h3>
+                        <span class="material-symbols-outlined">local_shipping</span>
+                        Vehiculo
+                    </h3>
+                    <dl>
+                        <dt>Fecha</dt>
+                        <dd t-esc="data.get('form_date') or 'Sin registrar'"/>
+                        <dt>Placa</dt>
+                        <dd t-esc="data.get('vehicle_plate') or 'Sin registrar'"/>
+                        <dt>Semi/remolque</dt>
+                        <dd t-esc="data.get('semi_trailer_plate') or 'No aplica'"/>
+                        <dt>Empresa satelital</dt>
+                        <dd t-esc="data.get('satellite_company') or 'Sin registrar'"/>
+                    </dl>
+                </article>
 
-                    <article class="risk-review-card">
-                        <h3>Conductor</h3>
-                        <dl>
-                            <dt>Nombre</dt>
-                            <dd t-esc="data.get('driver_name') or 'Sin registrar'"/>
-                            <dt>Cedula</dt>
-                            <dd t-esc="data.get('driver_document_number') or 'Sin registrar'"/>
-                            <dt>Celular</dt>
-                            <dd t-esc="data.get('driver_phone') or 'Sin registrar'"/>
-                            <dt>Correo</dt>
-                            <dd t-esc="data.get('driver_email') or 'Sin registrar'"/>
-                        </dl>
-                    </article>
+                <article class="risk-vr-review-card">
+                    <h3>
+                        <span class="material-symbols-outlined">person</span>
+                        Propietario / Tenedor
+                    </h3>
+                    <dl>
+                        <dt>Nombre</dt>
+                        <dd t-esc="data.get('owner_name') or 'Sin registrar'"/>
+                        <dt>Documento</dt>
+                        <dd t-esc="data.get('owner_document_number') or 'Sin registrar'"/>
+                        <dt>Celular</dt>
+                        <dd t-esc="data.get('owner_phone') or 'Sin registrar'"/>
+                        <dt>Correo</dt>
+                        <dd t-esc="data.get('owner_email') or 'Sin registrar'"/>
+                    </dl>
+                </article>
 
-                    <article class="risk-review-card">
-                        <h3>Confirmaciones</h3>
-                        <dl>
-                            <dt>Apto para prestar servicio</dt>
-                            <dd t-esc="'Si' if data.get('driver_is_fit') == 'yes' else 'No'"/>
-                            <dt>Capacitado y entrenado</dt>
-                            <dd t-esc="'Si' if data.get('driver_is_trained') == 'yes' else 'No'"/>
-                            <dt>Firma propietario</dt>
-                            <dd t-esc="'Completada' if data.get('owner_signature') or data.get('owner_has_valid_study') == 'yes' else 'Pendiente'"/>
-                            <dt>Firma conductor</dt>
-                            <dd t-esc="'Firma unica' if data.get('single_owner_driver_signature') == 'yes' else ('Completada' if data.get('driver_signature') or data.get('driver_has_valid_study') == 'yes' else 'Pendiente')"/>
-                        </dl>
-                    </article>
-                </div>
-            </section>
-        </div>
-        <!-- Sección 3: Observaciones Adicionales -->
-        <div class="risk-field risk-field-full">
-            <label for="message">Observaciones</label>
-            <textarea id="message" name="message" placeholder="Observaciones adicionales"><t t-esc="data.get('message') or ''"/></textarea>
+                <article class="risk-vr-review-card">
+                    <h3>
+                        <span class="material-symbols-outlined">id_card</span>
+                        Conductor
+                    </h3>
+                    <dl>
+                        <dt>Nombre</dt>
+                        <dd t-esc="data.get('driver_name') or 'Sin registrar'"/>
+                        <dt>Cedula</dt>
+                        <dd t-esc="data.get('driver_document_number') or 'Sin registrar'"/>
+                        <dt>Celular</dt>
+                        <dd t-esc="data.get('driver_phone') or 'Sin registrar'"/>
+                        <dt>Correo</dt>
+                        <dd t-esc="data.get('driver_email') or 'Sin registrar'"/>
+                    </dl>
+                </article>
+
+                <article class="risk-vr-review-card">
+                    <h3>
+                        <span class="material-symbols-outlined">task_alt</span>
+                        Confirmaciones
+                    </h3>
+                    <dl>
+                        <dt>Apto para prestar servicio</dt>
+                        <dd t-esc="'Si' if data.get('driver_is_fit') == 'yes' else 'No'"/>
+                        <dt>Capacitado y entrenado</dt>
+                        <dd t-esc="'Si' if data.get('driver_is_trained') == 'yes' else 'No'"/>
+                        <dt>Firma propietario</dt>
+                        <dd t-esc="'Completada' if data.get('owner_signature') or data.get('owner_has_valid_study') == 'yes' else 'Pendiente'"/>
+                        <dt>Firma conductor</dt>
+                        <dd t-esc="'Firma unica' if data.get('single_owner_driver_signature') == 'yes' else ('Completada' if data.get('driver_signature') or data.get('driver_has_valid_study') == 'yes' else 'Pendiente')"/>
+                    </dl>
+                </article>
+            </div>
+
+            <!-- Observaciones adicionales -->
+            <div class="risk-vr-field">
+                <label for="message">Observaciones</label>
+                <textarea id="message" name="message" rows="4" placeholder="Observaciones adicionales"><t t-esc="data.get('message') or ''"/></textarea>
+            </div>
         </div>
     </template>
 </odoo>

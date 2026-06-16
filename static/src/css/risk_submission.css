@@ -2441,3 +2441,92 @@
 .risk-vr-signature-note strong {
     color: var(--vr-secondary);
 }
+
+/* ----------------------------------------------------------------------------
+   Paso 7 (Revision) — rediseño Material 3, congruente con pasos 1 a 6.
+   ------------------------------------------------------------------------- */
+
+.risk-vr-field textarea {
+    width: 100%;
+    min-height: 96px;
+    padding: 12px;
+    border: 1px solid var(--vr-outline-variant);
+    border-radius: 8px;
+    background: var(--vr-surface);
+    color: var(--vr-on-surface);
+    font-family: inherit;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    outline: none;
+    resize: vertical;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.risk-vr-field textarea:focus {
+    border-color: var(--vr-secondary);
+    box-shadow: 0 0 0 2px rgba(0, 59, 115, 0.2);
+}
+
+.risk-vr-review-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+}
+
+.risk-vr-review-card {
+    padding: 24px;
+    border: 1px solid var(--vr-outline-variant);
+    border-radius: 8px;
+    background: var(--vr-surface-bright);
+}
+
+.risk-vr-review-card h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--vr-outline-variant);
+    color: var(--vr-secondary);
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+}
+
+.risk-vr-review-card h3 .material-symbols-outlined {
+    color: var(--vr-primary);
+    font-size: 22px;
+}
+
+.risk-vr-review-card dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px 16px;
+    margin: 0;
+}
+
+.risk-vr-review-card dt {
+    align-self: center;
+    color: var(--vr-on-surface-variant);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.risk-vr-review-card dd {
+    margin: 0;
+    color: var(--vr-on-surface);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+@media (min-width: 768px) {
+    .risk-vr-review-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

@@ -15,9 +15,10 @@
                 4: {'appbar': 'gavel', 'card': 'fact_check', 'meta': 'Paso 4 de 4', 'label': 'Términos y Autorizaciones', 'title': 'Aceptacion de Terminos y Autorizaciones', 'progress': 100},
                 5: {'appbar': 'draw', 'card': 'draw', 'meta': 'Firma 1 de 2', 'label': 'Firma del Propietario', 'title': 'Firma del Propietario / Tenedor', 'progress': 50},
                 6: {'appbar': 'draw', 'card': 'draw', 'meta': 'Firma 2 de 2', 'label': 'Firma del Conductor', 'title': 'Firma del Conductor', 'progress': 100},
+                7: {'appbar': 'task_alt', 'card': 'fact_check', 'meta': 'Revision final', 'label': 'Revision de la Solicitud', 'title': 'Revision de la Solicitud', 'progress': 100},
             }"/>
             <t t-set="vr" t-value="vr_steps.get(step) or {}"/>
-            <main t-if="step &lt;= 6" class="risk-step-page risk-vehicle-redesign-page">
+            <main t-if="step &lt;= 7" class="risk-step-page risk-vehicle-redesign-page">
                 <header class="risk-vr-appbar">
                     <div class="risk-vr-appbar-title">
                         <span class="material-symbols-outlined" t-esc="vr.get('appbar')"/>
@@ -52,6 +53,7 @@
                             <t t-if="step == 3" t-call="risk_module.register_driver_step_driver"/>
                             <t t-if="step == 4" t-call="risk_module.register_driver_step_terms"/>
                             <t t-if="step == 5 or step == 6" t-call="risk_module.register_driver_step_signatures"/>
+                            <t t-if="step == 7" t-call="risk_module.register_driver_step_review"/>
                         </div>
 
                         <div class="risk-vr-actions">
@@ -60,94 +62,15 @@
                                 ANTERIOR
                             </a>
                             <button type="submit" class="risk-vr-next" id="risk-submit-button">
-                                SIGUIENTE
-                                <span class="material-symbols-outlined">arrow_forward</span>
+                                <t t-if="step &lt; 7">SIGUIENTE</t>
+                                <t t-if="step == 7">ENVIAR</t>
+                                <span class="material-symbols-outlined" t-esc="'send' if step == 7 else 'arrow_forward'"/>
                             </button>
                         </div>
                     </form>
 
                     <t t-if="step == 4" t-call="risk_module.register_driver_terms_modal"/>
                 </div>
-            </main>
-
-            <main t-if="step &gt; 6" class="risk-step-page">
-                <section class="risk-brand-header" aria-label="Impocoma Riesgos">
-                    <div class="risk-brand-mark">
-                        <img src="/risk_module/static/src/img/impocoma_logo.jpeg" alt="Impocoma"/>
-                    </div>
-                    <div class="risk-brand-copy">
-                        <p>Departamento de Riesgo</p>
-                        <h1>Registro y habilitacion de terceros</h1>
-                        <span>Complete la informacion del vehiculo, propietario y conductor para iniciar la validacion documental.</span>
-                    </div>
-                </section>
-
-                <section class="risk-step-header">
-                    <div class="risk-step-title">Hoja de Vida Habilitacion Terceros</div>
-                    <div class="risk-step-meta">
-                        <span>CODIGO: FO-RI-01</span>
-                        <span>VERSION: 13</span>
-                        <span>FECHA: 09/05/2026</span>
-                    </div>
-                </section>
-
-                <div class="risk-progress" aria-label="Progreso">
-                    <div t-attf-class="risk-progress-item #{'is-active' if step == 1 else 'is-done' if step &gt; 1 else ''}">1. Vehiculo</div>
-                    <div t-attf-class="risk-progress-item #{'is-active' if step == 2 else 'is-done' if step &gt; 2 else ''}">2. Propietario</div>
-                    <div t-attf-class="risk-progress-item #{'is-active' if step == 3 else 'is-done' if step &gt; 3 else ''}">3. Conductor</div>
-                    <div t-attf-class="risk-progress-item #{'is-active' if step == 4 else 'is-done' if step &gt; 4 else ''}">4. Terminos</div>
-                    <div t-attf-class="risk-progress-item #{'is-active' if step == 5 else 'is-done' if step &gt; 5 else ''}">5. Firma Propietario</div>
-                    <div t-attf-class="risk-progress-item #{'is-active' if step == 6 else 'is-done' if step &gt; 6 else ''}">6. Firma Conductor</div>
-                    <div t-attf-class="risk-progress-item #{'is-active' if step == 7 else ''}">7. Revision</div>
-                </div>
-
-                <form t-attf-action="/registro-conductor/submit/#{step}" method="post" class="risk-form">
-                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-
-                    <section class="risk-panel">
-                        <div t-if="step == 1" class="risk-panel-title">
-                            <span class="material-symbols-outlined">local_shipping</span> Informacion del Vehiculo
-                        </div>
-                        <div t-if="step == 2" class="risk-panel-title">
-                            <span class="material-symbols-outlined">person</span> Informacion del Propietario / Tenedor / Poseedor
-                        </div>
-                        <div t-if="step == 3" class="risk-panel-title">
-                            <i class="fa fa-id-card"></i> Informacion del Conductor
-                        </div>
-                        <div t-if="step == 4" class="risk-panel-title">
-                            <i class="fa fa-file-text"></i> Aceptacion de Terminos y Autorizaciones
-                        </div>
-                        <div t-if="step == 5" class="risk-panel-title">
-                            <i class="fa fa-pen-nib"></i> Firma Propietario
-                        </div>
-                        <div t-if="step == 6" class="risk-panel-title">
-                            <i class="fa fa-pen-nib"></i> Firma Conductor
-                        </div>
-                        <div t-if="step == 7" class="risk-panel-title">
-                            <i class="fa fa-check-circle"></i> Revision de la Solicitud
-                        </div>
-                        <div class="risk-fields">
-                            <div t-if="data.get('step_error')" class="risk-error" t-esc="data.get('step_error')"/>
-                            <t t-if="step == 1" t-call="risk_module.register_driver_step_vehicle"/>
-                            <t t-if="step == 2" t-call="risk_module.register_driver_step_owner"/>
-                            <t t-if="step == 3" t-call="risk_module.register_driver_step_driver"/>
-                            <t t-if="step == 4" t-call="risk_module.register_driver_step_terms"/>
-                            <t t-if="step == 5 or step == 6" t-call="risk_module.register_driver_step_signatures"/>
-                            <t t-if="step == 7" t-call="risk_module.register_driver_step_review"/>
-                        </div>
-                    </section>
-
-                    <div class="risk-actions">
-                        <a t-if="step &gt; 1" t-attf-href="/registro-conductor/#{step - 1}" class="btn btn-secondary">Anterior</a>
-                        <span t-if="step == 1"></span>
-                        <button t-att-disabled="'disabled' if step == 4 else None" type="submit" class="btn btn-primary" id="risk-submit-button">
-                            <t t-if="step &lt; 7">Siguiente</t>
-                            <t t-if="step == 7">Enviar</t>
-                        </button>
-                    </div>
-                </form>
-
-                <t t-if="step == 4" t-call="risk_module.register_driver_terms_modal"/>
             </main>
         </t>
     </template>
