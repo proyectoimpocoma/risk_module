@@ -162,9 +162,7 @@ class RiskSubmissionValidations(models.Model):
                     if field_name == "vehicle_plate":
                         raise ValidationError(
                             f'{label} "{normalized}" no tiene el formato colombiano valido.\n'
-                            "Formatos aceptados:\n"
-                            "  • Vehiculo / carga: ABC123 (3 letras + 3 digitos)\n"
-                            "  • Motocicleta     : ABC12  (3 letras + 2 digitos)"
+                            "Formato aceptado: ABC123 (3 letras + 3 digitos)."
                         )
                     raise ValidationError(
                         f'{label} "{normalized}" no tiene el formato valido.\n'
@@ -183,9 +181,7 @@ class RiskSubmissionValidations(models.Model):
                     "title": "Formato de placa invalido",
                     "message": (
                         f'La placa "{self.vehicle_plate}" no tiene el formato colombiano valido.\n\n'
-                        "Formatos aceptados:\n"
-                        "  • Vehiculo / carga: ABC123 (3 letras + 3 digitos)\n"
-                        "  • Motocicleta     : ABC12  (3 letras + 2 digitos)"
+                        "Formato aceptado: ABC123 (3 letras + 3 digitos)."
                     ),
                 }
             }

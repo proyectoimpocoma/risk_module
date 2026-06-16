@@ -15,8 +15,8 @@
                            t-att-value="data.get('vehicle_plate')"
                            required="required"
                            autocomplete="off"
-                           pattern="[A-Za-z]{3}[0-9]{2,3}"
-                           title="Formato valido: ABC123 para vehiculo/carga o ABC12 para motocicleta"
+                           pattern="[A-Za-z]{3}[0-9]{3}"
+                           title="Formato valido: ABC123 (3 letras + 3 digitos)"
                            placeholder="EJ: ASD123"/>
                 </div>
             </div>

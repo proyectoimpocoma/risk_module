@@ -132,7 +132,7 @@ class RiskSubmissionFormValidationMixin:
         if not PLATE_REGEX.match(vehicle_plate):
             return (
                 "La placa del vehiculo debe tener formato colombiano valido: "
-                "ABC123 para vehiculo/carga o ABC12 para motocicleta."
+                "ABC123 (3 letras + 3 digitos)."
             )
         active_error = self._validate_no_active_submission_for_plate(data)
         if active_error:

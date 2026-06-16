@@ -79,7 +79,7 @@ class RiskVehicle(models.Model):
     def _check_plate(self):
         for record in self:
             if record.plate and not PLATE_REGEX.match(record.plate):
-                raise ValidationError("La placa del vehiculo debe tener formato ABC123 o ABC12.")
+                raise ValidationError("La placa del vehiculo debe tener formato ABC123 (3 letras + 3 digitos).")
 
     @api.constrains("semi_trailer_plate")
     def _check_semi_trailer_plate(self):
