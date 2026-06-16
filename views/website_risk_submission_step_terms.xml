@@ -1,30 +1,48 @@
 <odoo>
     <template id="register_driver_step_terms" name="Registro Vehiculo Paso Terminos">
-        <div t-if="data.get('terms_error')" class="risk-error" t-esc="data.get('terms_error')"/>
-        <!-- Sección 1: Política de Información Bancaria -->
-        <div class="risk-terms-card">
-            <h3>Informacion bancaria</h3>
-            <p>Se certifica que la cuenta bancaria entregada es vigente, esta libre de embargos o cualquier limitacion para su manejo y exonera a IMPOCOMA S.A.S. por cualquier eventualidad presentada con la cuenta bancaria.</p>
+        <div class="risk-vr-fields">
+            <div t-if="data.get('terms_error')" class="risk-vr-error" t-esc="data.get('terms_error')"/>
+
+            <!-- Resumen de politicas -->
+            <div class="risk-vr-terms-card">
+                <h3>
+                    <span class="material-symbols-outlined">account_balance</span>
+                    Informacion bancaria
+                </h3>
+                <p>Se certifica que la cuenta bancaria entregada es vigente, esta libre de embargos o cualquier limitacion para su manejo y exonera a IMPOCOMA S.A.S. por cualquier eventualidad presentada con la cuenta bancaria.</p>
+            </div>
+            <div class="risk-vr-terms-card">
+                <h3>
+                    <span class="material-symbols-outlined">balance</span>
+                    Autorizacion de compensacion general
+                </h3>
+                <p>Autoriza a IMPOCOMA S.A.S. a efectuar la compensacion prevista por saldos, novedades, faltantes, averias, saqueos, hurtos, contaminacion, anticipos no utilizados y demas eventos presentados durante la operacion del transporte.</p>
+            </div>
+            <div class="risk-vr-terms-card">
+                <h3>
+                    <span class="material-symbols-outlined">shield_person</span>
+                    Autorizacion de datos personales
+                </h3>
+                <p>Autoriza la recoleccion, consulta, validacion, almacenamiento, uso, procesamiento, transferencia, transmision y tratamiento de datos personales para las finalidades relacionadas con la vinculacion y operacion.</p>
+            </div>
+
+            <!-- Acceso a los terminos completos -->
+            <button type="button" class="risk-vr-terms-open" id="risk-open-terms">
+                <span class="material-symbols-outlined">description</span>
+                Ver terminos completos
+            </button>
+
+            <!-- Aceptacion consolidada -->
+            <!-- La casilla siempre arranca desmarcada y bloqueada: la aceptacion debe
+                 ser deliberada en cada visita, no se hereda de la sesion. -->
+            <label class="risk-vr-terms-accept" id="risk-terms-accept">
+                <input id="risk-terms-confirmed" type="hidden" name="terms_accepted" value="0"/>
+                <input id="risk-terms-check" type="checkbox" disabled="disabled"/>
+                <span>He leido los terminos completos y acepto la informacion bancaria, la autorizacion de compensacion general y la autorizacion de datos personales.</span>
+            </label>
+
+            <!-- Aviso (cliente): exige abrir el modal y marcar la casilla -->
+            <div class="risk-vr-error risk-vr-terms-warning" id="risk-terms-warning" role="alert" hidden="hidden"></div>
         </div>
-        <!-- Sección 2: Política de Autorización de Compensación -->
-        <div class="risk-terms-card">
-            <h3>Autorizacion de compensacion general</h3>
-            <p>Autoriza a IMPOCOMA S.A.S. a efectuar la compensacion prevista por saldos, novedades, faltantes, averias, saqueos, hurtos, contaminacion, anticipos no utilizados y demas eventos presentados durante la operacion del transporte.</p>
-        </div>
-        <!-- Sección 3: Política de Datos Personales -->
-        <div class="risk-terms-card">
-            <h3>Autorizacion de datos personales</h3>
-            <p>Autoriza la recoleccion, consulta, validacion, almacenamiento, uso, procesamiento, transferencia, transmision y tratamiento de datos personales para las finalidades relacionadas con la vinculacion y operacion.</p>
-        </div>
-        <!-- Sección 4: Modal de Términos Completos -->
-        <div class="risk-field risk-field-full">
-            <button type="button" class="btn btn-secondary" id="risk-open-terms">Ver terminos completos</button>
-        </div>
-        <!-- Sección 5: Aceptación Consolidada -->
-        <label class="risk-terms-accept">
-            <input id="risk-terms-confirmed" type="hidden" name="terms_accepted" t-att-value="'1' if data.get('terms_accepted') == '1' else '0'"/>
-            <input id="risk-terms-check" type="checkbox" t-att-checked="'checked' if data.get('terms_accepted') == '1' else None" t-att-disabled="None if data.get('terms_accepted') == '1' else 'disabled'"/>
-            <span>He leido los terminos completos y acepto la informacion bancaria, la autorizacion de compensacion general y la autorizacion de datos personales.</span>
-        </label>
     </template>
 </odoo>

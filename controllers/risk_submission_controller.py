@@ -195,11 +195,27 @@ class RiskSubmissionController(
 
     def _capture_signature_email(self, data, party, post):
         """Persist the email typed in the signature step so the OTP can be sent
-        even when it was left empty in step 2/3 (avoids a dead-end)."""
+        even when it was left empty in step 2/3 (avoids a dead-end).
+
+        The value must also be written into the session bucket of the step that
+        owns the field (owner_email -> step 2, driver_email -> step 3).
+        Otherwise ``_merge_persisted_step_data`` (called later when creating or
+        updating the submission) would re-apply the empty value persisted at
+        that earlier step and silently wipe out the email just typed here.
+        """
         email_field = "%s_email" % party
         posted_email = (post.get(email_field) or "").strip()
-        if posted_email:
-            data[email_field] = posted_email
+        if not posted_email:
+            return
+        data[email_field] = posted_email
+        for persisted_step, fields_for_step in STEP_FIELDS.items():
+            if email_field in fields_for_step:
+                session_key = STEP_SESSION_KEYS.get(persisted_step)
+                if session_key:
+                    bucket = dict(request.session.get(session_key) or {})
+                    bucket[email_field] = posted_email
+                    request.session[session_key] = bucket
+                break
 
     def _collect_extra_owners(self):
         """Build the list of additional owners from the repeated step-2 form

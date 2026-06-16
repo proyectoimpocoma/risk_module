@@ -9,15 +9,18 @@
                  reutilizando el mismo armazón: solo cambian iconos, titulo, progreso y
                  el sub-template del cuerpo (ver dict vr_steps). -->
             <t t-set="vr_steps" t-value="{
-                1: {'appbar': 'local_shipping', 'card': 'directions_car', 'label': 'Información del Vehículo', 'title': 'Información del Vehículo', 'progress': 25},
-                2: {'appbar': 'person', 'card': 'badge', 'label': 'Información del Propietario', 'title': 'Información del Propietario / Tenedor / Poseedor', 'progress': 50},
-                3: {'appbar': 'id_card', 'card': 'person', 'label': 'Información del Conductor', 'title': 'Información del Conductor', 'progress': 75},
+                1: {'appbar': 'local_shipping', 'card': 'directions_car', 'meta': 'Paso 1 de 4', 'label': 'Información del Vehículo', 'title': 'Información del Vehículo', 'progress': 25},
+                2: {'appbar': 'person', 'card': 'badge', 'meta': 'Paso 2 de 4', 'label': 'Información del Propietario', 'title': 'Información del Propietario / Tenedor / Poseedor', 'progress': 50},
+                3: {'appbar': 'id_card', 'card': 'person', 'meta': 'Paso 3 de 4', 'label': 'Información del Conductor', 'title': 'Información del Conductor', 'progress': 75},
+                4: {'appbar': 'gavel', 'card': 'fact_check', 'meta': 'Paso 4 de 4', 'label': 'Términos y Autorizaciones', 'title': 'Aceptacion de Terminos y Autorizaciones', 'progress': 100},
+                5: {'appbar': 'draw', 'card': 'draw', 'meta': 'Firma 1 de 2', 'label': 'Firma del Propietario', 'title': 'Firma del Propietario / Tenedor', 'progress': 50},
+                6: {'appbar': 'draw', 'card': 'draw', 'meta': 'Firma 2 de 2', 'label': 'Firma del Conductor', 'title': 'Firma del Conductor', 'progress': 100},
             }"/>
             <t t-set="vr" t-value="vr_steps.get(step) or {}"/>
-            <main t-if="step &lt;= 3" class="risk-step-page risk-vehicle-redesign-page">
+            <main t-if="step &lt;= 6" class="risk-step-page risk-vehicle-redesign-page">
                 <header class="risk-vr-appbar">
                     <div class="risk-vr-appbar-title">
-                        <span class="material-symbols-outlined" t-esc="vr_appbar_icon"/>
+                        <span class="material-symbols-outlined" t-esc="vr.get('appbar')"/>
                         <h1>Habilitación Terceros</h1>
                     </div>
                     <a href="/" class="risk-vr-close" aria-label="Cerrar">
@@ -28,7 +31,7 @@
                 <div class="risk-vr-main">
                     <div class="risk-vr-progress">
                         <div class="risk-vr-progress-meta">
-                            <span>Paso <t t-esc="step"/> de 4</span>
+                            <span t-esc="vr.get('meta')"/>
                             <span t-esc="vr.get('label')"/>
                         </div>
                         <div class="risk-vr-progress-track">
@@ -47,6 +50,8 @@
                             <t t-if="step == 1" t-call="risk_module.register_driver_step_vehicle"/>
                             <t t-if="step == 2" t-call="risk_module.register_driver_step_owner"/>
                             <t t-if="step == 3" t-call="risk_module.register_driver_step_driver"/>
+                            <t t-if="step == 4" t-call="risk_module.register_driver_step_terms"/>
+                            <t t-if="step == 5 or step == 6" t-call="risk_module.register_driver_step_signatures"/>
                         </div>
 
                         <div class="risk-vr-actions">
@@ -60,10 +65,12 @@
                             </button>
                         </div>
                     </form>
+
+                    <t t-if="step == 4" t-call="risk_module.register_driver_terms_modal"/>
                 </div>
             </main>
 
-            <main t-if="step &gt; 3" class="risk-step-page">
+            <main t-if="step &gt; 6" class="risk-step-page">
                 <section class="risk-brand-header" aria-label="Impocoma Riesgos">
                     <div class="risk-brand-mark">
                         <img src="/risk_module/static/src/img/impocoma_logo.jpeg" alt="Impocoma"/>

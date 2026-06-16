@@ -1,102 +1,129 @@
 <odoo>
     <template id="register_driver_step_signatures" name="Registro Vehiculo Paso Firmas">
-        <div t-if="data.get('signature_error')" class="risk-error" t-esc="data.get('signature_error')"/>
-        <div t-if="data.get('signature_info')" class="risk-info" t-esc="data.get('signature_info')"/>
-        <!-- Sección 1: Firma y Verificación del Propietario (Paso 5) -->
-        <div t-if="step == 5" class="risk-signature-card">
-            <h3>Propietario / Tenedor / Representante Legal</h3>
-            <div class="risk-field risk-field-full risk-switch-card">
-                <div>
-                    <span class="risk-switch-title">Firma unica propietario/conductor</span>
-                    <span class="risk-switch-help">Usa esta opcion solo si propietario/tenedor y conductor son la misma persona.</span>
+        <div class="risk-vr-fields">
+            <div t-if="data.get('signature_error')" class="risk-vr-error" t-esc="data.get('signature_error')"/>
+            <div t-if="data.get('signature_info')" class="risk-vr-info" t-esc="data.get('signature_info')"/>
+
+            <!-- ============ Paso 5: Firma del Propietario / Tenedor ============ -->
+            <t t-if="step == 5">
+                <!-- Firma unica propietario/conductor -->
+                <div class="risk-vr-semi">
+                    <div class="risk-vr-semi-head">
+                        <div>
+                            <h3>Firma unica propietario/conductor</h3>
+                            <p>Usa esta opcion solo si propietario/tenedor y conductor son la misma persona.</p>
+                        </div>
+                        <div class="risk-vr-toggle-wrap">
+                            <span>NO</span>
+                            <div class="risk-vr-toggle">
+                                <input id="single_owner_driver_signature" name="single_owner_driver_signature" type="hidden" t-att-value="data.get('single_owner_driver_signature') or 'no'"/>
+                                <input id="single_owner_driver_signature_toggle" class="risk-vr-toggle-checkbox" type="checkbox" t-att-checked="'checked' if data.get('single_owner_driver_signature') == 'yes' else None"/>
+                                <label class="risk-vr-toggle-label" for="single_owner_driver_signature_toggle"></label>
+                            </div>
+                            <span class="risk-vr-toggle-yes">SÍ</span>
+                        </div>
+                    </div>
+                    <div t-attf-class="risk-vr-single-note #{'' if data.get('single_owner_driver_signature') == 'yes' else 'is-disabled'}" data-single-signature-note="1">
+                        Declaro que actuo como propietario/tenedor y conductor, y autorizo que esta firma aplique para ambas responsabilidades dentro de esta solicitud.
+                    </div>
                 </div>
-                <label class="risk-switch" for="single_owner_driver_signature_toggle">
-                    <span>No</span>
-                    <input id="single_owner_driver_signature_toggle" type="checkbox" t-att-checked="'checked' if data.get('single_owner_driver_signature') == 'yes' else None"/>
-                    <span class="risk-switch-track" aria-hidden="true"></span>
-                    <span>Si</span>
-                </label>
-                <input id="single_owner_driver_signature" name="single_owner_driver_signature" type="hidden" t-att-value="data.get('single_owner_driver_signature') or 'no'"/>
-            </div>
-            <div t-attf-class="risk-single-signature-note #{'' if data.get('single_owner_driver_signature') == 'yes' else 'is-disabled'}" data-single-signature-note="1">
-                Declaro que actuo como propietario/tenedor y conductor, y autorizo que esta firma aplique para ambas responsabilidades dentro de esta solicitud.
-            </div>
-            
-            <!-- Subsección 1.1: Verificación de Correo (Propietario) -->
-            <t t-set="party" t-value="'owner'"/>
-            <t t-call="risk_module.register_driver_signature_verification"/>
-            <t t-set="owner_verified" t-value="data.get('owner_signature_verification_state') == 'verified' and data.get('owner_email') and data.get('owner_signature_email') == data.get('owner_email')"/>
 
-            <!-- Subsección 1.2: Estudio Vigente y Firma (Propietario) -->
-            <p>Si el propietario cuenta con estudio vigente, no debe diligenciar el siguiente espacio.</p>
-            <div class="risk-choice-row">
-                <span>Cuenta con estudio vigente?</span>
-                <label class="risk-choice">
-                    <span>SI</span>
-                    <input type="radio" name="owner_has_valid_study" value="yes" t-att-checked="'checked' if data.get('owner_has_valid_study') == 'yes' else None"/>
-                </label>
-                <label class="risk-choice">
-                    <span>NO</span>
-                    <input type="radio" name="owner_has_valid_study" value="no" t-att-checked="'checked' if data.get('owner_has_valid_study') != 'yes' else None"/>
-                </label>
-            </div>
-            <div t-attf-class="risk-signature-pad #{'' if owner_verified else 'is-locked'}" data-signature-pad="owner">
-                <div t-if="not owner_verified" class="risk-signature-lock">
-                    <span class="material-symbols-outlined">lock</span>
-                    Verifica el correo para habilitar la firma.
+                <!-- Verificacion de identidad por correo (sub-template intacto) -->
+                <t t-set="party" t-value="'owner'"/>
+                <t t-call="risk_module.register_driver_signature_verification"/>
+                <t t-set="owner_verified" t-value="data.get('owner_signature_verification_state') == 'verified' and data.get('owner_email') and data.get('owner_signature_email') == data.get('owner_email')"/>
+
+                <!-- Estudio vigente + firma -->
+                <div class="risk-vr-subsection">
+                    <h3>
+                        <span class="material-symbols-outlined">draw</span>
+                        Firma
+                    </h3>
+                    <p class="risk-vr-note">Si el propietario cuenta con estudio vigente, no debe diligenciar el siguiente espacio.</p>
+                    <div class="risk-vr-declare-row">
+                        <p>Cuenta con estudio vigente?</p>
+                        <div class="risk-vr-radio-row">
+                            <label class="risk-vr-radio">
+                                <input type="radio" name="owner_has_valid_study" value="yes" t-att-checked="'checked' if data.get('owner_has_valid_study') == 'yes' else None"/>
+                                <span>SI</span>
+                            </label>
+                            <label class="risk-vr-radio">
+                                <input type="radio" name="owner_has_valid_study" value="no" t-att-checked="'checked' if data.get('owner_has_valid_study') != 'yes' else None"/>
+                                <span>NO</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div t-attf-class="risk-vr-signature-pad #{'' if owner_verified else 'is-locked'}" data-signature-pad="owner">
+                        <div t-if="not owner_verified" class="risk-vr-signature-lock">
+                            <span class="material-symbols-outlined">lock</span>
+                            Verifica el correo para habilitar la firma.
+                        </div>
+                        <canvas id="owner-signature-canvas" width="720" height="190"></canvas>
+                        <input id="owner-signature-input" type="hidden" name="owner_signature" t-att-value="'data:image/png;base64,%s' % data.get('owner_signature') if data.get('owner_signature') else ''"/>
+                        <button type="button" class="risk-vr-clear-signature" data-clear-signature="owner">
+                            <span class="material-symbols-outlined">ink_eraser</span>
+                            Limpiar firma
+                        </button>
+                    </div>
+                    <div class="risk-vr-field">
+                        <label for="owner_signature_document_display">Firma y numero de cedula</label>
+                        <input id="owner_signature_document_display" type="text"
+                               t-att-value="('%s - %s' % (data.get('owner_name') or '', data.get('owner_document_number') or '')) if data.get('owner_document_number') else (data.get('owner_signature_document') or '')"
+                               readonly="readonly"
+                               placeholder="Aqui se mostrara el nombre y cedula del propietario"/>
+                        <input type="hidden" name="owner_signature_document"
+                               t-att-value="data.get('owner_signature_document') or data.get('owner_document_number')"/>
+                    </div>
                 </div>
-                <canvas id="owner-signature-canvas" width="720" height="190"></canvas>
-                <input id="owner-signature-input" type="hidden" name="owner_signature" t-att-value="'data:image/png;base64,%s' % data.get('owner_signature') if data.get('owner_signature') else ''"/>
-                <button type="button" class="btn btn-secondary risk-clear-signature" data-clear-signature="owner">Limpiar firma</button>
-            </div>
-            <div class="risk-field risk-field-full">
-                <label for="owner_signature_document_display">Firma y número de cédula</label>
-                <input id="owner_signature_document_display" type="text"
-                       t-att-value="('%s - %s' % (data.get('owner_name') or '', data.get('owner_document_number') or '')) if data.get('owner_document_number') else (data.get('owner_signature_document') or '')"
-                       readonly="readonly"
-                       placeholder="Aquí se mostrará el nombre y cédula del propietario"/>
-                <input type="hidden" name="owner_signature_document"
-                       t-att-value="data.get('owner_signature_document') or data.get('owner_document_number')"/>
-            </div>
-        </div>
+            </t>
 
-        <!-- Sección 2: Firma y Verificación del Conductor (Paso 6) -->
-        <div t-if="step == 6" class="risk-signature-card">
-            <h3>Conductor</h3>
-            <t t-set="party" t-value="'driver'"/>
-            <t t-call="risk_module.register_driver_signature_verification"/>
-            <t t-set="driver_verified" t-value="data.get('driver_signature_verification_state') == 'verified' and data.get('driver_email') and data.get('driver_signature_email') == data.get('driver_email')"/>
+            <!-- ============ Paso 6: Firma del Conductor ============ -->
+            <t t-if="step == 6">
+                <t t-set="party" t-value="'driver'"/>
+                <t t-call="risk_module.register_driver_signature_verification"/>
+                <t t-set="driver_verified" t-value="data.get('driver_signature_verification_state') == 'verified' and data.get('driver_email') and data.get('driver_signature_email') == data.get('driver_email')"/>
 
-            <!-- Subsección 2.2: Estudio Vigente y Firma (Conductor) -->
-            <p>Si el conductor cuenta con estudio vigente, no debe diligenciar el siguiente espacio.</p>
-            <div class="risk-choice-row">
-                <span>Cuenta con estudio vigente?</span>
-                <label class="risk-choice">
-                    <span>SI</span>
-                    <input type="radio" name="driver_has_valid_study" value="yes" t-att-checked="'checked' if data.get('driver_has_valid_study') == 'yes' else None"/>
-                </label>
-                <label class="risk-choice">
-                    <span>NO</span>
-                    <input type="radio" name="driver_has_valid_study" value="no" t-att-checked="'checked' if data.get('driver_has_valid_study') != 'yes' else None"/>
-                </label>
-            </div>
-            <div t-attf-class="risk-signature-pad #{'' if driver_verified else 'is-locked'}" data-signature-pad="driver">
-                <div t-if="not driver_verified" class="risk-signature-lock">
-                    <span class="material-symbols-outlined">lock</span>
-                    Verifica el correo para habilitar la firma.
+                <div class="risk-vr-subsection">
+                    <h3>
+                        <span class="material-symbols-outlined">draw</span>
+                        Firma
+                    </h3>
+                    <p class="risk-vr-note">Si el conductor cuenta con estudio vigente, no debe diligenciar el siguiente espacio.</p>
+                    <div class="risk-vr-declare-row">
+                        <p>Cuenta con estudio vigente?</p>
+                        <div class="risk-vr-radio-row">
+                            <label class="risk-vr-radio">
+                                <input type="radio" name="driver_has_valid_study" value="yes" t-att-checked="'checked' if data.get('driver_has_valid_study') == 'yes' else None"/>
+                                <span>SI</span>
+                            </label>
+                            <label class="risk-vr-radio">
+                                <input type="radio" name="driver_has_valid_study" value="no" t-att-checked="'checked' if data.get('driver_has_valid_study') != 'yes' else None"/>
+                                <span>NO</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div t-attf-class="risk-vr-signature-pad #{'' if driver_verified else 'is-locked'}" data-signature-pad="driver">
+                        <div t-if="not driver_verified" class="risk-vr-signature-lock">
+                            <span class="material-symbols-outlined">lock</span>
+                            Verifica el correo para habilitar la firma.
+                        </div>
+                        <canvas id="driver-signature-canvas" width="720" height="190"></canvas>
+                        <input id="driver-signature-input" type="hidden" name="driver_signature" t-att-value="'data:image/png;base64,%s' % data.get('driver_signature') if data.get('driver_signature') else ''"/>
+                        <button type="button" class="risk-vr-clear-signature" data-clear-signature="driver">
+                            <span class="material-symbols-outlined">ink_eraser</span>
+                            Limpiar firma
+                        </button>
+                    </div>
+                    <div class="risk-vr-field">
+                        <label for="driver_signature_document">Firma y numero de cedula de Conductor</label>
+                        <input id="driver_signature_document" name="driver_signature_document" type="text" t-att-value="data.get('driver_signature_document') or data.get('driver_document_number')" inputmode="numeric" pattern="[0-9]{6,10}" title="Cedula de 6 a 10 digitos numericos" autocomplete="off"/>
+                    </div>
                 </div>
-                <canvas id="driver-signature-canvas" width="720" height="190"></canvas>
-                <input id="driver-signature-input" type="hidden" name="driver_signature" t-att-value="'data:image/png;base64,%s' % data.get('driver_signature') if data.get('driver_signature') else ''"/>
-                <button type="button" class="btn btn-secondary risk-clear-signature" data-clear-signature="driver">Limpiar firma</button>
-            </div>
-            <div class="risk-field risk-field-full">
-                <label for="driver_signature_document">Firma y numero de cedula de Conductor</label>
-                <input id="driver_signature_document" name="driver_signature_document" type="text" t-att-value="data.get('driver_signature_document') or data.get('driver_document_number')" inputmode="numeric" pattern="[0-9]{6,10}" title="Cedula de 6 a 10 digitos numericos" autocomplete="off"/>
-            </div>
-        </div>
+            </t>
 
-        <div class="risk-signature-note">
-            <strong>Nota:</strong> En caso de creacion de nuevo vehiculo, el propietario/tenedor debe firmar sin ninguna excepcion. Para los casos que se requiera cambio de conductor y este cuente con estudio vigente, tanto el propietario/tenedor y conductor deberan firmar sin ninguna excepcion.
+            <div class="risk-vr-signature-note">
+                <strong>Nota:</strong> En caso de creacion de nuevo vehiculo, el propietario/tenedor debe firmar sin ninguna excepcion. Para los casos que se requiera cambio de conductor y este cuente con estudio vigente, tanto el propietario/tenedor y conductor deberan firmar sin ninguna excepcion.
+            </div>
         </div>
     </template>
 
