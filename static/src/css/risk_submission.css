@@ -1769,14 +1769,45 @@
 
 .risk-vr-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    gap: 16px;
     margin-top: 48px;
     padding-bottom: 80px;
+}
+
+.risk-vr-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 56px;
+    padding: 16px 32px;
+    border: 1px solid var(--vr-outline-variant);
+    border-radius: 8px;
+    background: var(--vr-surface);
+    color: var(--vr-secondary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.risk-vr-back:hover {
+    background: var(--vr-surface-variant);
+    color: var(--vr-secondary);
+    text-decoration: none;
+}
+
+.risk-vr-back:active {
+    transform: translateY(1px);
 }
 
 .risk-vr-next {
     display: inline-flex;
     align-items: center;
+    margin-left: auto;
     gap: 8px;
     min-height: 56px;
     padding: 16px 32px;
@@ -1870,5 +1901,320 @@
 
     .risk-vr-actions {
         padding-bottom: 32px;
+    }
+
+    .risk-vr-anticipos {
+        align-items: flex-start;
+        flex-direction: column;
+        padding-top: 32px;
+    }
+}
+
+/* ----------------------------------------------------------------------------
+   Paso 2 (Propietario) — rediseño Material 3, congruente con el paso 1.
+   ------------------------------------------------------------------------- */
+
+.risk-vr-radio-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+}
+
+.risk-vr-radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    color: var(--vr-on-surface);
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+/* El selector generico .risk-vr-field input fuerza inputs de 50px; los radios
+   se reestablecen aqui con mayor especificidad. */
+.risk-vr-radio input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 9999px;
+    box-shadow: none;
+    accent-color: var(--vr-primary);
+}
+
+.risk-vr-anticipos {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 24px;
+    padding-top: 48px;
+    border-top: 1px solid var(--vr-outline-variant);
+}
+
+.risk-vr-anticipos h3 {
+    margin: 0;
+    color: var(--vr-secondary);
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
+}
+
+.risk-vr-note {
+    margin: 0;
+    color: var(--vr-on-surface-variant);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+.risk-vr-extra-owners {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 24px;
+    border: 1px solid var(--vr-outline-variant);
+    border-radius: 8px;
+    background: var(--vr-surface-bright);
+}
+
+.risk-vr-extra-owners-head {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.risk-vr-extra-owners-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--vr-secondary);
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.risk-vr-extra-owners-title .material-symbols-outlined {
+    color: var(--vr-primary);
+    font-size: 20px;
+}
+
+.risk-vr-extra-owners-head p {
+    margin: 0;
+    color: var(--vr-on-surface-variant);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+}
+
+.risk-vr-extra-owner {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--vr-outline-variant);
+}
+
+.risk-vr-extra-owner:first-child {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.risk-vr-extra-owner-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.risk-vr-extra-owner-title {
+    color: var(--vr-secondary);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+.risk-vr-extra-owner-remove {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 14px;
+    border: 1px solid var(--vr-error);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--vr-error);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 150ms ease, color 150ms ease;
+}
+
+.risk-vr-extra-owner-remove .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.risk-vr-extra-owner-remove:hover {
+    background: var(--vr-error);
+    color: var(--vr-on-error);
+}
+
+.risk-vr-add-owner {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 6px;
+    padding: 12px 20px;
+    border: 1px solid var(--vr-primary);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--vr-primary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 150ms ease, color 150ms ease;
+}
+
+.risk-vr-add-owner:hover {
+    background: var(--vr-primary);
+    color: var(--vr-on-primary);
+}
+
+/* ----------------------------------------------------------------------------
+   Paso 3 (Conductor) — rediseño Material 3, congruente con pasos 1 y 2.
+   ------------------------------------------------------------------------- */
+
+.risk-vr-copy-owner {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+    border: 1px solid var(--vr-outline-variant);
+    border-radius: 8px;
+    background: var(--vr-surface-bright);
+}
+
+.risk-vr-copy-owner-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px 24px;
+}
+
+.risk-vr-copy-owner-head h3 {
+    margin: 0;
+    color: var(--vr-secondary);
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.risk-vr-copy-owner-head p {
+    margin: 4px 0 0;
+    max-width: 46ch;
+    color: var(--vr-on-surface-variant);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+}
+
+.risk-vr-copy-owner-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 12px 20px;
+    border: 1px solid var(--vr-primary);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--vr-primary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 150ms ease, color 150ms ease;
+}
+
+.risk-vr-copy-owner-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.risk-vr-copy-owner-btn:hover {
+    background: var(--vr-primary);
+    color: var(--vr-on-primary);
+}
+
+.risk-vr-copy-owner-feedback {
+    margin: 0;
+    color: var(--vr-tertiary);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+.risk-vr-copy-owner-feedback:empty {
+    display: none;
+}
+
+.risk-vr-copy-owner-feedback.is-error {
+    color: var(--vr-error);
+}
+
+.risk-vr-subsection {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding-top: 48px;
+    border-top: 1px solid var(--vr-outline-variant);
+}
+
+.risk-vr-subsection h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: var(--vr-secondary);
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
+}
+
+.risk-vr-subsection h3 .material-symbols-outlined {
+    color: var(--vr-primary);
+}
+
+.risk-vr-declare-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+}
+
+.risk-vr-declare-row p {
+    flex: 1 1 240px;
+    margin: 0;
+    color: var(--vr-on-surface);
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+}
+
+@media (max-width: 640px) {
+    .risk-vr-copy-owner-head,
+    .risk-vr-declare-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .risk-vr-subsection {
+        padding-top: 32px;
     }
 }

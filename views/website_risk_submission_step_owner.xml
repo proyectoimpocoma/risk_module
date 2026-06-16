@@ -1,142 +1,172 @@
 <odoo>
     <template id="register_driver_step_owner" name="Registro Vehiculo Paso Propietario">
-        <!-- Sección 1: Datos de Identificación del Propietario -->
-        <div class="risk-inline-doc">
-            <div class="risk-field">
-                <label for="owner_name">Nombres y apellidos / Empresa</label>
-                <input id="owner_name" name="owner_name" type="text" t-att-value="data.get('owner_name')" required="required" maxlength="140" minlength="3" autocomplete="off" placeholder="Ej: Juan Perez o Transportes XYZ"/>
+        <div class="risk-vr-fields">
+            <!-- Fila 1: Nombre + Documento (tipo + numero) -->
+            <div class="risk-vr-grid">
+                <div class="risk-vr-field">
+                    <label for="owner_name">Nombres y apellidos / Empresa</label>
+                    <input id="owner_name" name="owner_name" type="text" t-att-value="data.get('owner_name')" required="required" maxlength="140" minlength="3" autocomplete="off" placeholder="Ej: Juan Perez o Transportes XYZ"/>
+                </div>
+                <div class="risk-vr-field">
+                    <label for="owner_document_number">Numero</label>
+                    <div class="risk-vr-radio-row">
+                        <label class="risk-vr-radio">
+                            <input type="radio" name="owner_document_type" value="cc" required="required" t-att-checked="'checked' if data.get('owner_document_type') == 'cc' else None"/>
+                            <span>CC</span>
+                        </label>
+                        <label class="risk-vr-radio">
+                            <input type="radio" name="owner_document_type" value="nit" t-att-checked="'checked' if data.get('owner_document_type') == 'nit' else None"/>
+                            <span>Nit</span>
+                        </label>
+                    </div>
+                    <input id="owner_document_number" name="owner_document_number" type="text" t-att-value="data.get('owner_document_number')" required="required" maxlength="11" pattern="[0-9]{6,10}(-[0-9])?" title="CC: 6 a 10 digitos. NIT: 123456789 o 123456789-0" autocomplete="off" placeholder="Solo numeros, sin puntos"/>
+                </div>
             </div>
-            <label class="risk-choice">
-                <span>CC</span>
-                <input type="radio" name="owner_document_type" value="cc" required="required" t-att-checked="'checked' if data.get('owner_document_type') == 'cc' else None"/>
-            </label>
-            <label class="risk-choice">
-                <span>Nit</span>
-                <input type="radio" name="owner_document_type" value="nit" t-att-checked="'checked' if data.get('owner_document_type') == 'nit' else None"/>
-            </label>
-            <div class="risk-field">
-                <label for="owner_document_number">Numero</label>
-                <input id="owner_document_number" name="owner_document_number" type="text" t-att-value="data.get('owner_document_number')" required="required" maxlength="11" pattern="[0-9]{6,10}(-[0-9])?" title="CC: 6 a 10 digitos. NIT: 123456789 o 123456789-0" autocomplete="off" placeholder="Solo numeros, sin puntos"/>
+
+            <!-- Fila 2: Direccion + Barrio -->
+            <div class="risk-vr-grid">
+                <div class="risk-vr-field">
+                    <label for="owner_address">Direccion</label>
+                    <input id="owner_address" name="owner_address" type="text" t-att-value="data.get('owner_address')" maxlength="140" autocomplete="off" placeholder="Calle 123 #45-67"/>
+                </div>
+                <div class="risk-vr-field">
+                    <label for="owner_neighborhood">Barrio</label>
+                    <input id="owner_neighborhood" name="owner_neighborhood" type="text" t-att-value="data.get('owner_neighborhood')" maxlength="80" autocomplete="off" placeholder="Barrio o zona"/>
+                </div>
             </div>
-        </div>
 
-        <!-- Sección 2: Información de Contacto y Ubicación -->
-        <div class="risk-field">
-            <label for="owner_address">Direccion</label>
-            <input id="owner_address" name="owner_address" type="text" t-att-value="data.get('owner_address')" maxlength="140" autocomplete="off" placeholder="Calle 123 #45-67"/>
-        </div>
-        <div class="risk-field">
-            <label for="owner_neighborhood">Barrio</label>
-            <input id="owner_neighborhood" name="owner_neighborhood" type="text" t-att-value="data.get('owner_neighborhood')" maxlength="80" autocomplete="off" placeholder="Barrio o zona"/>
-        </div>
-        <div class="risk-field">
-            <label for="owner_city">Ciudad</label>
-            <input id="owner_city" name="owner_city" type="text" list="risk-co-municipios" t-att-value="data.get('owner_city')" maxlength="80" autocomplete="off" placeholder="Escribe o selecciona el municipio"/>
-        </div>
-        <div class="risk-field">
-            <label for="owner_phone">Numero de celular para notificaciones y autorizaciones electronicas</label>
-            <input id="owner_phone" name="owner_phone" type="tel" t-att-value="data.get('owner_phone')" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
-        </div>
-        <div class="risk-field risk-field-full">
-            <label for="owner_email">Correo electronico de facturacion y notificaciones</label>
-            <input id="owner_email" name="owner_email" type="email" t-att-value="data.get('owner_email')" maxlength="120" autocomplete="off" placeholder="ejemplo@dominio.com"/>
-        </div>
-
-        <!-- Sección 3: Autorización de Pagos -->
-        <div class="risk-choice-row">
-            <span>Autorizo la entrega y pago de anticipos a</span>
-            <label class="risk-choice">
-                <span>Conductor</span>
-                <input type="radio" name="advance_payment_to" value="driver" t-att-checked="'checked' if data.get('advance_payment_to') == 'driver' else None"/>
-            </label>
-            <label class="risk-choice">
-                <span>Propietario</span>
-                <input type="radio" name="advance_payment_to" value="owner" t-att-checked="'checked' if data.get('advance_payment_to') == 'owner' else None"/>
-            </label>
-        </div>
-
-        <!-- Sección 4: Propietario Registrado en Licencia (Condicional) -->
-        <t t-set="registered_owner_required" t-value="data.get('same_owner_on_license') == 'no'"/>
-        <div class="risk-field risk-field-full risk-switch-card">
-            <div>
-                <span class="risk-switch-title">Propietario registrado en licencia</span>
-                <span class="risk-switch-help">La informacion del tenedor o poseedor corresponde al mismo o unico propietario registrado en la Licencia de Transito?</span>
+            <!-- Fila 3: Ciudad + Celular -->
+            <div class="risk-vr-grid">
+                <div class="risk-vr-field">
+                    <label for="owner_city">Ciudad</label>
+                    <input id="owner_city" name="owner_city" type="text" list="risk-co-municipios" t-att-value="data.get('owner_city')" maxlength="80" autocomplete="off" placeholder="Escribe o selecciona el municipio"/>
+                </div>
+                <div class="risk-vr-field">
+                    <label for="owner_phone">Numero de celular para notificaciones y autorizaciones electronicas</label>
+                    <input id="owner_phone" name="owner_phone" type="tel" t-att-value="data.get('owner_phone')" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
+                </div>
             </div>
-            <label class="risk-switch" for="same_owner_on_license_toggle">
-                <span>No</span>
-                <input id="same_owner_on_license_toggle" type="checkbox" t-att-checked="'checked' if data.get('same_owner_on_license') != 'no' else None"/>
-                <span class="risk-switch-track" aria-hidden="true"></span>
-                <span>Si</span>
-            </label>
-            <input id="same_owner_on_license" name="same_owner_on_license" type="hidden" t-att-value="data.get('same_owner_on_license') or 'yes'"/>
-        </div>
 
-        <p t-attf-class="risk-section-note risk-registered-owner-field #{'' if registered_owner_required else 'is-disabled'}" data-registered-owner-field="1">En caso de que su respuesta sea NO, agrega el o los propietarios registrados en la siguiente seccion.</p>
-
-        <!-- Sección 5: Propietarios adicionales (lista dinámica).
-             Visible solo cuando el switch "registrado en licencia" está en NO,
-             reutilizando el mismo gating data-registered-owner-field. -->
-        <div t-attf-class="risk-field-full risk-extra-owners risk-registered-owner-field #{'' if registered_owner_required else 'is-disabled'}" data-registered-owner-field="1">
-            <div class="risk-extra-owners-head">
-                <span class="risk-extra-owners-title">
-                    <span class="material-symbols-outlined">group</span>
-                    Otros propietarios
-                </span>
-                <span class="risk-switch-help">Agrega copropietarios, tenedores o poseedores adicionales si aplica.</span>
+            <!-- Fila 4: Correo -->
+            <div class="risk-vr-field">
+                <label for="owner_email">Correo electronico de facturacion y notificaciones</label>
+                <input id="owner_email" name="owner_email" type="email" t-att-value="data.get('owner_email')" maxlength="120" autocomplete="off" placeholder="ejemplo@dominio.com"/>
             </div>
-            <div id="extra-owners-list">
-                <t t-foreach="data.get('extra_owners') or []" t-as="owner">
+
+            <!-- Autorizacion de anticipos -->
+            <div class="risk-vr-anticipos">
+                <h3>Autorizo la entrega y pago de anticipos a</h3>
+                <div class="risk-vr-radio-row">
+                    <label class="risk-vr-radio">
+                        <input type="radio" name="advance_payment_to" value="driver" t-att-checked="'checked' if data.get('advance_payment_to') == 'driver' else None"/>
+                        <span>Conductor</span>
+                    </label>
+                    <label class="risk-vr-radio">
+                        <input type="radio" name="advance_payment_to" value="owner" t-att-checked="'checked' if data.get('advance_payment_to') == 'owner' else None"/>
+                        <span>Propietario</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Propietario registrado en licencia (toggle condicional) -->
+            <t t-set="registered_owner_required" t-value="data.get('same_owner_on_license') == 'no'"/>
+            <div class="risk-vr-semi">
+                <div class="risk-vr-semi-head">
+                    <div>
+                        <h3>Propietario registrado en licencia</h3>
+                        <p>La informacion del tenedor o poseedor corresponde al mismo o unico propietario registrado en la Licencia de Transito?</p>
+                    </div>
+                    <div class="risk-vr-toggle-wrap">
+                        <span>NO</span>
+                        <div class="risk-vr-toggle">
+                            <input id="same_owner_on_license" name="same_owner_on_license" type="hidden" t-att-value="data.get('same_owner_on_license') or 'yes'"/>
+                            <input id="same_owner_on_license_toggle" class="risk-vr-toggle-checkbox" type="checkbox"
+                                   t-att-checked="'checked' if data.get('same_owner_on_license') != 'no' else None"/>
+                            <label class="risk-vr-toggle-label" for="same_owner_on_license_toggle"></label>
+                        </div>
+                        <span class="risk-vr-toggle-yes">SÍ</span>
+                    </div>
+                </div>
+            </div>
+
+            <p t-attf-class="risk-vr-note risk-registered-owner-field #{'' if registered_owner_required else 'is-disabled'}" data-registered-owner-field="1">
+                En caso de que su respuesta sea NO, agrega el o los propietarios registrados en la siguiente seccion.
+            </p>
+
+            <!-- Propietarios adicionales (lista dinamica). Visible solo cuando el switch
+                 "registrado en licencia" esta en NO, mismo gating data-registered-owner-field. -->
+            <div t-attf-class="risk-vr-extra-owners risk-registered-owner-field #{'' if registered_owner_required else 'is-disabled'}" data-registered-owner-field="1">
+                <div class="risk-vr-extra-owners-head">
+                    <span class="risk-vr-extra-owners-title">
+                        <span class="material-symbols-outlined">group</span>
+                        Otros propietarios
+                    </span>
+                    <p>Agrega copropietarios, tenedores o poseedores adicionales si aplica.</p>
+                </div>
+                <div id="extra-owners-list">
+                    <t t-foreach="data.get('extra_owners') or []" t-as="owner">
+                        <t t-call="risk_module.register_driver_extra_owner_row"/>
+                    </t>
+                </div>
+                <div class="d-none" id="extra-owner-template">
+                    <t t-set="owner" t-value="{}"/>
                     <t t-call="risk_module.register_driver_extra_owner_row"/>
-                </t>
+                </div>
+                <button type="button" class="risk-vr-add-owner" id="add-extra-owner">
+                    <span class="material-symbols-outlined">add</span>
+                    Agregar propietario
+                </button>
             </div>
-            <div class="d-none" id="extra-owner-template">
-                <t t-set="owner" t-value="{}"/>
-                <t t-call="risk_module.register_driver_extra_owner_row"/>
-            </div>
-            <button type="button" class="risk-btn-secondary" id="add-extra-owner">
-                + Agregar propietario
-            </button>
         </div>
     </template>
 
     <template id="register_driver_extra_owner_row" name="Fila Propietario Adicional">
-        <div class="risk-extra-owner" data-extra-owner-row="1">
-            <div class="risk-extra-owner-head risk-field-full">
-                <span class="risk-extra-owner-title">Propietario adicional</span>
-                <button type="button" class="risk-extra-owner-remove" data-extra-owner-remove="1" title="Eliminar propietario">
+        <div class="risk-vr-extra-owner" data-extra-owner-row="1">
+            <div class="risk-vr-extra-owner-head">
+                <span class="risk-vr-extra-owner-title">Propietario adicional</span>
+                <button type="button" class="risk-vr-extra-owner-remove" data-extra-owner-remove="1" title="Eliminar propietario">
+                    <span class="material-symbols-outlined">delete</span>
                     Eliminar
                 </button>
             </div>
-            <div class="risk-field">
-                <label>Nombres y apellidos / Empresa</label>
-                <input type="text" name="extra_owner_name" t-att-value="owner.get('name')" maxlength="140" autocomplete="off" placeholder="Ej: Juan Perez o Transportes XYZ"/>
-            </div>
-            <div class="risk-field">
-                <label>Tipo de documento</label>
-                <select name="extra_owner_document_type">
-                    <option value="cc" t-att-selected="'selected' if owner.get('document_type') == 'cc' else None">CC</option>
-                    <option value="nit" t-att-selected="'selected' if owner.get('document_type') == 'nit' else None">NIT</option>
-                </select>
-            </div>
-            <div class="risk-field">
-                <label>Numero</label>
-                <input type="text" name="extra_owner_document_number" t-att-value="owner.get('document_number')" maxlength="11" pattern="[0-9]{6,10}(-[0-9])?" title="CC: 6 a 10 digitos. NIT: 123456789 o 123456789-0" autocomplete="off" placeholder="Solo numeros, sin puntos"/>
-            </div>
-            <div class="risk-field">
-                <label>Relacion</label>
-                <select name="extra_owner_role">
-                    <option value="owner" t-att-selected="'selected' if owner.get('role') == 'owner' else None">Propietario</option>
-                    <option value="holder" t-att-selected="'selected' if owner.get('role') == 'holder' else None">Tenedor</option>
-                    <option value="possessor" t-att-selected="'selected' if owner.get('role') == 'possessor' else None">Poseedor</option>
-                </select>
-            </div>
-            <div class="risk-field">
-                <label>Celular</label>
-                <input type="tel" name="extra_owner_phone" t-att-value="owner.get('phone')" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
-            </div>
-            <div class="risk-field">
-                <label>Correo electronico</label>
-                <input type="email" name="extra_owner_email" t-att-value="owner.get('email')" maxlength="120" autocomplete="off" placeholder="ejemplo@dominio.com"/>
+            <div class="risk-vr-grid">
+                <div class="risk-vr-field">
+                    <label>Nombres y apellidos / Empresa</label>
+                    <input type="text" name="extra_owner_name" t-att-value="owner.get('name')" maxlength="140" autocomplete="off" placeholder="Ej: Juan Perez o Transportes XYZ"/>
+                </div>
+                <div class="risk-vr-field">
+                    <label>Tipo de documento</label>
+                    <div class="risk-vr-select-wrap">
+                        <select name="extra_owner_document_type">
+                            <option value="cc" t-att-selected="'selected' if owner.get('document_type') == 'cc' else None">CC</option>
+                            <option value="nit" t-att-selected="'selected' if owner.get('document_type') == 'nit' else None">NIT</option>
+                        </select>
+                        <span class="material-symbols-outlined">expand_more</span>
+                    </div>
+                </div>
+                <div class="risk-vr-field">
+                    <label>Numero</label>
+                    <input type="text" name="extra_owner_document_number" t-att-value="owner.get('document_number')" maxlength="11" pattern="[0-9]{6,10}(-[0-9])?" title="CC: 6 a 10 digitos. NIT: 123456789 o 123456789-0" autocomplete="off" placeholder="Solo numeros, sin puntos"/>
+                </div>
+                <div class="risk-vr-field">
+                    <label>Relacion</label>
+                    <div class="risk-vr-select-wrap">
+                        <select name="extra_owner_role">
+                            <option value="owner" t-att-selected="'selected' if owner.get('role') == 'owner' else None">Propietario</option>
+                            <option value="holder" t-att-selected="'selected' if owner.get('role') == 'holder' else None">Tenedor</option>
+                            <option value="possessor" t-att-selected="'selected' if owner.get('role') == 'possessor' else None">Poseedor</option>
+                        </select>
+                        <span class="material-symbols-outlined">expand_more</span>
+                    </div>
+                </div>
+                <div class="risk-vr-field">
+                    <label>Celular</label>
+                    <input type="tel" name="extra_owner_phone" t-att-value="owner.get('phone')" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
+                </div>
+                <div class="risk-vr-field">
+                    <label>Correo electronico</label>
+                    <input type="email" name="extra_owner_email" t-att-value="owner.get('email')" maxlength="120" autocomplete="off" placeholder="ejemplo@dominio.com"/>
+                </div>
             </div>
         </div>
     </template>
