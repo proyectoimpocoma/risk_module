@@ -9,13 +9,13 @@
                  reutilizando el mismo armazón: solo cambian iconos, titulo, progreso y
                  el sub-template del cuerpo (ver dict vr_steps). -->
             <t t-set="vr_steps" t-value="{
-                1: {'appbar': 'local_shipping', 'card': 'directions_car', 'meta': 'Paso 1 de 4', 'label': 'Información del Vehículo', 'title': 'Información del Vehículo', 'progress': 25},
-                2: {'appbar': 'person', 'card': 'badge', 'meta': 'Paso 2 de 4', 'label': 'Información del Propietario', 'title': 'Información del Propietario / Tenedor / Poseedor', 'progress': 50},
-                3: {'appbar': 'id_card', 'card': 'person', 'meta': 'Paso 3 de 4', 'label': 'Información del Conductor', 'title': 'Información del Conductor', 'progress': 75},
-                4: {'appbar': 'gavel', 'card': 'fact_check', 'meta': 'Paso 4 de 4', 'label': 'Términos y Autorizaciones', 'title': 'Aceptacion de Terminos y Autorizaciones', 'progress': 100},
-                5: {'appbar': 'draw', 'card': 'draw', 'meta': 'Firma 1 de 2', 'label': 'Firma del Propietario', 'title': 'Firma del Propietario / Tenedor', 'progress': 50},
-                6: {'appbar': 'draw', 'card': 'draw', 'meta': 'Firma 2 de 2', 'label': 'Firma del Conductor', 'title': 'Firma del Conductor', 'progress': 100},
-                7: {'appbar': 'task_alt', 'card': 'fact_check', 'meta': 'Revision final', 'label': 'Revision de la Solicitud', 'title': 'Revision de la Solicitud', 'progress': 100},
+                1: {'appbar': 'local_shipping', 'card': 'directions_car', 'meta': 'Paso 1 de 7', 'short': 'Vehículo', 'label': 'Información del Vehículo', 'title': 'Información del Vehículo', 'progress': 14.2857},
+                2: {'appbar': 'person', 'card': 'badge', 'meta': 'Paso 2 de 7', 'short': 'Propietario', 'label': 'Información del Propietario', 'title': 'Información del Propietario / Tenedor / Poseedor', 'progress': 28.5714},
+                3: {'appbar': 'id_card', 'card': 'person', 'meta': 'Paso 3 de 7', 'short': 'Conductor', 'label': 'Información del Conductor', 'title': 'Información del Conductor', 'progress': 42.8571},
+                4: {'appbar': 'gavel', 'card': 'fact_check', 'meta': 'Paso 4 de 7', 'short': 'Términos', 'label': 'Términos y Autorizaciones', 'title': 'Aceptacion de Terminos y Autorizaciones', 'progress': 57.1428},
+                5: {'appbar': 'draw', 'card': 'draw', 'meta': 'Paso 5 de 7', 'short': 'Firma propietario', 'label': 'Firma del Propietario', 'title': 'Firma del Propietario / Tenedor', 'progress': 71.4285},
+                6: {'appbar': 'draw', 'card': 'draw', 'meta': 'Paso 6 de 7', 'short': 'Firma conductor', 'label': 'Firma del Conductor', 'title': 'Firma del Conductor', 'progress': 85.7142},
+                7: {'appbar': 'task_alt', 'card': 'fact_check', 'meta': 'Paso 7 de 7', 'short': 'Revisión', 'label': 'Revision de la Solicitud', 'title': 'Revision de la Solicitud', 'progress': 100},
             }"/>
             <t t-set="vr" t-value="vr_steps.get(step) or {}"/>
             <main t-if="step &lt;= 7" class="risk-step-page risk-vehicle-redesign-page">
@@ -38,6 +38,16 @@
                         <div class="risk-vr-progress-track">
                             <div class="risk-vr-progress-value" t-attf-style="width: #{vr.get('progress')}%;"></div>
                         </div>
+                        <ol class="risk-vr-stepper" aria-label="Progreso del formulario">
+                            <t t-foreach="vr_steps.items()" t-as="step_item">
+                                <t t-set="step_number" t-value="step_item[0]"/>
+                                <t t-set="step_config" t-value="step_item[1]"/>
+                                <li t-attf-class="risk-vr-stepper-item #{'is-done' if step_number &lt; step else ''} #{'is-active' if step_number == step else ''}">
+                                    <span class="risk-vr-stepper-number" t-esc="step_number"/>
+                                    <span class="risk-vr-stepper-label" t-esc="step_config.get('short')"/>
+                                </li>
+                            </t>
+                        </ol>
                     </div>
 
                     <form t-attf-action="/registro-conductor/submit/#{step}" method="post" class="risk-vr-form">

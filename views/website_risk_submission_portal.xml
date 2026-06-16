@@ -1,29 +1,40 @@
 <odoo>
-    <template id="portal_risk_submission_list" name="Mis Solicitudes de Riesgo">
+    <template id="portal_risk_submission_list" name="Mis Registros de Habilitación">
         <t t-call="website.layout">
             <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
             <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&amp;display=swap" rel="stylesheet"/>
 
             <main class="rpd">
-                <div class="rpd-list-head">
-                    <div>
-                        <h1 class="rpd-list-title">Mis solicitudes de riesgo</h1>
-                        <p class="rpd-list-sub">Consulta el avance de tus registros y los documentos pendientes.</p>
+                <header class="rpd-appbar">
+                    <div class="rpd-appbar-title">
+                        <span class="material-symbols-outlined">local_shipping</span>
+                        <h1>Habilitación Terceros</h1>
                     </div>
-                    <a href="/registro-conductor" class="rpd-new-btn">
-                        <span class="material-symbols-outlined">add</span>
-                        Nueva solicitud
+                    <a href="/" class="rpd-appbar-link" aria-label="Ir al inicio">
+                        <span class="material-symbols-outlined">close</span>
                     </a>
-                </div>
+                </header>
+
+                <div class="rpd-main">
+                    <div class="rpd-list-head">
+                        <div>
+                            <h1 class="rpd-list-title">Mis registros de habilitación</h1>
+                            <p class="rpd-list-sub">Consulta el avance de tus registros y los documentos pendientes.</p>
+                        </div>
+                        <a href="/registro-conductor" class="rpd-new-btn">
+                            <span class="material-symbols-outlined">add</span>
+                            Nuevo registro
+                        </a>
+                    </div>
 
                 <!-- Empty state -->
                 <div t-if="not submissions" class="rpd-emptystate">
                     <span class="material-symbols-outlined">inbox</span>
-                    <h2>Aún no tienes solicitudes</h2>
+                    <h2>Aún no tienes registros</h2>
                     <p>Cuando registres una habilitación de conductor o vehículo aparecerá aquí.</p>
                     <a href="/registro-conductor" class="rpd-new-btn">
                         <span class="material-symbols-outlined">add</span>
-                        Crear primera solicitud
+                        Crear primer registro
                     </a>
                 </div>
 
@@ -75,6 +86,12 @@
                             </div>
 
                             <div class="rpd-card-actions">
+                                <a t-if="submission.state == 'correction_required'"
+                                   t-attf-href="/registro-conductor/corregir/#{submission.id}"
+                                   class="rpd-correct-card-btn">
+                                    <span class="material-symbols-outlined">edit</span>
+                                    Corregir
+                                </a>
                                 <a t-attf-href="/mis-solicitudes-riesgo/#{submission.id}" class="rpd-detail-btn">
                                     Ver detalle
                                     <span class="material-symbols-outlined">arrow_forward</span>
@@ -82,6 +99,7 @@
                             </div>
                         </div>
                     </t>
+                </div>
                 </div>
             </main>
         </t>
@@ -135,16 +153,27 @@
         </div>
     </template>
 
-    <template id="portal_risk_submission_detail" name="Detalle Solicitud de Riesgo">
+    <template id="portal_risk_submission_detail" name="Detalle Registro de Habilitación">
         <t t-call="website.layout">
             <!-- Fonts used by the detail design -->
             <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
             <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&amp;display=swap" rel="stylesheet"/>
 
             <main class="rpd">
+                <header class="rpd-appbar">
+                    <div class="rpd-appbar-title">
+                        <span class="material-symbols-outlined">local_shipping</span>
+                        <h1>Habilitación Terceros</h1>
+                    </div>
+                    <a href="/mis-solicitudes-riesgo" class="rpd-appbar-link" aria-label="Volver a mis registros">
+                        <span class="material-symbols-outlined">close</span>
+                    </a>
+                </header>
+
+                <div class="rpd-main">
                 <a href="/mis-solicitudes-riesgo" class="rpd-back">
                     <span class="material-symbols-outlined">arrow_back</span>
-                    Volver a mis solicitudes
+                    Volver a mis registros
                 </a>
 
                 <!-- Upload feedback banners -->
@@ -161,10 +190,14 @@
 
                 <!-- Header card -->
                 <t t-set="needs_correction" t-value="submission.state == 'correction_required'"/>
+                <t t-set="required_documents" t-value="submission.document_ids.filtered(lambda d: d.required)"/>
+                <t t-set="req_total" t-value="len(required_documents)"/>
+                <t t-set="req_done" t-value="len(required_documents.filtered(lambda d: d.state == 'approved'))"/>
+                <t t-set="req_pct" t-value="round(req_done * 100.0 / req_total) if req_total else 0"/>
                 <div class="rpd-header">
                     <div class="rpd-header-row">
                         <div>
-                            <h1 class="rpd-title">Detalle de Solicitud</h1>
+                            <h1 class="rpd-title">Detalle del registro</h1>
                             <div class="rpd-subtitle">
                                 <span t-if="submission.name" class="rpd-code" t-esc="submission.name"/>
                                 <span class="rpd-subtitle-text">Habilitación vehículo <t t-esc="submission.vehicle_plate"/></span>
@@ -173,6 +206,33 @@
                         <div t-attf-class="rpd-status #{'rpd-status-warning' if needs_correction else 'rpd-status-neutral'}">
                             <span t-if="needs_correction" class="material-symbols-outlined">warning</span>
                             <span t-esc="submission.portal_state_label"/>
+                        </div>
+                    </div>
+                    <div class="rpd-summary-grid">
+                        <div class="rpd-summary-item">
+                            <span class="rpd-summary-label">Placa</span>
+                            <strong t-esc="submission.vehicle_plate or '-'"/>
+                        </div>
+                        <div class="rpd-summary-item">
+                            <span class="rpd-summary-label">Conductor</span>
+                            <strong t-esc="submission.driver_name or '-'"/>
+                        </div>
+                        <div class="rpd-summary-item">
+                            <span class="rpd-summary-label">Propietario</span>
+                            <strong t-esc="submission.owner_name or '-'"/>
+                        </div>
+                        <div class="rpd-summary-item">
+                            <span class="rpd-summary-label">Documentos</span>
+                            <strong><t t-esc="req_done"/>/<t t-esc="req_total"/> aprobados</strong>
+                        </div>
+                    </div>
+                    <div t-if="req_total" class="rpd-progress rpd-header-progress">
+                        <div class="rpd-progress-label">
+                            <span>Avance documental</span>
+                            <span><t t-esc="req_pct"/>%</span>
+                        </div>
+                        <div class="rpd-progress-track">
+                            <div class="rpd-progress-bar" t-attf-style="width: #{req_pct}%;"/>
                         </div>
                     </div>
                 </div>
@@ -197,7 +257,6 @@
                 <div t-if="submission.message" class="alert alert-light" t-esc="submission.message"/>
 
                 <!-- Documents -->
-                <t t-set="required_documents" t-value="submission.document_ids.filtered(lambda d: d.required)"/>
                 <div t-if="not required_documents" class="rpd-empty">
                     Aún no tienes documentos solicitados.
                 </div>
@@ -255,6 +314,7 @@
                         </div>
                     </section>
                 </div>
+                </div>
             </main>
 
             <!-- Bottom action bar.
@@ -262,7 +322,7 @@
                  <main> and is out of scope for this sibling node. -->
             <div t-if="submission.state == 'correction_required'" class="rpd-actionbar">
                 <a t-attf-href="/registro-conductor/corregir/#{submission.id}" class="rpd-action-btn">
-                    Corregir Solicitud
+                    Corregir registro
                 </a>
             </div>
         </t>
