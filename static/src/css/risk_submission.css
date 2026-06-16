@@ -1464,6 +1464,7 @@
 }
 
 .risk-vr-progress {
+    max-width: 1120px;
     margin-bottom: 48px;
 }
 
@@ -1584,6 +1585,20 @@
 .risk-vr-field select:focus {
     border-color: var(--vr-secondary);
     box-shadow: 0 0 0 2px rgba(0, 59, 115, 0.2);
+}
+
+.risk-vr-field input.is-invalid,
+.risk-vr-field select.is-invalid {
+    border-color: var(--vr-error);
+    box-shadow: 0 0 0 2px rgba(186, 26, 26, 0.16);
+}
+
+.risk-vr-field-error {
+    margin: 6px 0 0;
+    color: var(--vr-error);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
 }
 
 .risk-vr-field #vehicle_plate,

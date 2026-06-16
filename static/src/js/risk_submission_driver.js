@@ -1,4 +1,238 @@
 (function () {
+    var DRIVER_VALIDATION_RULES = [
+        {
+            id: "driver_document_number",
+            normalizeDigits: true,
+            validate: function (value) {
+                return /^[0-9]{6,10}$/.test(value)
+                    ? ""
+                    : "La cedula debe contener entre 6 y 10 digitos numericos.";
+            },
+        },
+        {
+            id: "driver_phone",
+            normalizeDigits: true,
+            validate: validateRequiredMobile,
+        },
+        {
+            id: "family_reference_phone",
+            normalizeDigits: true,
+            validate: validateRequiredMobile,
+        },
+        {
+            id: "cargo_reference_phone",
+            normalizeDigits: true,
+            validate: validateRequiredMobile,
+        },
+        {
+            id: "driver_optional_phone",
+            normalizeDigits: true,
+            validate: function (value) {
+                if (!value) {
+                    return "";
+                }
+                return (/^[0-9]{7}$/.test(value) || /^[36][0-9]{9}$/.test(value))
+                    ? ""
+                    : "El telefono debe tener 7 digitos o 10 digitos iniciando por 3 o 6.";
+            },
+        },
+        {
+            id: "driver_email",
+            validate: function (value) {
+                return /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(value)
+                    ? ""
+                    : "Ingresa un correo valido. Ejemplo: conductor@empresa.com.";
+            },
+        },
+    ];
+
+    function validateRequiredMobile(value) {
+        return /^3[0-9]{9}$/.test(value)
+            ? ""
+            : "El celular debe tener 10 digitos e iniciar por 3.";
+    }
+
+    function digitsOnly(value) {
+        return (value || "").replace(/\D/g, "");
+    }
+
+    function getFieldErrorElement(field) {
+        var container = field.closest(".risk-vr-field");
+        var error;
+
+        if (!container) {
+            return null;
+        }
+        error = container.querySelector(".risk-vr-field-error");
+        if (!error) {
+            error = document.createElement("p");
+            error.className = "risk-vr-field-error";
+            error.id = field.id + "-error";
+            container.appendChild(error);
+            field.setAttribute("aria-describedby", error.id);
+        }
+        return error;
+    }
+
+    function setFieldError(field, message) {
+        var error = getFieldErrorElement(field);
+
+        field.setCustomValidity(message || "");
+        field.classList.toggle("is-invalid", Boolean(message));
+        field.setAttribute("aria-invalid", message ? "true" : "false");
+        if (error) {
+            error.textContent = message || "";
+            error.hidden = !message;
+        }
+    }
+
+    function validateField(field, rule, showEmpty) {
+        var value = field.value.trim();
+        var message = "";
+
+        if (rule.normalizeDigits) {
+            value = digitsOnly(value).slice(0, Number(field.maxLength) > 0 ? Number(field.maxLength) : 99);
+            if (field.value !== value) {
+                field.value = value;
+            }
+        }
+
+        if (!value && !field.required) {
+            setFieldError(field, "");
+            return true;
+        }
+        if (!value && field.required) {
+            message = showEmpty ? "Este campo es obligatorio." : "";
+        } else {
+            message = rule.validate(value);
+        }
+
+        setFieldError(field, message);
+        return !message;
+    }
+
+    function getCheckedRadioValue(name) {
+        var selected = document.querySelector('input[name="' + name + '"]:checked');
+        return selected ? selected.value : "";
+    }
+
+    function getRadioErrorElement(groupName) {
+        var firstRadio = document.querySelector('input[name="' + groupName + '"]');
+        var row = firstRadio ? firstRadio.closest(".risk-vr-declare-row") : null;
+        var error;
+
+        if (!row) {
+            return null;
+        }
+        error = row.querySelector(".risk-vr-field-error");
+        if (!error) {
+            error = document.createElement("p");
+            error.className = "risk-vr-field-error";
+            row.appendChild(error);
+        }
+        return error;
+    }
+
+    function setRadioGroupError(groupName, message) {
+        var radios = Array.prototype.slice.call(document.querySelectorAll('input[name="' + groupName + '"]'));
+        var error = getRadioErrorElement(groupName);
+
+        radios.forEach(function (radio) {
+            radio.setCustomValidity(message || "");
+            radio.setAttribute("aria-invalid", message ? "true" : "false");
+        });
+        if (error) {
+            error.textContent = message || "";
+            error.hidden = !message;
+        }
+    }
+
+    function validateDriverDeclarations() {
+        var errors = [
+            {
+                name: "driver_is_fit",
+                message: "Para continuar, confirma que el conductor se encuentra apto fisica, mental y psicotecnicamente para prestar el servicio.",
+            },
+            {
+                name: "driver_is_trained",
+                message: "Para continuar, confirma que el conductor esta capacitado y entrenado para contingencias y prevencion de accidentes en carretera.",
+            },
+        ];
+        var valid = true;
+
+        errors.forEach(function (item) {
+            var message = getCheckedRadioValue(item.name) === "yes" ? "" : item.message;
+            setRadioGroupError(item.name, message);
+            if (message) {
+                valid = false;
+            }
+        });
+        return valid;
+    }
+
+    function initDriverFrontendValidation() {
+        var firstDriverField = document.getElementById("driver_document_number");
+        var form;
+
+        if (!firstDriverField) {
+            return;
+        }
+        form = firstDriverField.closest("form");
+
+        DRIVER_VALIDATION_RULES.forEach(function (rule) {
+            var field = document.getElementById(rule.id);
+            if (!field) {
+                return;
+            }
+            field.addEventListener("input", function () {
+                validateField(field, rule, false);
+            });
+            field.addEventListener("blur", function () {
+                validateField(field, rule, true);
+            });
+        });
+
+        ["driver_is_fit", "driver_is_trained"].forEach(function (groupName) {
+            Array.prototype.forEach.call(document.querySelectorAll('input[name="' + groupName + '"]'), function (radio) {
+                radio.addEventListener("change", validateDriverDeclarations);
+            });
+        });
+
+        if (form) {
+            form.addEventListener("submit", function (event) {
+                var firstInvalid = null;
+                var isValid = true;
+
+                DRIVER_VALIDATION_RULES.forEach(function (rule) {
+                    var field = document.getElementById(rule.id);
+                    if (!field) {
+                        return;
+                    }
+                    if (!validateField(field, rule, true)) {
+                        isValid = false;
+                        firstInvalid = firstInvalid || field;
+                    }
+                });
+
+                if (!validateDriverDeclarations()) {
+                    isValid = false;
+                    firstInvalid = firstInvalid || document.querySelector('input[name="driver_is_fit"]');
+                }
+
+                if (!isValid) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (firstInvalid && typeof firstInvalid.focus === "function") {
+                        firstInvalid.focus();
+                    }
+                    if (form.reportValidity) {
+                        form.reportValidity();
+                    }
+                }
+            });
+        }
+    }
+
     function initCopyOwnerToDriver() {
         var toggle = document.getElementById("risk-copy-owner-toggle");
         var ownerData = document.getElementById("risk-owner-data");
@@ -95,8 +329,12 @@
     }
 
     if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initCopyOwnerToDriver);
+        document.addEventListener("DOMContentLoaded", function () {
+            initCopyOwnerToDriver();
+            initDriverFrontendValidation();
+        });
     } else {
         initCopyOwnerToDriver();
+        initDriverFrontendValidation();
     }
 }());

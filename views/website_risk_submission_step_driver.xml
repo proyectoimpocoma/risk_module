@@ -40,11 +40,11 @@
             <div class="risk-vr-grid">
                 <div class="risk-vr-field">
                     <label for="driver_document_number">Numero de cedula</label>
-                    <input id="driver_document_number" name="driver_document_number" type="text" t-att-value="data.get('driver_document_number')" required="required" inputmode="numeric" pattern="[0-9]{6,10}" title="Cedula de 6 a 10 digitos numericos" autocomplete="off" placeholder="Solo numeros"/>
+                    <input id="driver_document_number" name="driver_document_number" type="text" t-att-value="data.get('driver_document_number')" required="required" inputmode="numeric" pattern="[0-9]{6,10}" minlength="6" maxlength="10" title="Cedula de 6 a 10 digitos numericos" autocomplete="off" placeholder="Solo numeros"/>
                 </div>
                 <div class="risk-vr-field">
                     <label for="driver_optional_phone">Telefono opcional</label>
-                    <input id="driver_optional_phone" name="driver_optional_phone" type="tel" t-att-value="data.get('driver_optional_phone')" inputmode="numeric" pattern="[0-9 ()+-]{7,16}" title="Telefono de 7 digitos o 10 digitos iniciando por 3 o 6" autocomplete="off" placeholder="Ej: 3123456789"/>
+                    <input id="driver_optional_phone" name="driver_optional_phone" type="tel" t-att-value="data.get('driver_optional_phone')" inputmode="numeric" pattern="([0-9]{7}|[36][0-9]{9})" maxlength="10" title="Telefono de 7 digitos o celular de 10 digitos iniciando por 3 o 6" autocomplete="off" placeholder="Ej: 3123456789"/>
                 </div>
             </div>
 
@@ -76,11 +76,11 @@
             <div class="risk-vr-grid">
                 <div class="risk-vr-field">
                     <label for="driver_phone">Numero de celular para notificaciones y autorizaciones electronicas</label>
-                    <input id="driver_phone" name="driver_phone" type="tel" t-att-value="data.get('driver_phone')" required="required" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
+                    <input id="driver_phone" name="driver_phone" type="tel" t-att-value="data.get('driver_phone')" required="required" inputmode="numeric" pattern="3[0-9]{9}" maxlength="10" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
                 </div>
                 <div class="risk-vr-field">
                     <label for="driver_email">Correo electronico de autorizacion para notificaciones</label>
-                    <input id="driver_email" name="driver_email" type="email" t-att-value="data.get('driver_email')" required="required" maxlength="120" autocomplete="off" placeholder="ejemplo@dominio.com"/>
+                    <input id="driver_email" name="driver_email" type="email" t-att-value="data.get('driver_email')" required="required" maxlength="120" pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}" autocomplete="off" placeholder="ejemplo@dominio.com"/>
                 </div>
             </div>
 
@@ -135,7 +135,7 @@
                     </div>
                     <div class="risk-vr-field">
                         <label for="family_reference_phone">Celular referencia familiar</label>
-                        <input id="family_reference_phone" name="family_reference_phone" type="tel" t-att-value="data.get('family_reference_phone')" required="required" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
+                        <input id="family_reference_phone" name="family_reference_phone" type="tel" t-att-value="data.get('family_reference_phone')" required="required" inputmode="numeric" pattern="3[0-9]{9}" maxlength="10" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
                     </div>
                     <div class="risk-vr-field">
                         <label for="cargo_reference_name">Referencia transporte de carga</label>
@@ -143,7 +143,7 @@
                     </div>
                     <div class="risk-vr-field">
                         <label for="cargo_reference_phone">Celular referencia de carga</label>
-                        <input id="cargo_reference_phone" name="cargo_reference_phone" type="tel" t-att-value="data.get('cargo_reference_phone')" required="required" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
+                        <input id="cargo_reference_phone" name="cargo_reference_phone" type="tel" t-att-value="data.get('cargo_reference_phone')" required="required" inputmode="numeric" pattern="3[0-9]{9}" maxlength="10" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
                     </div>
                 </div>
             </div>

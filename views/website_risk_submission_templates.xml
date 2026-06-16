@@ -38,16 +38,6 @@
                         <div class="risk-vr-progress-track">
                             <div class="risk-vr-progress-value" t-attf-style="width: #{vr.get('progress')}%;"></div>
                         </div>
-                        <ol class="risk-vr-stepper" aria-label="Progreso del formulario">
-                            <t t-foreach="vr_steps.items()" t-as="step_item">
-                                <t t-set="step_number" t-value="step_item[0]"/>
-                                <t t-set="step_config" t-value="step_item[1]"/>
-                                <li t-attf-class="risk-vr-stepper-item #{'is-done' if step_number &lt; step else ''} #{'is-active' if step_number == step else ''}">
-                                    <span class="risk-vr-stepper-number" t-esc="step_number"/>
-                                    <span class="risk-vr-stepper-label" t-esc="step_config.get('short')"/>
-                                </li>
-                            </t>
-                        </ol>
                     </div>
 
                     <form t-attf-action="/registro-conductor/submit/#{step}" method="post" class="risk-vr-form">
