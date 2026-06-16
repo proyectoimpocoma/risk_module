@@ -62,24 +62,18 @@
                 <div class="risk-vr-grid">
                     <div class="risk-vr-field risk-vr-field-full">
                         <label for="satellite_company">Empresa Satelital</label>
-                        <div class="risk-vr-select-wrap">
-                            <select id="satellite_company" name="satellite_company">
-                                <option value="" t-att-selected="'selected' if not data.get('satellite_company') else None" disabled="disabled">Seleccione empresa de rastreo</option>
-                                <option value="satrack" t-att-selected="'selected' if data.get('satellite_company') == 'satrack' else None">Satrack</option>
-                                <option value="detektor" t-att-selected="'selected' if data.get('satellite_company') == 'detektor' else None">Detektor</option>
-                                <option value="sherloc" t-att-selected="'selected' if data.get('satellite_company') == 'sherloc' else None">Sherloc</option>
-                                <option t-if="data.get('satellite_company') and data.get('satellite_company') not in ('satrack', 'detektor', 'sherloc')"
-                                        t-att-value="data.get('satellite_company')" selected="selected">
-                                    <t t-esc="data.get('satellite_company')"/>
-                                </option>
-                            </select>
-                            <span class="material-symbols-outlined">expand_more</span>
-                        </div>
+                        <input id="satellite_company" name="satellite_company" type="text"
+                               t-att-value="data.get('satellite_company')"
+                               required="required"
+                               maxlength="80"
+                               autocomplete="off"
+                               placeholder="Nombre de la empresa de rastreo"/>
                     </div>
                     <div class="risk-vr-field">
                         <label for="satellite_user">Usuario</label>
                         <input id="satellite_user" name="satellite_user" type="text"
                                t-att-value="data.get('satellite_user')"
+                               required="required"
                                maxlength="80"
                                autocomplete="off"
                                placeholder="Usuario de la cuenta"/>
@@ -89,6 +83,7 @@
                         <div class="risk-vr-password">
                             <input id="satellite_password" name="satellite_password" type="password"
                                    t-att-value="data.get('satellite_password')"
+                                   required="required"
                                    maxlength="80"
                                    autocomplete="off"
                                    placeholder="Contraseña de la cuenta satelital"/>

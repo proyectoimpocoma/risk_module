@@ -92,6 +92,13 @@ class RiskSubmissionFormValidationMixin:
     def _validate_extra_owners(self, data):
         """Validate each additional owner line collected in step 2."""
         owners = data.get("extra_owners") or []
+        # Si el tenedor/poseedor NO es el propietario registrado en licencia,
+        # debe declararse al menos un propietario adicional.
+        if data.get("same_owner_on_license") == "no" and not owners:
+            return (
+                "Como el propietario registrado en licencia no es el mismo, "
+                'debes agregar al menos un propietario en "Otros propietarios".'
+            )
         roles = ("owner", "holder", "possessor")
         for index, owner in enumerate(owners, start=1):
             if not owner.get("name"):
@@ -105,12 +112,16 @@ class RiskSubmissionFormValidationMixin:
                 return document_error
             if owner.get("role") not in roles:
                 return "Debes indicar la relacion del propietario adicional %s." % index
+            if not (owner.get("phone") or "").strip():
+                return "El celular del propietario adicional %s es obligatorio." % index
             phone_error = self._validate_mobile_phone(
                 owner.get("phone"), "celular del propietario adicional %s" % index
             )
             if phone_error:
                 return phone_error
-            if owner.get("email") and not EMAIL_REGEX.match(owner.get("email")):
+            if not (owner.get("email") or "").strip():
+                return "El correo del propietario adicional %s es obligatorio." % index
+            if not EMAIL_REGEX.match(owner.get("email")):
                 return "El correo del propietario adicional %s no tiene un formato valido." % index
         return None
 
@@ -151,10 +162,16 @@ class RiskSubmissionFormValidationMixin:
                 "La placa del semi/remolque debe tener formato valido: "
                 "A12345 (una letra y cinco numeros)."
             )
+        if not (data.get("satellite_company") or "").strip():
+            return "La empresa satelital es obligatoria."
+        if not (data.get("satellite_user") or "").strip():
+            return "El usuario de la cuenta satelital es obligatorio."
+        if not (data.get("satellite_password") or "").strip():
+            return "La clave de la cuenta satelital es obligatoria."
         return None
 
     def _validate_owner_step(self, data):
-        owner_email = data.get("owner_email")
+        owner_email = (data.get("owner_email") or "").strip()
         owner_document_error = self._validate_document(
             data.get("owner_document_type"),
             data.get("owner_document_number"),
@@ -164,14 +181,25 @@ class RiskSubmissionFormValidationMixin:
             return "El nombre del propietario, tenedor o empresa es obligatorio."
         if owner_document_error:
             return owner_document_error
-        if owner_email and not EMAIL_REGEX.match(owner_email):
-            return "El correo del propietario no tiene un formato valido. Ejemplo: propietario@empresa.com."
-
+        if not (data.get("owner_address") or "").strip():
+            return "La direccion del propietario es obligatoria."
+        if not (data.get("owner_neighborhood") or "").strip():
+            return "El barrio del propietario es obligatorio."
+        if not (data.get("owner_city") or "").strip():
+            return "La ciudad del propietario es obligatoria."
+        if not (data.get("owner_phone") or "").strip():
+            return "El celular del propietario es obligatorio."
         phone_error = self._validate_mobile_phone(
             data.get("owner_phone"), "celular del propietario"
         )
         if phone_error:
             return phone_error
+        if not owner_email:
+            return "El correo del propietario es obligatorio."
+        if not EMAIL_REGEX.match(owner_email):
+            return "El correo del propietario no tiene un formato valido. Ejemplo: propietario@empresa.com."
+        if data.get("advance_payment_to") not in ("driver", "owner"):
+            return "Debes indicar a quien se autoriza el pago de anticipos (Conductor o Propietario)."
         if data.get("same_owner_on_license") not in ("yes", "no"):
             return "Debes indicar si el propietario registrado en licencia es el mismo."
 

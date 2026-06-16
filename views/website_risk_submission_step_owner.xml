@@ -1,56 +1,59 @@
 <odoo>
     <template id="register_driver_step_owner" name="Registro Vehiculo Paso Propietario">
         <div class="risk-vr-fields">
-            <!-- Fila 1: Nombre + Documento (tipo + numero) -->
+            <!-- Fila 1: Tipo de documento + Numero -->
+            <div class="risk-vr-grid">
+                <div class="risk-vr-field">
+                    <label for="owner_document_type">Tipo de documento</label>
+                    <div class="risk-vr-select-wrap">
+                        <select id="owner_document_type" name="owner_document_type" required="required">
+                            <option value="" disabled="disabled" t-att-selected="'selected' if data.get('owner_document_type') not in ('cc', 'nit') else None">Seleccione CC o NIT</option>
+                            <option value="cc" t-att-selected="'selected' if data.get('owner_document_type') == 'cc' else None">CC</option>
+                            <option value="nit" t-att-selected="'selected' if data.get('owner_document_type') == 'nit' else None">NIT</option>
+                        </select>
+                        <span class="material-symbols-outlined">expand_more</span>
+                    </div>
+                </div>
+                <div class="risk-vr-field">
+                    <label for="owner_document_number">Numero</label>
+                    <input id="owner_document_number" name="owner_document_number" type="text" t-att-value="data.get('owner_document_number')" required="required" maxlength="11" pattern="[0-9]{6,10}(-[0-9])?" title="CC: 6 a 10 digitos. NIT: 123456789 o 123456789-0" autocomplete="off" placeholder="Solo numeros, sin puntos"/>
+                </div>
+            </div>
+
+            <!-- Fila 2: Nombre + Direccion -->
             <div class="risk-vr-grid">
                 <div class="risk-vr-field">
                     <label for="owner_name">Nombres y apellidos / Empresa</label>
                     <input id="owner_name" name="owner_name" type="text" t-att-value="data.get('owner_name')" required="required" maxlength="140" minlength="3" autocomplete="off" placeholder="Ej: Juan Perez o Transportes XYZ"/>
                 </div>
                 <div class="risk-vr-field">
-                    <label for="owner_document_number">Numero</label>
-                    <div class="risk-vr-radio-row">
-                        <label class="risk-vr-radio">
-                            <input type="radio" name="owner_document_type" value="cc" required="required" t-att-checked="'checked' if data.get('owner_document_type') == 'cc' else None"/>
-                            <span>CC</span>
-                        </label>
-                        <label class="risk-vr-radio">
-                            <input type="radio" name="owner_document_type" value="nit" t-att-checked="'checked' if data.get('owner_document_type') == 'nit' else None"/>
-                            <span>Nit</span>
-                        </label>
-                    </div>
-                    <input id="owner_document_number" name="owner_document_number" type="text" t-att-value="data.get('owner_document_number')" required="required" maxlength="11" pattern="[0-9]{6,10}(-[0-9])?" title="CC: 6 a 10 digitos. NIT: 123456789 o 123456789-0" autocomplete="off" placeholder="Solo numeros, sin puntos"/>
-                </div>
-            </div>
-
-            <!-- Fila 2: Direccion + Barrio -->
-            <div class="risk-vr-grid">
-                <div class="risk-vr-field">
                     <label for="owner_address">Direccion</label>
-                    <input id="owner_address" name="owner_address" type="text" t-att-value="data.get('owner_address')" maxlength="140" autocomplete="off" placeholder="Calle 123 #45-67"/>
-                </div>
-                <div class="risk-vr-field">
-                    <label for="owner_neighborhood">Barrio</label>
-                    <input id="owner_neighborhood" name="owner_neighborhood" type="text" t-att-value="data.get('owner_neighborhood')" maxlength="80" autocomplete="off" placeholder="Barrio o zona"/>
+                    <input id="owner_address" name="owner_address" type="text" t-att-value="data.get('owner_address')" required="required" maxlength="140" autocomplete="off" placeholder="Calle 123 #45-67"/>
                 </div>
             </div>
 
-            <!-- Fila 3: Ciudad + Celular -->
+            <!-- Fila 3: Ciudad + Barrio -->
             <div class="risk-vr-grid">
                 <div class="risk-vr-field">
                     <label for="owner_city">Ciudad</label>
-                    <input id="owner_city" name="owner_city" type="text" list="risk-co-municipios" t-att-value="data.get('owner_city')" maxlength="80" autocomplete="off" placeholder="Escribe o selecciona el municipio"/>
+                    <input id="owner_city" name="owner_city" type="text" list="risk-co-municipios" t-att-value="data.get('owner_city')" required="required" maxlength="80" autocomplete="off" placeholder="Escribe o selecciona el municipio"/>
                 </div>
                 <div class="risk-vr-field">
-                    <label for="owner_phone">Numero de celular para notificaciones y autorizaciones electronicas</label>
-                    <input id="owner_phone" name="owner_phone" type="tel" t-att-value="data.get('owner_phone')" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
+                    <label for="owner_neighborhood">Barrio</label>
+                    <input id="owner_neighborhood" name="owner_neighborhood" type="text" t-att-value="data.get('owner_neighborhood')" required="required" maxlength="80" autocomplete="off" placeholder="Barrio o zona"/>
                 </div>
             </div>
 
-            <!-- Fila 4: Correo -->
-            <div class="risk-vr-field">
-                <label for="owner_email">Correo electronico de facturacion y notificaciones</label>
-                <input id="owner_email" name="owner_email" type="email" t-att-value="data.get('owner_email')" maxlength="120" autocomplete="off" placeholder="ejemplo@dominio.com"/>
+            <!-- Fila 4: Celular + Correo -->
+            <div class="risk-vr-grid">
+                <div class="risk-vr-field">
+                    <label for="owner_phone">Numero de celular para notificaciones y autorizaciones electronicas</label>
+                    <input id="owner_phone" name="owner_phone" type="tel" t-att-value="data.get('owner_phone')" required="required" inputmode="numeric" pattern="[0-9 ()+-]{10,16}" title="Celular colombiano de 10 digitos que inicia por 3" autocomplete="off" placeholder="Ej: 3123456789"/>
+                </div>
+                <div class="risk-vr-field">
+                    <label for="owner_email">Correo electronico de facturacion y notificaciones</label>
+                    <input id="owner_email" name="owner_email" type="email" t-att-value="data.get('owner_email')" required="required" maxlength="120" autocomplete="off" placeholder="ejemplo@dominio.com"/>
+                </div>
             </div>
 
             <!-- Autorizacion de anticipos -->
@@ -58,7 +61,7 @@
                 <h3>Autorizo la entrega y pago de anticipos a</h3>
                 <div class="risk-vr-radio-row">
                     <label class="risk-vr-radio">
-                        <input type="radio" name="advance_payment_to" value="driver" t-att-checked="'checked' if data.get('advance_payment_to') == 'driver' else None"/>
+                        <input type="radio" name="advance_payment_to" value="driver" required="required" t-att-checked="'checked' if data.get('advance_payment_to') == 'driver' else None"/>
                         <span>Conductor</span>
                     </label>
                     <label class="risk-vr-radio">

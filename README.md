@@ -62,6 +62,10 @@ El tercero debe iniciar sesion antes de llenar la solicitud. Si no tiene cuenta,
 
 El modulo activa el registro abierto de portal con `auth_signup.invitation_scope = b2c`, por lo que el login debe mostrar el enlace de creacion de cuenta despues de actualizar el modulo.
 
+> **Diseno del formulario:** los 7 pasos usan el sistema de diseno Material 3 (`risk-vr-*`).
+> La especificacion visual completa (paleta, tipografia, tamanos, componentes, breakpoints y
+> hooks de JS) esta en [`DISENO_FORMULARIO.md`](DISENO_FORMULARIO.md).
+
 Ruta imprimible protegida por token:
 
 ```text
@@ -252,6 +256,7 @@ PYTHONPATH=/Users/angel/Documents/Projects/odoo/odoo-19.0.post20260606 \
 
 ```text
 risk_module/
+├── DISENO_FORMULARIO.md        # Especificacion visual del formulario publico (Material 3)
 ├── controllers/
 │   ├── risk_submission_controller.py
 │   ├── risk_submission_form_mapper.py
