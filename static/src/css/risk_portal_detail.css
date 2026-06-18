@@ -558,7 +558,36 @@
     border: 1px solid var(--rpd-outline-variant);
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(18, 28, 44, 0.06);
+    overflow: hidden;
 }
 .rpd-emptystate .material-symbols-outlined { font-size: 64px; color: var(--rpd-surface-dim); }
 .rpd-emptystate h2 { margin: 16px 0 8px; font-size: 20px; font-weight: 600; color: var(--rpd-on-surface); }
 .rpd-emptystate p { margin: 0 0 24px; color: var(--rpd-on-surface-variant); }
+.rpd-emptystate .rpd-new-btn {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Additional files list for documents that allow multiple uploads */
+.rpd-doc-files-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--rpd-outline-variant);
+}
+.rpd-doc-file-additional {
+    font-size: 13px;
+    color: var(--rpd-on-surface-variant);
+}
+.rpd-doc-file-additional .material-symbols-outlined {
+    font-size: 16px;
+    color: var(--rpd-primary);
+}
+.rpd-doc-files-count {
+    font-size: 11px;
+    color: var(--rpd-on-surface-variant);
+    font-weight: 600;
+    margin-top: 4px;
+}
