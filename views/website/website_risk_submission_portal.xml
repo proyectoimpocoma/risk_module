@@ -133,6 +133,13 @@
                 <span t-attf-class="rpd-state #{doc_state_class}"
                       t-esc="dict(document._fields['state'].selection).get(document.state)"/>
             </div>
+            <a t-if="document.has_file"
+               t-attf-href="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/archivo"
+               target="_blank"
+               class="rpd-doc-file-link">
+                <span class="material-symbols-outlined">visibility</span>
+                Ver archivo cargado
+            </a>
             <form t-if="submission._portal_document_upload_allowed(document)"
                   t-attf-action="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/subir"
                   method="post"

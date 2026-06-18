@@ -1,0 +1,97 @@
+<odoo>
+    <record id="res_config_settings_view_form_risk" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.risk</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Riesgo" string="Riesgo" name="risk_module">
+                    <block title="Almacenamiento en SharePoint"
+                           name="risk_sharepoint_settings">
+                        <setting id="risk_sp_enabled_setting"
+                                 string="Guardar documentos en SharePoint"
+                                 help="Sincroniza los documentos cargados por el tercero a SharePoint. Si se desactiva, los archivos quedan solo en Odoo.">
+                            <field name="risk_sp_enabled"/>
+                        </setting>
+                        <setting string="Conexion (Microsoft Graph)"
+                                 help="App registrada en Azure AD con permiso Sites.Selected sobre el sitio de riesgos."
+                                 invisible="not risk_sp_enabled">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="risk_sp_tenant_id" class="col-lg-4 o_light_label"/>
+                                    <field name="risk_sp_tenant_id"/>
+                                </div>
+                                <div class="row">
+                                    <label for="risk_sp_client_id" class="col-lg-4 o_light_label"/>
+                                    <field name="risk_sp_client_id"/>
+                                </div>
+                                <div class="row">
+                                    <label for="risk_sp_client_secret" class="col-lg-4 o_light_label"/>
+                                    <field name="risk_sp_client_secret" password="True"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Ubicacion"
+                                 help="Sitio, biblioteca y carpeta raiz donde se almacenan los documentos."
+                                 invisible="not risk_sp_enabled">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="risk_sp_site" class="col-lg-4 o_light_label"/>
+                                    <field name="risk_sp_site" placeholder="contoso.sharepoint.com:/sites/Riesgos"/>
+                                </div>
+                                <div class="row">
+                                    <label for="risk_sp_drive" class="col-lg-4 o_light_label"/>
+                                    <field name="risk_sp_drive" placeholder="Documentos"/>
+                                </div>
+                                <div class="row">
+                                    <label for="risk_sp_root_folder" class="col-lg-4 o_light_label"/>
+                                    <field name="risk_sp_root_folder"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Comportamiento"
+                                 help="Politica de copia local y reintentos de sincronizacion."
+                                 invisible="not risk_sp_enabled">
+                            <div class="content-group">
+                                <div class="mt16">
+                                    <field name="risk_sp_purge_local" class="oe_inline"/>
+                                    <label for="risk_sp_purge_local"/>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="risk_sp_max_attempts" class="col-lg-4 o_light_label"/>
+                                    <field name="risk_sp_max_attempts"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Acciones"
+                                 help="Prueba la conexion y sincroniza los documentos ya cargados."
+                                 invisible="not risk_sp_enabled">
+                            <div class="mt8">
+                                <button name="action_risk_sp_test_connection" type="object"
+                                        string="Probar conexion" class="btn-secondary"/>
+                                <button name="action_risk_sp_backfill" type="object"
+                                        string="Sincronizar documentos existentes"
+                                        class="btn-secondary"/>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_risk_sharepoint_settings" model="ir.actions.act_window">
+        <field name="name">Ajustes de SharePoint</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module': 'risk_module'}</field>
+    </record>
+
+    <menuitem id="menu_risk_sharepoint_settings"
+              name="Ajustes de SharePoint"
+              parent="menu_risk_module_configuration"
+              action="action_risk_sharepoint_settings"
+              sequence="90"
+              groups="risk_module.group_risk_manager"/>
+</odoo>

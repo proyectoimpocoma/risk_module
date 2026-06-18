@@ -1,10 +1,11 @@
 import base64
 import logging
+import mimetypes
 from datetime import timedelta
 
 from odoo import http
 from odoo import fields
-from odoo.http import request
+from odoo.http import request, content_disposition
 
 _logger = logging.getLogger(__name__)
 
@@ -162,6 +163,54 @@ class RiskSubmissionPortalController(http.Controller):
         )
         submission.action_mark_documents_sent_if_complete()
         return request.redirect("/mis-solicitudes-riesgo/%s?upload_success=1" % submission.id)
+
+    @http.route(
+        "/mis-solicitudes-riesgo/<int:submission_id>/documentos/<int:document_id>/archivo",
+        type="http",
+        auth="user",
+        website=True,
+        sitemap=False,
+    )
+    def portal_document_file(self, submission_id, document_id, **kwargs):
+        """Sirve el archivo del documento al tercero propietario.
+
+        Mientras el documento sigue pendiente de subir, devuelve la copia local;
+        una vez en SharePoint, hace stream del contenido sin exponer la URL de
+        SharePoint al portal.
+        """
+        submission = self._get_portal_submission(submission_id)
+        if not submission:
+            return request.not_found()
+        document = self._get_portal_document(submission, document_id)
+        if not document:
+            return request.not_found()
+
+        if document.file:
+            content = base64.b64decode(document.file)
+        elif document.sharepoint_state == "synced" and document.sharepoint_item_id:
+            try:
+                content = request.env["risk.sharepoint.service"].sudo()._download_content(
+                    document.sharepoint_item_id, document.sharepoint_drive_id
+                )
+            except Exception:
+                _logger.exception(
+                    "Portal SharePoint download failed submission_id=%s document_id=%s",
+                    submission.id,
+                    document.id,
+                )
+                return request.not_found()
+        else:
+            return request.not_found()
+
+        filename = document.filename or document.name or "documento"
+        mimetype = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+        return request.make_response(
+            content,
+            headers=[
+                ("Content-Type", mimetype),
+                ("Content-Disposition", content_disposition(filename)),
+            ],
+        )
 
     def _validate_portal_upload(self, upload, document, file_size):
         max_size = DEFAULT_MAX_PORTAL_UPLOAD_SIZE

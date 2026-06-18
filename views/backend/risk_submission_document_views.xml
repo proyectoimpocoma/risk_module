@@ -62,8 +62,16 @@
                        decoration-muted="expiration_state == 'no_date'"/>
                 <field name="rejection_reason" string="Motivo"/>
                 <field name="observations" string="Observaciones"/>
+                <field name="has_file" column_invisible="1"/>
+                <field name="sharepoint_state" widget="badge" string="SharePoint"
+                       decoration-success="sharepoint_state == 'synced'"
+                       decoration-warning="sharepoint_state == 'pending'"
+                       decoration-danger="sharepoint_state == 'error'"
+                       decoration-muted="sharepoint_state == 'disabled'"/>
+                <field name="sharepoint_synced_at" string="Sincronizado" optional="hide"/>
+                <field name="replacement_count" string="Reenvios" optional="show"/>
                 <button name="action_open_document_preview" type="object" string="Ver PDF"
-                        invisible="not file"/>
+                        invisible="not has_file"/>
                 <button name="action_mark_received" type="object" string="Recibido"
                         invisible="state != 'pending'"/>
                 <button name="action_approve" type="object" string="Aprobar"
@@ -81,20 +89,28 @@
             <form string="Documento">
                 <header>
                     <button name="action_open_file" type="object" string="Abrir archivo"
-                            class="btn-secondary" invisible="not file"/>
+                            class="btn-secondary" invisible="not has_file"/>
                     <button name="action_mark_received" type="object" string="Marcar recibido"
                             invisible="state != 'pending'"/>
                     <button name="action_approve" type="object" string="Aprobar" class="btn-primary"
                             invisible="state not in ('received', 'rejected')"/>
                     <button name="action_reject" type="object" string="Rechazar"
                             invisible="state not in ('received', 'approved')"/>
+                    <button name="action_retry_sharepoint" type="object" string="Reintentar SharePoint"
+                            invisible="sharepoint_state != 'error'"/>
                     <field name="state" widget="statusbar" statusbar_visible="pending,received,approved,rejected"/>
                 </header>
                 <sheet>
                     <div class="risk-document-preview-layout">
                         <div class="risk-document-preview">
-                            <field name="file" filename="filename" widget="pdf_viewer" nolabel="1"/>
-                            <div invisible="file" class="alert alert-info mb-0" role="status">
+                            <field name="has_file" invisible="1"/>
+                            <field name="file" filename="filename" widget="pdf_viewer" nolabel="1"
+                                   invisible="not file"/>
+                            <div invisible="file or not has_file" class="alert alert-success mb-0" role="status">
+                                El archivo esta almacenado en SharePoint. Usa el boton
+                                "Abrir archivo" para verlo.
+                            </div>
+                            <div invisible="has_file" class="alert alert-info mb-0" role="status">
                                 Este documento aun no tiene archivo cargado.
                             </div>
                         </div>
@@ -134,6 +150,36 @@
                                 <field name="rejection_message_sent_at"/>
                                 <field name="replacement_count"/>
                             </group>
+                            <group string="SharePoint">
+                                <field name="sharepoint_state"/>
+                                <field name="sharepoint_web_url" widget="url" readonly="1"
+                                       invisible="not sharepoint_web_url"/>
+                                <field name="sharepoint_synced_at"/>
+                                <field name="sharepoint_attempts"/>
+                                <field name="sharepoint_error" invisible="not sharepoint_error"/>
+                            </group>
+                            <notebook>
+                                <page string="Historial de cargas" name="versions">
+                                    <field name="version_ids" nolabel="1" readonly="1">
+                                        <list string="Historial de cargas"
+                                              decoration-success="result == 'uploaded'"
+                                              decoration-danger="result == 'failed'"
+                                              decoration-muted="result == 'pending'">
+                                            <field name="uploaded_at"/>
+                                            <field name="version_number"/>
+                                            <field name="filename"/>
+                                            <field name="result" widget="badge"
+                                                   decoration-success="result == 'uploaded'"
+                                                   decoration-danger="result == 'failed'"
+                                                   decoration-muted="result == 'pending'"/>
+                                            <field name="is_replacement"/>
+                                            <field name="triggered_by_rejection" optional="show"/>
+                                            <field name="uploaded_by_id"/>
+                                            <field name="error_message" optional="hide"/>
+                                        </list>
+                                    </field>
+                                </page>
+                            </notebook>
                         </div>
                     </div>
                 </sheet>
@@ -173,5 +219,58 @@
         <field name="res_model">risk.module.document</field>
         <field name="view_mode">list,form</field>
         <field name="context">{'search_default_group_party': 1}</field>
+    </record>
+
+    <!-- Historial de cargas (Nivel B): traza de subidas y fallos. -->
+    <record id="view_risk_module_document_version_list" model="ir.ui.view">
+        <field name="name">risk.module.document.version.list</field>
+        <field name="model">risk.module.document.version</field>
+        <field name="arch" type="xml">
+            <list string="Historial de cargas"
+                  create="false" edit="false"
+                  decoration-success="result == 'uploaded'"
+                  decoration-danger="result == 'failed'"
+                  decoration-muted="result == 'pending'">
+                <field name="uploaded_at"/>
+                <field name="submission_id"/>
+                <field name="document_name"/>
+                <field name="filename"/>
+                <field name="version_number"/>
+                <field name="result" widget="badge"
+                       decoration-success="result == 'uploaded'"
+                       decoration-danger="result == 'failed'"
+                       decoration-muted="result == 'pending'"/>
+                <field name="is_replacement"/>
+                <field name="triggered_by_rejection" optional="show"/>
+                <field name="uploaded_by_id"/>
+                <field name="error_message" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_risk_module_document_version_search" model="ir.ui.view">
+        <field name="name">risk.module.document.version.search</field>
+        <field name="model">risk.module.document.version</field>
+        <field name="arch" type="xml">
+            <search string="Historial de cargas">
+                <field name="submission_id"/>
+                <field name="document_name"/>
+                <field name="filename"/>
+                <filter string="Subidos" name="uploaded" domain="[('result', '=', 'uploaded')]"/>
+                <filter string="Fallidos" name="failed" domain="[('result', '=', 'failed')]"/>
+                <filter string="En proceso" name="pending" domain="[('result', '=', 'pending')]"/>
+                <filter string="Reemplazos" name="replacements" domain="[('is_replacement', '=', True)]"/>
+                <separator/>
+                <filter string="Solicitud" name="group_submission" context="{'group_by': 'submission_id'}"/>
+                <filter string="Resultado" name="group_result" context="{'group_by': 'result'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_risk_module_document_version" model="ir.actions.act_window">
+        <field name="name">Historial de cargas</field>
+        <field name="res_model">risk.module.document.version</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'search_default_group_result': 1}</field>
     </record>
 </odoo>
