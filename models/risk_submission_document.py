@@ -374,7 +374,7 @@ class RiskSubmissionDocument(models.Model):
                     "Debes indicar observaciones para rechazar un documento."
                 )
 
-    @api.constrains("state", "has_file")
+    @api.constrains("state", "file", "sharepoint_item_id")
     def _check_approved_file(self):
         for record in self:
             if record.state == "approved" and not record.has_file:
