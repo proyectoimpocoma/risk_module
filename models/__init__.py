@@ -12,9 +12,13 @@ from . import risk_submission_master_sync
 from . import risk_document_requirement
 from . import risk_message_template
 from . import risk_submission_documents
+from . import risk_sharepoint_service
 from . import risk_submission_document
+from . import risk_submission_document_file
+from . import risk_submission_document_version
 from . import risk_external_validation
 from . import res_users
+from . import res_config_settings
 from . import risk_submission_mixins
 
 __all__ = [
@@ -32,8 +36,12 @@ __all__ = [
     "risk_document_requirement",
     "risk_message_template",
     "risk_submission_documents",
+    "risk_sharepoint_service",
     "risk_submission_document",
+    "risk_submission_document_file",
+    "risk_submission_document_version",
     "risk_external_validation",
     "res_users",
+    "res_config_settings",
     "risk_submission_mixins",
 ]

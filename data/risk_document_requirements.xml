@@ -75,6 +75,9 @@
         <field name="document_type">vehicle_photo</field>
         <field name="party">vehicle</field>
         <field name="applies_vehicle">1</field>
+        <field name="allow_multiple_files">1</field>
+        <field name="max_files">3</field>
+        <field name="allowed_file_extensions">jpg,jpeg,png</field>
         <field name="instructions">Foto de frente y lado izquierdo o derecho, donde se vea la placa y los ejes.</field>
     </record>
 

@@ -1,3 +1,4 @@
+import base64
 import logging
 from datetime import timedelta
 from urllib.parse import quote
@@ -97,6 +98,8 @@ class RiskSubmissionDocument(models.Model):
     reject_expired = fields.Boolean(string="No aceptar vencidos", default=True)
     max_age_days = fields.Integer(string="Antiguedad maxima en dias")
     max_file_size_mb = fields.Float(string="Tamano maximo MB", default=10.0)
+    allow_multiple_files = fields.Boolean(string="Permitir multiples archivos")
+    max_files = fields.Integer(string="Maximo de archivos", default=1)
     allowed_file_extensions = fields.Char(
         string="Extensiones permitidas",
         default="pdf,jpg,jpeg,png",
@@ -194,6 +197,82 @@ class RiskSubmissionDocument(models.Model):
         readonly=True,
         copy=False,
     )
+    has_file = fields.Boolean(
+        string="Tiene archivo",
+        compute="_compute_has_file",
+        store=True,
+        help="Verdadero si el documento tiene archivo en Odoo o ya esta en SharePoint.",
+    )
+    sharepoint_item_id = fields.Char(
+        string="SharePoint item",
+        readonly=True,
+        copy=False,
+        index=True,
+    )
+    sharepoint_web_url = fields.Char(
+        string="Enlace SharePoint",
+        readonly=True,
+        copy=False,
+    )
+    sharepoint_drive_id = fields.Char(
+        string="SharePoint drive",
+        readonly=True,
+        copy=False,
+    )
+    sharepoint_state = fields.Selection(
+        [
+            ("disabled", "Sin sincronizar"),
+            ("pending", "Pendiente"),
+            ("synced", "En SharePoint"),
+            ("error", "Error"),
+        ],
+        string="Estado SharePoint",
+        default="disabled",
+        copy=False,
+        tracking=True,
+    )
+    sharepoint_synced_at = fields.Datetime(
+        string="Sincronizado en",
+        readonly=True,
+        copy=False,
+    )
+    sharepoint_error = fields.Text(
+        string="Error de sincronizacion",
+        readonly=True,
+        copy=False,
+    )
+    sharepoint_attempts = fields.Integer(
+        string="Intentos de sincronizacion",
+        readonly=True,
+        copy=False,
+        default=0,
+    )
+    version_ids = fields.One2many(
+        "risk.module.document.version",
+        "document_id",
+        string="Historial de cargas",
+        readonly=True,
+    )
+    file_ids = fields.One2many(
+        "risk.module.document.file",
+        "document_id",
+        string="Archivos cargados",
+        readonly=True,
+    )
+    file_count = fields.Integer(
+        string="Cantidad de archivos",
+        compute="_compute_file_count",
+    )
+
+    @api.depends("file", "sharepoint_item_id", "file_ids.file")
+    def _compute_has_file(self):
+        for record in self:
+            record.has_file = bool(record.file) or bool(record.sharepoint_item_id) or bool(record.file_ids)
+
+    @api.depends("file_ids")
+    def _compute_file_count(self):
+        for record in self:
+            record.file_count = len(record.file_ids)
 
     @api.depends("expiration_date")
     def _compute_expiration_state(self):
@@ -215,7 +294,8 @@ class RiskSubmissionDocument(models.Model):
 
     @api.onchange("file")
     def _onchange_file(self):
-        if self.file and self.state == "pending":
+        # Al cargar (o reemplazar tras un rechazo) el documento vuelve a revision.
+        if self.file and self.state in ("pending", "rejected"):
             _logger.debug(
                 "Document onchange marked received document_id=%s", self.id or "new"
             )
@@ -311,10 +391,10 @@ class RiskSubmissionDocument(models.Model):
                     "Debes indicar observaciones para rechazar un documento."
                 )
 
-    @api.constrains("state", "file")
+    @api.constrains("state", "file", "sharepoint_item_id")
     def _check_approved_file(self):
         for record in self:
-            if record.state == "approved" and not record.file:
+            if record.state == "approved" and not record.has_file:
                 _logger.warning(
                     "Document approval blocked missing file document_id=%s", record.id
                 )
@@ -379,6 +459,10 @@ class RiskSubmissionDocument(models.Model):
                 record.state,
                 record.required,
             )
+        if self._sp_sync_enabled():
+            for record in records.filtered("file"):
+                record.sharepoint_state = "pending"
+                record._sp_create_version(is_replacement=False)
         completed_submissions = records.mapped("submission_id").filtered(
             lambda submission: (
                 submission.state == "documents_requested"
@@ -392,9 +476,14 @@ class RiskSubmissionDocument(models.Model):
     def write(self, vals):
         pending_records = self.env["risk.module.document"]
         if vals.get("file") and not vals.get("state"):
-            pending_records = self.filtered(lambda record: record.state == "pending")
+            # Cargar o reemplazar (incluso tras un rechazo) devuelve a revision.
+            pending_records = self.filtered(
+                lambda record: record.state in ("pending", "rejected")
+            )
         old_states = {record.id: record.state for record in self}
         old_file_presence = {record.id: bool(record.file) for record in self}
+        old_rejection = {record.id: record.rejection_reason for record in self}
+        sp_sync_enabled = self._sp_sync_enabled()
         _logger.debug(
             "Writing risk documents ids=%s fields=%s user_id=%s",
             self.ids,
@@ -438,14 +527,44 @@ class RiskSubmissionDocument(models.Model):
         if audit_updates:
             for record in self:
                 record_updates = dict(audit_updates)
-                if vals.get("file") and old_file_presence.get(record.id):
+                # En modo solo-SharePoint el archivo local se purga tras subir,
+                # asi que un item ya sincronizado tambien cuenta como reemplazo.
+                is_replacement = bool(old_file_presence.get(record.id)) or bool(
+                    record.sharepoint_item_id
+                )
+                if vals.get("file") and is_replacement:
                     record_updates["replacement_count"] = record.replacement_count + 1
+                if vals.get("file") and old_states.get(record.id) == "rejected":
+                    record_updates.update(
+                        {
+                            "rejection_reason": False,
+                            "rejection_message_sent_at": False,
+                        }
+                    )
+                if vals.get("file") and sp_sync_enabled:
+                    record_updates.update(
+                        {
+                            "sharepoint_state": "pending",
+                            "sharepoint_error": False,
+                            "sharepoint_attempts": 0,
+                        }
+                    )
                 super(RiskSubmissionDocument, record).write(record_updates)
                 if vals.get("file"):
-                    action = "reemplazado" if old_file_presence.get(record.id) else "cargado"
+                    action = "reemplazado" if is_replacement else "cargado"
                     record.message_post(
                         body="Documento %s: %s" % (action, record.name),
                     )
+                    if sp_sync_enabled:
+                        triggered = (
+                            old_rejection.get(record.id)
+                            if old_states.get(record.id) == "rejected"
+                            else False
+                        )
+                        record._sp_create_version(
+                            is_replacement=is_replacement,
+                            triggered_by_rejection=triggered,
+                        )
         if "state" in vals:
             for record in self:
                 _logger.info(
@@ -465,6 +584,229 @@ class RiskSubmissionDocument(models.Model):
         if completed_submissions:
             completed_submissions.action_mark_documents_sent_if_complete()
         return result
+
+    # ------------------------------------------------------------------
+    # Sincronizacion con SharePoint (modo solo-referencia, outbox/cron)
+    # ------------------------------------------------------------------
+    def _sp_sync_enabled(self):
+        """Atajo: indica si la integracion con SharePoint esta activa."""
+        return self.env["risk.sharepoint.service"]._is_enabled()
+
+    def _recompute_sharepoint_state_from_files(self):
+        """Refleja en el documento el estado agregado de sus archivos multiples.
+
+        En documentos multi-archivo el binario ``file`` del documento esta vacio
+        (el contenido vive en ``file_ids``), por lo que el estado SharePoint del
+        documento debe derivarse del de sus archivos para que la insignia del
+        backend sea fiable.
+        """
+        for record in self:
+            if not record.allow_multiple_files:
+                continue
+            files = record.file_ids
+            if not files:
+                state = "disabled"
+            elif any(item.sharepoint_state == "pending" for item in files):
+                state = "pending"
+            elif any(item.sharepoint_state == "error" for item in files):
+                state = "error"
+            elif all(item.sharepoint_state == "synced" for item in files):
+                state = "synced"
+            else:
+                state = "disabled"
+            vals = {}
+            if record.sharepoint_state != state:
+                vals["sharepoint_state"] = state
+            if state == "synced":
+                synced_dates = [
+                    item.sharepoint_synced_at
+                    for item in files
+                    if item.sharepoint_synced_at
+                ]
+                vals["sharepoint_synced_at"] = (
+                    max(synced_dates) if synced_dates else fields.Datetime.now()
+                )
+                if record.sharepoint_error:
+                    vals["sharepoint_error"] = False
+            if vals:
+                record.write(vals)
+
+    def _sp_folder_segments(self):
+        """Ruta de carpetas en SharePoint para este documento."""
+        self.ensure_one()
+        cfg = self.env["risk.sharepoint.service"]._config()
+        submission = self.submission_id
+        ref = submission.name or ("Solicitud-%s" % submission.id)
+        plate = submission.vehicle_plate or ""
+        sub_folder = ("%s %s" % (ref, plate)).strip()
+        party_label = dict(self._fields["party"].selection).get(
+            self.party, self.party or "otro"
+        )
+        return [cfg["root_folder"], sub_folder, party_label]
+
+    def _sp_create_version(self, is_replacement=False, triggered_by_rejection=False):
+        """Registra un intento de carga en el historial (estado 'pending')."""
+        self.ensure_one()
+        return self.env["risk.module.document.version"].sudo().create(
+            {
+                "document_id": self.id,
+                "document_name": self.name,
+                "filename": self.filename,
+                "version_number": self.replacement_count + 1,
+                "result": "pending",
+                "is_replacement": is_replacement,
+                "triggered_by_rejection": triggered_by_rejection or False,
+                "uploaded_by_id": self.env.user.id,
+                "uploaded_at": fields.Datetime.now(),
+            }
+        )
+
+    def _sp_finalize_version(self, result, store_result=None, error_message=None):
+        """Cierra la ultima version 'pending' del documento con el resultado."""
+        self.ensure_one()
+        Version = self.env["risk.module.document.version"].sudo()
+        version = Version.search(
+            [("document_id", "=", self.id), ("result", "=", "pending")],
+            order="create_date desc, id desc",
+            limit=1,
+        )
+        if not version:
+            version = self._sp_create_version()
+        vals = {"result": result}
+        if store_result:
+            vals.update(
+                {
+                    "sharepoint_item_id": store_result.get("item_id"),
+                    "sharepoint_web_url": store_result.get("web_url"),
+                }
+            )
+        if error_message:
+            vals["error_message"] = (error_message or "")[:2000]
+        version.write(vals)
+
+    def _sync_to_sharepoint(self):
+        """Sube el archivo del documento a SharePoint (lo invoca el cron).
+
+        Si ya existe ``sharepoint_item_id`` sube una nueva version del mismo
+        item (reenvio tras rechazo); si no, crea el archivo. Tras subir, purga
+        la copia local si la configuracion lo indica.
+        """
+        self.ensure_one()
+        service = self.env["risk.sharepoint.service"]
+        cfg = service._config()
+        if not self.file:
+            # Nada que subir: o ya esta en SharePoint o no hay archivo.
+            if self.sharepoint_item_id:
+                self.sharepoint_state = "synced"
+            return
+        content = base64.b64decode(self.file)
+        try:
+            result = service._store_file(
+                self._sp_folder_segments(),
+                self.filename or self.name or "documento",
+                content,
+                item_id=self.sharepoint_item_id or None,
+            )
+        except Exception as exc:  # noqa: BLE001 - se registra y se reintenta luego
+            self._sp_mark_error(str(exc), cfg)
+            return
+        vals = {
+            "sharepoint_item_id": result["item_id"],
+            "sharepoint_web_url": result["web_url"],
+            "sharepoint_drive_id": result["drive_id"],
+            "sharepoint_state": "synced",
+            "sharepoint_synced_at": fields.Datetime.now(),
+            "sharepoint_error": False,
+        }
+        if cfg["purge_local"]:
+            vals["file"] = False
+        self.write(vals)
+        self._sp_finalize_version("uploaded", store_result=result)
+        _logger.info(
+            "SharePoint sync ok document_id=%s item_id=%s purged=%s",
+            self.id,
+            result["item_id"],
+            cfg["purge_local"],
+        )
+
+    def _sp_mark_error(self, message, cfg=None):
+        """Registra un fallo de sincronizacion y decide si reintentar."""
+        self.ensure_one()
+        cfg = cfg or self.env["risk.sharepoint.service"]._config()
+        attempts = self.sharepoint_attempts + 1
+        give_up = attempts >= cfg["max_attempts"]
+        self.write(
+            {
+                "sharepoint_attempts": attempts,
+                "sharepoint_error": (message or "")[:2000],
+                "sharepoint_state": "error" if give_up else "pending",
+            }
+        )
+        _logger.warning(
+            "SharePoint sync failed document_id=%s attempts=%s give_up=%s error=%s",
+            self.id,
+            attempts,
+            give_up,
+            (message or "")[:200],
+        )
+        if give_up:
+            self._sp_finalize_version("failed", error_message=message)
+            self.message_post(
+                body="Error al sincronizar con SharePoint tras %s intentos: %s"
+                % (attempts, message)
+            )
+
+    @api.model
+    def _cron_sync_sharepoint(self, limit=50):
+        """Outbox: sube los documentos pendientes/erroneos a SharePoint."""
+        service = self.env["risk.sharepoint.service"]
+        if not service._is_enabled():
+            return
+        cfg = service._config()
+        docs = self.search(
+            [
+                ("sharepoint_state", "in", ("pending", "error")),
+                ("sharepoint_attempts", "<", cfg["max_attempts"]),
+                ("file", "!=", False),
+            ],
+            limit=limit,
+        )
+        _logger.info("SharePoint cron processing count=%s", len(docs))
+        for doc in docs:
+            try:
+                with self.env.cr.savepoint():
+                    doc._sync_to_sharepoint()
+            except Exception:  # noqa: BLE001 - aislar fallos por documento
+                _logger.exception(
+                    "SharePoint cron unexpected error document_id=%s", doc.id
+                )
+
+        # Documentos multi-archivo: cada archivo se sincroniza como item propio.
+        document_files = self.env["risk.module.document.file"].search(
+            [
+                ("sharepoint_state", "in", ("pending", "error")),
+                ("sharepoint_attempts", "<", cfg["max_attempts"]),
+                ("file", "!=", False),
+            ],
+            limit=limit,
+        )
+        _logger.info("SharePoint cron processing files count=%s", len(document_files))
+        for document_file in document_files:
+            try:
+                with self.env.cr.savepoint():
+                    document_file._sync_to_sharepoint()
+            except Exception:  # noqa: BLE001 - aislar fallos por archivo
+                _logger.exception(
+                    "SharePoint cron unexpected error file_id=%s", document_file.id
+                )
+
+    def action_retry_sharepoint(self):
+        """Reintento manual desde el formulario (sincrono)."""
+        for record in self:
+            record.sharepoint_attempts = 0
+            record.sharepoint_state = "pending"
+            record._sync_to_sharepoint()
+        return True
 
     def action_mark_received(self):
         """
@@ -493,7 +835,37 @@ class RiskSubmissionDocument(models.Model):
 
     def action_open_file(self):
         self.ensure_one()
+        # Si ya esta sincronizado, abrimos el archivo en SharePoint. Mientras
+        # sigue pendiente/erroneo servimos la copia local (que es la version
+        # vigente; la de SharePoint aun seria la anterior).
+        if self.sharepoint_state == "synced" and self.sharepoint_web_url:
+            return {
+                "type": "ir.actions.act_url",
+                "url": self.sharepoint_web_url,
+                "target": "new",
+            }
         if not self.file:
+            if self.file_ids:
+                document_file = self.file_ids.sorted("sequence")[0]
+                # En multi-archivo el item vigente puede estar ya en SharePoint
+                # (copia local purgada): abrimos el enlace de SharePoint.
+                if (
+                    document_file.sharepoint_state == "synced"
+                    and document_file.sharepoint_web_url
+                ):
+                    return {
+                        "type": "ir.actions.act_url",
+                        "url": document_file.sharepoint_web_url,
+                        "target": "new",
+                    }
+                if document_file.file:
+                    filename = quote(document_file.filename or self.name or "archivo")
+                    return {
+                        "type": "ir.actions.act_url",
+                        "url": "/web/content/risk.module.document.file/%s/file/%s?download=false"
+                        % (document_file.id, filename),
+                        "target": "new",
+                    }
             raise ValidationError("Este documento no tiene archivo cargado.")
         filename = quote(self.filename or self.name or "documento")
         return {
@@ -527,7 +899,7 @@ class RiskSubmissionDocument(models.Model):
         Raises ValidationError if conditions for approval are not met.
         """
         for record in self:
-            if not record.file:
+            if not record.has_file:
                 _logger.warning(
                     "Document approval action blocked missing file document_id=%s",
                     record.id,

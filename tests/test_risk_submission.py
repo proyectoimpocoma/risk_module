@@ -73,8 +73,8 @@ class TestRiskSubmission(RiskModuleTestCase):
 
     def test_portal_state_labels(self):
         expected = {
-            "draft": "En revision",
-            "submitted": "En revision",
+            "draft": "Pendiente por completar",
+            "submitted": "Enviado",
             "risk_review": "En revision",
             "external_validation_pending": "En revision",
             "manual_approval_pending": "En revision",

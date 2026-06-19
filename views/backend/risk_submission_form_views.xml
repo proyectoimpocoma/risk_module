@@ -93,7 +93,7 @@
                         Solicitud rechazada definitivamente. El tercero no puede corregir esta solicitud desde el portal.
                     </div>
                     <div class="alert alert-info" role="status" invisible="not master_validation_summary">
-                        <strong>Maestros:</strong>
+                        <strong>Base de terceros:</strong>
                         <field name="master_validation_summary" readonly="1" nolabel="1"/>
                     </div>
 
@@ -267,6 +267,7 @@
                                     <field name="source" string="Origen"/>
                                     <field name="required" string="Obligatorio"/>
                                     <field name="filename" string="Archivo"/>
+                                    <field name="file_count" string="Archivos"/>
                                     <field name="uploaded_at" string="Cargado"/>
                                     <field name="issue_date" string="Expedicion"/>
                                     <field name="expiration_date" string="Vencimiento"/>
@@ -277,8 +278,9 @@
                                            decoration-muted="expiration_state == 'no_date'"/>
                                     <field name="rejection_reason" string="Motivo"/>
                                     <field name="observations" string="Observaciones"/>
+                                    <field name="has_file" column_invisible="1"/>
                                     <button name="action_open_document_preview" type="object" string="Ver PDF"
-                                            invisible="not file"/>
+                                            invisible="not has_file"/>
                                     <button name="action_mark_received" type="object" string="Recibido"
                                             invisible="state != 'pending'"/>
                                     <button name="action_approve" type="object" string="Aprobar"
@@ -288,8 +290,8 @@
                                 </list>
                                 <form string="Documento">
                                     <header>
-                                        <button name="action_open_file" type="object" string="Abrir archivo"
-                                                class="btn-secondary" invisible="not file"/>
+	                                        <button name="action_open_file" type="object" string="Abrir archivo"
+	                                                class="btn-secondary" invisible="not has_file"/>
                                         <button name="action_mark_received" type="object" string="Marcar recibido"
                                                 invisible="state != 'pending'"/>
                                         <button name="action_approve" type="object" string="Aprobar" class="btn-primary"
@@ -300,12 +302,16 @@
                                                statusbar_visible="pending,received,approved,rejected"/>
                                     </header>
                                     <sheet>
-                                        <div class="risk-document-preview-layout">
-                                            <div class="risk-document-preview">
-                                                <field name="file" filename="filename" widget="pdf_viewer" nolabel="1"/>
-                                                <div invisible="file" class="alert alert-info mb-0" role="status">
-                                                    Este documento aun no tiene archivo cargado.
-                                                </div>
+	                                        <div class="risk-document-preview-layout">
+	                                            <div class="risk-document-preview">
+                                                    <field name="has_file" invisible="1"/>
+	                                                <field name="file" filename="filename" widget="pdf_viewer" nolabel="1"/>
+	                                                <div invisible="file or not has_file" class="alert alert-success mb-0" role="status">
+	                                                    El documento tiene archivos cargados. Usa el boton "Abrir archivo" para verlos.
+	                                                </div>
+	                                                <div invisible="has_file" class="alert alert-info mb-0" role="status">
+	                                                    Este documento aun no tiene archivo cargado.
+	                                                </div>
                                             </div>
                                             <div class="risk-document-details">
                                                 <group>
@@ -322,11 +328,14 @@
                                                     <field name="reject_expired"/>
                                                     <field name="max_age_days"/>
                                                     <field name="max_file_size_mb"/>
+                                                    <field name="allow_multiple_files"/>
+                                                    <field name="max_files" invisible="not allow_multiple_files"/>
                                                     <field name="allowed_file_extensions"/>
                                                     <field name="issue_date"/>
                                                     <field name="expiration_date"/>
                                                     <field name="expiration_state" readonly="1"/>
                                                     <field name="filename"/>
+                                                    <field name="file_count" readonly="1"/>
                                                 </group>
                                                 <group string="Observaciones">
                                                     <field name="rejection_reason"/>

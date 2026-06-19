@@ -134,6 +134,31 @@ class RiskSubmissionController(
         return request.redirect("/registro-conductor/1")
 
     @http.route(
+        "/registro-conductor/continuar/<int:submission_id>",
+        type="http",
+        auth="user",
+        website=True,
+        sitemap=False,
+    )
+    def continue_draft_submission(self, submission_id, **kwargs):
+        submission = request.env["risk.module"].sudo().browse(submission_id).exists()
+        if (
+            not submission
+            or not submission._portal_is_owned_by(request.env.user)
+            or submission.state != "draft"
+        ):
+            _logger.warning(
+                "Risk draft continue denied submission_id=%s user_id=%s exists=%s state=%s",
+                submission_id,
+                request.env.user.id,
+                bool(submission),
+                submission.state if submission else None,
+            )
+            return request.not_found()
+        self._load_submission_for_form(submission)
+        return request.redirect("/registro-conductor/%s" % self._first_allowed_step())
+
+    @http.route(
         "/registro-conductor/submit/<int:step>",
         type="http",
         auth="user",
@@ -156,6 +181,16 @@ class RiskSubmissionController(
             sorted(post.keys()),
             request.session.get("risk_submission_id"),
         )
+        if step not in STEP_SESSION_KEYS:
+            _logger.warning(
+                "Invalid risk registration POST step=%s user_id=%s",
+                step,
+                request.env.user.id,
+            )
+            return request.redirect("/registro-conductor")
+        step_guard = self._guard_step_access(step, data)
+        if step_guard:
+            return step_guard
 
         if step == 4:
             return self._post_terms_step(data, post)
@@ -277,6 +312,9 @@ class RiskSubmissionController(
         self._update_signature_data(data, post)
         self._capture_signature_email(data, party, post)
         step = 5 if party == "owner" else 6
+        step_guard = self._guard_step_access(step, data)
+        if step_guard:
+            return step_guard
         self._persist_step_data(step, data)
         request.session["risk_vehicle_form"] = data
 
@@ -328,6 +366,9 @@ class RiskSubmissionController(
         self._update_signature_data(data, post)
         self._capture_signature_email(data, party, post)
         step = 5 if party == "owner" else 6
+        step_guard = self._guard_step_access(step, data)
+        if step_guard:
+            return step_guard
         self._persist_step_data(step, data)
         request.session["risk_vehicle_form"] = data
 
@@ -391,16 +432,11 @@ class RiskSubmissionController(
             }
         )
         data.pop("terms_error", None)
+        data.pop("step_error", None)
         request.session["risk_terms_accepted"] = "1"
         self._persist_step_data(4, data)
         request.session["risk_vehicle_form"] = data
-        return request.render(
-            "risk_module.register_driver",
-            {
-                "step": 5,
-                "data": data,
-            },
-        )
+        return request.redirect("/registro-conductor/5")
 
     def _post_owner_signatures_step(self, data, post):
         """Procesa el paso de firma del propietario."""
@@ -419,6 +455,7 @@ class RiskSubmissionController(
             return self._render_step(5)
 
         _logger.info("Owner signature step completed user_id=%s", request.env.user.id)
+        data.pop("step_error", None)
         self._stamp_owner_signature_metadata(data)
         if data.get("single_owner_driver_signature") == "yes":
             self._apply_single_owner_driver_signature(data)
@@ -463,6 +500,7 @@ class RiskSubmissionController(
             return self._render_step(6)
 
         _logger.info("Driver signature step completed user_id=%s", request.env.user.id)
+        data.pop("step_error", None)
         self._stamp_driver_signature_metadata(data)
         self._persist_step_data(6, data)
         submission, error_response = self._safe_create_or_update_submission(
@@ -659,6 +697,9 @@ class RiskSubmissionController(
             if submission and submission._portal_is_owned_by(request.env.user):
                 self._sync_signature_verification_data(data, submission)
                 request.session["risk_vehicle_form"] = data
+        step_guard = self._guard_step_access(step, data)
+        if step_guard:
+            return step_guard
         if (
             step >= 5
             and data.get("terms_accepted") != "1"
@@ -705,6 +746,9 @@ class RiskSubmissionController(
         )
 
     def _load_submission_for_correction(self, submission):
+        self._load_submission_for_form(submission)
+
+    def _load_submission_for_form(self, submission):
         data = {
             "submission_id": submission.id,
             "submission_token": submission.access_token,
@@ -749,6 +793,50 @@ class RiskSubmissionController(
         request.session["risk_vehicle_form"] = data
         for step in STEP_SESSION_KEYS:
             self._persist_step_data(step, data)
+
+    def _guard_step_access(self, requested_step, data):
+        allowed_step = self._first_allowed_step(data)
+        if requested_step <= allowed_step:
+            return None
+        _logger.warning(
+            "Risk registration step navigation blocked requested_step=%s allowed_step=%s user_id=%s",
+            requested_step,
+            allowed_step,
+            request.env.user.id,
+        )
+        data["step_error"] = "Completa los pasos anteriores antes de continuar."
+        request.session["risk_vehicle_form"] = data
+        return request.redirect("/registro-conductor/%s" % allowed_step)
+
+    def _first_allowed_step(self, data=None):
+        data = data if data is not None else request.session.get("risk_vehicle_form", {})
+        self._merge_persisted_step_data(data)
+        if data.get("form_date") is None:
+            data["form_date"] = date.today().isoformat()
+
+        for step in (1, 2, 3):
+            self._normalize_step_data(step, data)
+            if self._validate_step(step, data):
+                return step
+
+        if (
+            data.get("terms_accepted") != "1"
+            and request.session.get("risk_terms_accepted") != "1"
+        ):
+            return 4
+
+        owner_signature_error = self._validate_owner_signature_step(data)
+        if owner_signature_error:
+            return 5
+
+        if data.get("single_owner_driver_signature") == "yes":
+            self._apply_single_owner_driver_signature(data)
+            return 7
+
+        driver_signature_error = self._validate_driver_signature_step(data)
+        if driver_signature_error:
+            return 6
+        return 7
 
     def _can_access_submission(self, submission):
         """Determina si el usuario actual puede ver la solicitud.

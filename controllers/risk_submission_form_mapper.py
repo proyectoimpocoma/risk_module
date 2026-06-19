@@ -156,14 +156,42 @@ class RiskSubmissionFormMapperMixin:
             )
             submission.with_context(skip_risk_form_lock=True).write(values)
         else:
-            _logger.info(
-                "Creating risk submission state=%s user_id=%s partner_id=%s plate=%s",
-                state,
-                request.env.user.id,
-                request.env.user.partner_id.id,
-                values.get("vehicle_plate"),
-            )
-            submission = RiskSubmission.create(values)
+            # Before creating a new record, look for an existing own draft for
+            # this plate.  This prevents duplicates when the session is lost
+            # (e.g. the user navigated to the start page) or when the "send
+            # code" button is double-clicked before the session is saved.
+            plate = values.get("vehicle_plate") or ""
+            partner = request.env.user.partner_id
+            recovered = RiskSubmission.browse()
+            if plate and partner:
+                recovered = RiskSubmission.search(
+                    [
+                        ("vehicle_plate", "=", plate),
+                        ("state", "=", "draft"),
+                        ("partner_id", "=", partner.id),
+                    ],
+                    limit=1,
+                    order="create_date desc",
+                )
+            if recovered:
+                _logger.info(
+                    "Reusing own draft submission submission_id=%s state=%s user_id=%s plate=%s",
+                    recovered.id,
+                    state,
+                    request.env.user.id,
+                    plate,
+                )
+                submission = recovered
+                submission.with_context(skip_risk_form_lock=True).write(values)
+            else:
+                _logger.info(
+                    "Creating risk submission state=%s user_id=%s partner_id=%s plate=%s",
+                    state,
+                    request.env.user.id,
+                    request.env.user.partner_id.id,
+                    values.get("vehicle_plate"),
+                )
+                submission = RiskSubmission.create(values)
         if state in ("submitted", "correction_submitted"):
             submission._sync_master_records()
         data["submission_id"] = submission.id

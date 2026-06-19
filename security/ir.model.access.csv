@@ -13,6 +13,10 @@ access_risk_submission_owner,risk.submission.owner.analyst,model_risk_submission
 access_risk_submission_owner_manager,risk.submission.owner.leader,model_risk_submission_owner,risk_module.group_risk_manager,1,1,1,1
 access_risk_module_document,risk.module.document.analyst,model_risk_module_document,risk_module.group_risk_user,1,1,1,0
 access_risk_module_document_manager,risk.module.document.leader,model_risk_module_document,risk_module.group_risk_manager,1,1,1,0
+access_risk_module_document_file,risk.module.document.file.analyst,model_risk_module_document_file,risk_module.group_risk_user,1,1,1,0
+access_risk_module_document_file_manager,risk.module.document.file.leader,model_risk_module_document_file,risk_module.group_risk_manager,1,1,1,1
+access_risk_module_document_version,risk.module.document.version.analyst,model_risk_module_document_version,risk_module.group_risk_user,1,0,0,0
+access_risk_module_document_version_manager,risk.module.document.version.leader,model_risk_module_document_version,risk_module.group_risk_manager,1,1,1,1
 access_risk_document_requirement,risk.document.requirement.analyst,model_risk_document_requirement,risk_module.group_risk_user,1,1,1,0
 access_risk_document_requirement_manager,risk.document.requirement.leader,model_risk_document_requirement,risk_module.group_risk_manager,1,1,1,0
 access_risk_message_template,risk.message.template.analyst,model_risk_message_template,risk_module.group_risk_user,1,1,1,0

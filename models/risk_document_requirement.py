@@ -86,6 +86,8 @@ class RiskDocumentRequirement(models.Model):
     reject_expired = fields.Boolean(string="No aceptar vencidos", default=True)
     max_age_days = fields.Integer(string="Antiguedad maxima en dias")
     max_file_size_mb = fields.Float(string="Tamano maximo MB", default=10.0)
+    allow_multiple_files = fields.Boolean(string="Permitir multiples archivos")
+    max_files = fields.Integer(string="Maximo de archivos", default=1)
     allowed_file_extensions = fields.Char(
         string="Extensiones permitidas",
         default="pdf,jpg,jpeg,png",
@@ -137,6 +139,8 @@ class RiskDocumentRequirement(models.Model):
             "reject_expired": self.reject_expired,
             "max_age_days": self.max_age_days,
             "max_file_size_mb": self.max_file_size_mb,
+            "allow_multiple_files": self.allow_multiple_files,
+            "max_files": self.max_files or 1,
             "allowed_file_extensions": self.allowed_file_extensions,
             "requires_color": self.requires_color,
             "requires_both_sides": self.requires_both_sides,

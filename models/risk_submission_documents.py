@@ -200,6 +200,8 @@ class RiskSubmissionDocuments(models.Model):
                 "reject_expired": template.get("reject_expired", True),
                 "max_age_days": template.get("max_age_days", 0),
                 "max_file_size_mb": template.get("max_file_size_mb", 10.0),
+                "allow_multiple_files": template.get("allow_multiple_files", False),
+                "max_files": template.get("max_files", 1) or 1,
                 "allowed_file_extensions": template.get(
                     "allowed_file_extensions"
                 ) or "pdf,jpg,jpeg,png",
