@@ -14,6 +14,7 @@ from . import risk_message_template
 from . import risk_submission_documents
 from . import risk_sharepoint_service
 from . import risk_submission_document
+from . import risk_submission_document_file
 from . import risk_submission_document_version
 from . import risk_external_validation
 from . import res_users
@@ -37,6 +38,7 @@ __all__ = [
     "risk_submission_documents",
     "risk_sharepoint_service",
     "risk_submission_document",
+    "risk_submission_document_file",
     "risk_submission_document_version",
     "risk_external_validation",
     "res_users",

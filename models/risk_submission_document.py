@@ -98,6 +98,8 @@ class RiskSubmissionDocument(models.Model):
     reject_expired = fields.Boolean(string="No aceptar vencidos", default=True)
     max_age_days = fields.Integer(string="Antiguedad maxima en dias")
     max_file_size_mb = fields.Float(string="Tamano maximo MB", default=10.0)
+    allow_multiple_files = fields.Boolean(string="Permitir multiples archivos")
+    max_files = fields.Integer(string="Maximo de archivos", default=1)
     allowed_file_extensions = fields.Char(
         string="Extensiones permitidas",
         default="pdf,jpg,jpeg,png",
@@ -251,11 +253,26 @@ class RiskSubmissionDocument(models.Model):
         string="Historial de cargas",
         readonly=True,
     )
+    file_ids = fields.One2many(
+        "risk.module.document.file",
+        "document_id",
+        string="Archivos cargados",
+        readonly=True,
+    )
+    file_count = fields.Integer(
+        string="Cantidad de archivos",
+        compute="_compute_file_count",
+    )
 
-    @api.depends("file", "sharepoint_item_id")
+    @api.depends("file", "sharepoint_item_id", "file_ids.file")
     def _compute_has_file(self):
         for record in self:
-            record.has_file = bool(record.file) or bool(record.sharepoint_item_id)
+            record.has_file = bool(record.file) or bool(record.sharepoint_item_id) or bool(record.file_ids)
+
+    @api.depends("file_ids")
+    def _compute_file_count(self):
+        for record in self:
+            record.file_count = len(record.file_ids)
 
     @api.depends("expiration_date")
     def _compute_expiration_state(self):
