@@ -787,6 +787,15 @@ class RiskSubmissionDocument(models.Model):
                 "target": "new",
             }
         if not self.file:
+            if self.file_ids:
+                document_file = self.file_ids.sorted("sequence")[0]
+                filename = quote(document_file.filename or self.name or "archivo")
+                return {
+                    "type": "ir.actions.act_url",
+                    "url": "/web/content/risk.module.document.file/%s/file/%s?download=false"
+                    % (document_file.id, filename),
+                    "target": "new",
+                }
             raise ValidationError("Este documento no tiene archivo cargado.")
         filename = quote(self.filename or self.name or "documento")
         return {

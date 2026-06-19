@@ -139,13 +139,23 @@
                 <span t-attf-class="rpd-state #{doc_state_class}"
                       t-esc="dict(document._fields['state'].selection).get(document.state)"/>
             </div>
-            <a t-if="document.has_file"
+            <a t-if="document.has_file and not document.allow_multiple_files"
                t-attf-href="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/archivo"
                target="_blank"
                class="rpd-doc-file-link">
                 <span class="material-symbols-outlined">visibility</span>
                 Ver archivo cargado
             </a>
+            <div t-if="document.allow_multiple_files and document.file_ids" class="rpd-chips">
+                <t t-foreach="document.file_ids.sorted('sequence')" t-as="uploaded_file">
+                    <a t-attf-href="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/archivos/#{uploaded_file.id}"
+                       target="_blank"
+                       class="rpd-chip">
+                        <span class="material-symbols-outlined">image</span>
+                        <t t-esc="uploaded_file.filename"/>
+                    </a>
+                </t>
+            </div>
             <form t-if="submission._portal_document_upload_allowed(document)"
                   t-attf-action="/mis-solicitudes-riesgo/#{submission.id}/documentos/#{document.id}/subir"
                   method="post"
@@ -160,7 +170,15 @@
                     Fecha de vencimiento
                     <input type="date" name="expiration_date" class="form-control form-control-sm" required="required" t-att-value="document.expiration_date or ''"/>
                 </label>
-                <input type="file" name="document_file" class="form-control form-control-sm" required="required"/>
+                <t t-if="document.allow_multiple_files">
+                    <t t-set="remaining_files" t-value="((document.max_files or 1) - len(document.file_ids)) if ((document.max_files or 1) - len(document.file_ids)) &gt; 0 else 0"/>
+                    <small class="rpd-doc-hint">
+                        Puedes cargar hasta <t t-esc="document.max_files or 1"/> archivos.
+                        Disponibles: <t t-esc="remaining_files"/>.
+                    </small>
+                    <input type="file" name="document_file" class="form-control form-control-sm" required="required" multiple="multiple"/>
+                </t>
+                <input t-if="not document.allow_multiple_files" type="file" name="document_file" class="form-control form-control-sm" required="required"/>
                 <button type="submit" class="rpd-upload-btn">Subir</button>
             </form>
         </div>
@@ -195,6 +213,7 @@
                 <div t-if="request.params.get('upload_error') == 'not_allowed'" class="alert alert-warning">La carga no esta habilitada para este documento en este momento.</div>
                 <div t-if="request.params.get('upload_error') == 'too_large'" class="alert alert-danger">El archivo supera el tamano maximo permitido.</div>
                 <div t-if="request.params.get('upload_error') == 'invalid_type'" class="alert alert-danger">Solo puedes cargar archivos PDF, JPG o PNG.</div>
+                <div t-if="request.params.get('upload_error') == 'too_many'" class="alert alert-danger">Superaste la cantidad maxima de archivos permitida para este documento.</div>
                 <div t-if="request.params.get('upload_error') == 'missing_issue_date'" class="alert alert-danger">Debes indicar la fecha de expedicion del documento.</div>
                 <div t-if="request.params.get('upload_error') == 'missing_expiration_date'" class="alert alert-danger">Debes indicar la fecha de vencimiento del documento.</div>
                 <div t-if="request.params.get('upload_error') == 'invalid_date'" class="alert alert-danger">La fecha ingresada no es valida. Por favor revisala e intenta nuevamente.</div>

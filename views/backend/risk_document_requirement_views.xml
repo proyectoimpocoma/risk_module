@@ -61,6 +61,8 @@
                 <field name="reject_expired"/>
                 <field name="max_age_days"/>
                 <field name="max_file_size_mb"/>
+                <field name="allow_multiple_files"/>
+                <field name="max_files"/>
                 <field name="allowed_file_extensions"/>
                 <field name="requires_color"/>
                 <field name="requires_both_sides"/>
@@ -91,6 +93,8 @@
                 <field name="reject_expired"/>
                 <field name="max_age_days"/>
                 <field name="max_file_size_mb"/>
+                <field name="allow_multiple_files"/>
+                <field name="max_files"/>
                 <field name="allowed_file_extensions"/>
                 <field name="requires_color"/>
                 <field name="requires_both_sides"/>
@@ -192,6 +196,8 @@
                             <group>
                                 <field name="max_age_days"/>
                                 <field name="max_file_size_mb"/>
+                                <field name="allow_multiple_files"/>
+                                <field name="max_files" invisible="not allow_multiple_files"/>
                                 <field name="allowed_file_extensions" placeholder="pdf,jpg,jpeg,png"/>
                             </group>
                         </div>

@@ -51,16 +51,24 @@ class RiskSubmissionDocumentFile(models.Model):
         records = super().create(vals_list)
         records._check_document_file_limits()
         documents = records.mapped("document_id")
-        documents.filtered(lambda doc: doc.state in ("pending", "rejected")).write(
+        documents.filtered(lambda doc: doc.state == "pending").write(
             {"state": "received"}
         )
-        documents.write(
+        documents.filtered(lambda doc: doc.state == "rejected").write(
             {
-                "uploaded_by_id": self.env.user.id,
-                "uploaded_at": now,
+                "state": "received",
+                "rejection_reason": False,
+                "rejection_message_sent_at": False,
             }
         )
         for document in documents:
+            latest_file = document.file_ids.sorted(lambda item: (item.uploaded_at, item.id))[-1]
+            document.write(
+                {
+                    "uploaded_by_id": latest_file.uploaded_by_id.id,
+                    "uploaded_at": latest_file.uploaded_at,
+                }
+            )
             document.message_post(
                 body="Archivos cargados para documento: %s" % document.name
             )

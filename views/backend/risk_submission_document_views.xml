@@ -52,6 +52,7 @@
                 <field name="source" string="Origen"/>
                 <field name="required" string="Obligatorio"/>
                 <field name="filename" string="Archivo"/>
+                <field name="file_count" string="Archivos"/>
                 <field name="uploaded_at" string="Cargado"/>
                 <field name="issue_date" string="Expedicion"/>
                 <field name="expiration_date" string="Vencimiento"/>
@@ -130,11 +131,14 @@
                                 <field name="reject_expired"/>
                                 <field name="max_age_days"/>
                                 <field name="max_file_size_mb"/>
+                                <field name="allow_multiple_files"/>
+                                <field name="max_files" invisible="not allow_multiple_files"/>
                                 <field name="allowed_file_extensions"/>
                                 <field name="issue_date"/>
                                 <field name="expiration_date"/>
                                 <field name="expiration_state" readonly="1"/>
                                 <field name="filename"/>
+                                <field name="file_count" readonly="1"/>
                             </group>
                             <group string="Observaciones">
                                 <field name="rejection_reason"/>
@@ -159,6 +163,18 @@
                                 <field name="sharepoint_error" invisible="not sharepoint_error"/>
                             </group>
                             <notebook>
+                                <page string="Archivos cargados" name="files" invisible="not allow_multiple_files">
+                                    <field name="file_ids" nolabel="1" readonly="1">
+                                        <list string="Archivos cargados">
+                                            <field name="sequence"/>
+                                            <field name="filename"/>
+                                            <field name="mimetype"/>
+                                            <field name="file_size"/>
+                                            <field name="uploaded_by_id"/>
+                                            <field name="uploaded_at"/>
+                                        </list>
+                                    </field>
+                                </page>
                                 <page string="Historial de cargas" name="versions">
                                     <field name="version_ids" nolabel="1" readonly="1">
                                         <list string="Historial de cargas"

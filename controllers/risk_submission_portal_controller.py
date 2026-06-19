@@ -103,8 +103,12 @@ class RiskSubmissionPortalController(http.Controller):
             )
             return self._redirect_upload_error(submission, "not_allowed")
 
-        upload = request.httprequest.files.get("document_file")
-        if not upload or not upload.filename:
+        uploads = [
+            upload
+            for upload in request.httprequest.files.getlist("document_file")
+            if upload and upload.filename
+        ]
+        if not uploads:
             _logger.warning(
                 "Portal document upload missing file submission_id=%s document_id=%s user_id=%s",
                 submission.id,
@@ -112,22 +116,50 @@ class RiskSubmissionPortalController(http.Controller):
                 request.env.user.id,
             )
             return self._redirect_upload_error(submission, "missing")
-
-        upload_content = upload.read()
-        upload_error = self._validate_portal_upload(upload, document, len(upload_content))
-        if upload_error:
+        if not document.allow_multiple_files and len(uploads) > 1:
             _logger.warning(
-                "Portal document upload rejected submission_id=%s document_id=%s user_id=%s filename=%s error=%s mimetype=%s file_size=%s content_length=%s",
+                "Portal document upload rejected multiple files not allowed submission_id=%s document_id=%s user_id=%s count=%s",
                 submission.id,
                 document.id,
                 request.env.user.id,
-                upload.filename,
-                upload_error,
-                upload.mimetype,
-                len(upload_content),
-                request.httprequest.content_length,
+                len(uploads),
             )
-            return self._redirect_upload_error(submission, upload_error)
+            return self._redirect_upload_error(submission, "too_many")
+        if document.allow_multiple_files:
+            max_files = document.max_files or 1
+            available_slots = max_files - len(document.file_ids)
+            if len(uploads) > available_slots:
+                _logger.warning(
+                    "Portal document upload rejected too many files submission_id=%s document_id=%s user_id=%s existing=%s incoming=%s max=%s",
+                    submission.id,
+                    document.id,
+                    request.env.user.id,
+                    len(document.file_ids),
+                    len(uploads),
+                    max_files,
+                )
+                return self._redirect_upload_error(submission, "too_many")
+
+        prepared_uploads = []
+        for upload in uploads:
+            upload_content = upload.read()
+            upload_error = self._validate_portal_upload(
+                upload, document, len(upload_content)
+            )
+            if upload_error:
+                _logger.warning(
+                    "Portal document upload rejected submission_id=%s document_id=%s user_id=%s filename=%s error=%s mimetype=%s file_size=%s content_length=%s",
+                    submission.id,
+                    document.id,
+                    request.env.user.id,
+                    upload.filename,
+                    upload_error,
+                    upload.mimetype,
+                    len(upload_content),
+                    request.httprequest.content_length,
+                )
+                return self._redirect_upload_error(submission, upload_error)
+            prepared_uploads.append((upload, upload_content))
 
         date_error, date_values = self._validate_portal_document_dates(document, post)
         if date_error:
@@ -142,27 +174,90 @@ class RiskSubmissionPortalController(http.Controller):
             )
             return self._redirect_upload_error(submission, date_error)
 
-        _logger.info(
-            "Portal document upload received submission_id=%s document_id=%s user_id=%s filename=%s content_length=%s",
-            submission.id,
-            document.id,
-            request.env.user.id,
-            upload.filename,
-            request.httprequest.content_length,
-        )
-        document.write({
-            "file": base64.b64encode(upload_content).decode("ascii"),
-            "filename": upload.filename,
-            "state": "received",
-            "uploaded_by_id": request.env.user.id,
-            "uploaded_at": fields.Datetime.now(),
-            **date_values,
-        })
+        if document.allow_multiple_files:
+            file_values = []
+            next_sequence = (len(document.file_ids) + 1) * 10
+            for index, (upload, upload_content) in enumerate(prepared_uploads):
+                file_values.append(
+                    {
+                        "document_id": document.id,
+                        "sequence": next_sequence + (index * 10),
+                        "file": base64.b64encode(upload_content).decode("ascii"),
+                        "filename": upload.filename,
+                        "mimetype": upload.mimetype,
+                        "file_size": len(upload_content),
+                        "uploaded_by_id": request.env.user.id,
+                        "uploaded_at": fields.Datetime.now(),
+                    }
+                )
+            request.env["risk.module.document.file"].sudo().create(file_values)
+            if date_values:
+                document.write(date_values)
+            _logger.info(
+                "Portal multiple document upload received submission_id=%s document_id=%s user_id=%s count=%s",
+                submission.id,
+                document.id,
+                request.env.user.id,
+                len(file_values),
+            )
+        else:
+            upload, upload_content = prepared_uploads[0]
+            _logger.info(
+                "Portal document upload received submission_id=%s document_id=%s user_id=%s filename=%s content_length=%s",
+                submission.id,
+                document.id,
+                request.env.user.id,
+                upload.filename,
+                request.httprequest.content_length,
+            )
+            document.write({
+                "file": base64.b64encode(upload_content).decode("ascii"),
+                "filename": upload.filename,
+                "state": "received",
+                "uploaded_by_id": request.env.user.id,
+                "uploaded_at": fields.Datetime.now(),
+                **date_values,
+            })
         submission.message_post(
             body="Documento cargado desde portal: %s" % document.name,
         )
         submission.action_mark_documents_sent_if_complete()
         return request.redirect("/mis-solicitudes-riesgo/%s?upload_success=1" % submission.id)
+
+    @http.route(
+        "/mis-solicitudes-riesgo/<int:submission_id>/documentos/<int:document_id>/archivos/<int:file_id>",
+        type="http",
+        auth="user",
+        website=True,
+        sitemap=False,
+    )
+    def portal_document_multiple_file(self, submission_id, document_id, file_id, **kwargs):
+        submission = self._get_portal_submission(submission_id)
+        if not submission:
+            return request.not_found()
+        document = self._get_portal_document(submission, document_id)
+        if not document:
+            return request.not_found()
+        document_file = (
+            request.env["risk.module.document.file"].sudo().browse(file_id).exists()
+        )
+        if not document_file or document_file.document_id != document:
+            return request.not_found()
+
+        content = base64.b64decode(document_file.file)
+        filename = document_file.filename or document.name or "archivo"
+        mimetype = (
+            document_file.mimetype
+            or mimetypes.guess_type(filename)[0]
+            or "application/octet-stream"
+        )
+        return request.make_response(
+            content,
+            headers=[
+                ("Content-Type", mimetype),
+                ("Content-Disposition", content_disposition(filename)),
+            ],
+        )
 
     @http.route(
         "/mis-solicitudes-riesgo/<int:submission_id>/documentos/<int:document_id>/archivo",
