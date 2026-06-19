@@ -244,7 +244,26 @@ class RiskSubmissionPortalController(http.Controller):
         if not document_file or document_file.document_id != document:
             return request.not_found()
 
-        content = base64.b64decode(document_file.file)
+        if document_file.file:
+            content = base64.b64decode(document_file.file)
+        elif (
+            document_file.sharepoint_state == "synced"
+            and document_file.sharepoint_item_id
+        ):
+            try:
+                content = request.env["risk.sharepoint.service"].sudo()._download_content(
+                    document_file.sharepoint_item_id, document_file.sharepoint_drive_id
+                )
+            except Exception:
+                _logger.exception(
+                    "Portal SharePoint file download failed submission_id=%s document_id=%s file_id=%s",
+                    submission.id,
+                    document.id,
+                    document_file.id,
+                )
+                return request.not_found()
+        else:
+            return request.not_found()
         filename = document_file.filename or document.name or "archivo"
         mimetype = (
             document_file.mimetype

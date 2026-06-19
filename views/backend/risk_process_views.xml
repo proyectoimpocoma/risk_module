@@ -155,16 +155,16 @@
                                 <tr><td>Documentos en revisión</td><td class="who-a">Analista</td><td>Aprobar o rechazar cada documento.</td></tr>
                                 <tr><td>Requiere corrección</td><td class="who-t">Tercero</td><td>Corregir la solicitud o el documento.</td></tr>
                                 <tr><td>Corrección enviada</td><td class="who-a">Analista</td><td>Re-revisar y continuar.</td></tr>
-                                <tr><td>Aprobado</td><td>—</td><td>Final: habilita vehículo y conductor en maestros.</td></tr>
+                                <tr><td>Aprobado</td><td>—</td><td>Final: habilita vehículo y conductor en la base de terceros.</td></tr>
                                 <tr><td>Rechazado</td><td>—</td><td>Final: queda con motivo de rechazo.</td></tr>
                             </tbody>
                         </table>
                     </div>
 
                     <div class="rp-card">
-                        <h2>Relación de maestros (vehículo, propietario, conductor)</h2>
+                        <h2>Relación en la base de terceros (vehículo, propietario, conductor)</h2>
                         <svg viewBox="0 0 860 520" xmlns="http://www.w3.org/2000/svg" font-family="'Montserrat', system-ui, sans-serif" role="img">
-                            <title>Relación maestros: Vehículo, Propietario y Conductor</title>
+                            <title>Relación base de terceros: Vehículo, Propietario y Conductor</title>
                             <desc>El vehículo se vincula a propietarios por roles (N:N, al enviar) y a un conductor por asignación activa única (al aprobar).</desc>
                             <defs>
                                 <marker id="ma" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#c95f00"/></marker>

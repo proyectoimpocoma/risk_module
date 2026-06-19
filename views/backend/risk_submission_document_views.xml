@@ -172,6 +172,16 @@
                                             <field name="file_size"/>
                                             <field name="uploaded_by_id"/>
                                             <field name="uploaded_at"/>
+                                            <field name="sharepoint_state" widget="badge"
+                                                   decoration-success="sharepoint_state == 'synced'"
+                                                   decoration-warning="sharepoint_state == 'pending'"
+                                                   decoration-danger="sharepoint_state == 'error'"
+                                                   decoration-muted="sharepoint_state == 'disabled'"/>
+                                            <field name="sharepoint_web_url" widget="url" readonly="1" optional="hide"/>
+                                            <field name="sharepoint_error" optional="hide"/>
+                                            <button name="action_retry_sharepoint" type="object"
+                                                    string="Reintentar SharePoint" icon="fa-refresh"
+                                                    invisible="sharepoint_state != 'error'"/>
                                         </list>
                                     </field>
                                 </page>

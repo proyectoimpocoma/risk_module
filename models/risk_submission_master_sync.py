@@ -38,7 +38,7 @@ class RiskSubmissionMasterSync(models.Model):
         tracking=True,
     )
     master_validation_summary = fields.Char(
-        string="Resumen maestros",
+        string="Resumen base de terceros",
         compute="_compute_master_validation_summary",
     )
 
@@ -60,7 +60,7 @@ class RiskSubmissionMasterSync(models.Model):
                 )
             if record.vehicle_owner_link_id:
                 messages.append("Propietario/tenedor relacionado")
-            record.master_validation_summary = "; ".join(messages) or "Sin conflictos en maestros"
+            record.master_validation_summary = "; ".join(messages) or "Sin conflictos en la base de terceros"
 
     def _master_vehicle_for_plate(self):
         self.ensure_one()

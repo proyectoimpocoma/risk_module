@@ -93,7 +93,7 @@
                         Solicitud rechazada definitivamente. El tercero no puede corregir esta solicitud desde el portal.
                     </div>
                     <div class="alert alert-info" role="status" invisible="not master_validation_summary">
-                        <strong>Maestros:</strong>
+                        <strong>Base de terceros:</strong>
                         <field name="master_validation_summary" readonly="1" nolabel="1"/>
                     </div>
 

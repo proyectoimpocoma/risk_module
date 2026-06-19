@@ -592,6 +592,45 @@ class RiskSubmissionDocument(models.Model):
         """Atajo: indica si la integracion con SharePoint esta activa."""
         return self.env["risk.sharepoint.service"]._is_enabled()
 
+    def _recompute_sharepoint_state_from_files(self):
+        """Refleja en el documento el estado agregado de sus archivos multiples.
+
+        En documentos multi-archivo el binario ``file`` del documento esta vacio
+        (el contenido vive en ``file_ids``), por lo que el estado SharePoint del
+        documento debe derivarse del de sus archivos para que la insignia del
+        backend sea fiable.
+        """
+        for record in self:
+            if not record.allow_multiple_files:
+                continue
+            files = record.file_ids
+            if not files:
+                state = "disabled"
+            elif any(item.sharepoint_state == "pending" for item in files):
+                state = "pending"
+            elif any(item.sharepoint_state == "error" for item in files):
+                state = "error"
+            elif all(item.sharepoint_state == "synced" for item in files):
+                state = "synced"
+            else:
+                state = "disabled"
+            vals = {}
+            if record.sharepoint_state != state:
+                vals["sharepoint_state"] = state
+            if state == "synced":
+                synced_dates = [
+                    item.sharepoint_synced_at
+                    for item in files
+                    if item.sharepoint_synced_at
+                ]
+                vals["sharepoint_synced_at"] = (
+                    max(synced_dates) if synced_dates else fields.Datetime.now()
+                )
+                if record.sharepoint_error:
+                    vals["sharepoint_error"] = False
+            if vals:
+                record.write(vals)
+
     def _sp_folder_segments(self):
         """Ruta de carpetas en SharePoint para este documento."""
         self.ensure_one()
@@ -742,6 +781,25 @@ class RiskSubmissionDocument(models.Model):
                     "SharePoint cron unexpected error document_id=%s", doc.id
                 )
 
+        # Documentos multi-archivo: cada archivo se sincroniza como item propio.
+        document_files = self.env["risk.module.document.file"].search(
+            [
+                ("sharepoint_state", "in", ("pending", "error")),
+                ("sharepoint_attempts", "<", cfg["max_attempts"]),
+                ("file", "!=", False),
+            ],
+            limit=limit,
+        )
+        _logger.info("SharePoint cron processing files count=%s", len(document_files))
+        for document_file in document_files:
+            try:
+                with self.env.cr.savepoint():
+                    document_file._sync_to_sharepoint()
+            except Exception:  # noqa: BLE001 - aislar fallos por archivo
+                _logger.exception(
+                    "SharePoint cron unexpected error file_id=%s", document_file.id
+                )
+
     def action_retry_sharepoint(self):
         """Reintento manual desde el formulario (sincrono)."""
         for record in self:
@@ -789,13 +847,25 @@ class RiskSubmissionDocument(models.Model):
         if not self.file:
             if self.file_ids:
                 document_file = self.file_ids.sorted("sequence")[0]
-                filename = quote(document_file.filename or self.name or "archivo")
-                return {
-                    "type": "ir.actions.act_url",
-                    "url": "/web/content/risk.module.document.file/%s/file/%s?download=false"
-                    % (document_file.id, filename),
-                    "target": "new",
-                }
+                # En multi-archivo el item vigente puede estar ya en SharePoint
+                # (copia local purgada): abrimos el enlace de SharePoint.
+                if (
+                    document_file.sharepoint_state == "synced"
+                    and document_file.sharepoint_web_url
+                ):
+                    return {
+                        "type": "ir.actions.act_url",
+                        "url": document_file.sharepoint_web_url,
+                        "target": "new",
+                    }
+                if document_file.file:
+                    filename = quote(document_file.filename or self.name or "archivo")
+                    return {
+                        "type": "ir.actions.act_url",
+                        "url": "/web/content/risk.module.document.file/%s/file/%s?download=false"
+                        % (document_file.id, filename),
+                        "target": "new",
+                    }
             raise ValidationError("Este documento no tiene archivo cargado.")
         filename = quote(self.filename or self.name or "documento")
         return {

@@ -121,3 +121,81 @@ class TestRiskSharepoint(RiskModuleTestCase):
             self.env["risk.module.document"]._cron_sync_sharepoint()
         mocked.assert_called_once()
         self.assertEqual(self.document.sharepoint_state, "synced")
+
+    # ------------------------------------------------------------------
+    # Documentos multi-archivo (risk.module.document.file)
+    # ------------------------------------------------------------------
+    def _make_multifile_document(self):
+        document = self.make_document(
+            self.submission,
+            document_type="vehicle_photo",
+            party="vehicle",
+            state="pending",
+            allow_multiple_files=True,
+            max_files=3,
+        )
+        files = self.env["risk.module.document.file"].create(
+            [
+                {
+                    "document_id": document.id,
+                    "filename": "foto1.jpg",
+                    "file": self.TEST_DUMMY_FILE,
+                    "sequence": 10,
+                },
+                {
+                    "document_id": document.id,
+                    "filename": "foto2.jpg",
+                    "file": self.TEST_DUMMY_FILE,
+                    "sequence": 20,
+                },
+            ]
+        )
+        return document, files
+
+    def test_multifile_upload_marks_pending(self):
+        document, files = self._make_multifile_document()
+        self.assertEqual(set(files.mapped("sharepoint_state")), {"pending"})
+        self.assertEqual(document.sharepoint_state, "pending")
+        self.assertTrue(document.has_file)
+
+    def test_multifile_cron_syncs_each_file_and_purges(self):
+        document, files = self._make_multifile_document()
+        with patch(SERVICE + "._store_file", return_value=STORE_RESULT) as mocked:
+            self.env["risk.module.document"]._cron_sync_sharepoint()
+        # Una llamada por archivo; el documento padre (sin file propio) no se sube.
+        self.assertEqual(mocked.call_count, 2)
+        for call in mocked.call_args_list:
+            self.assertIsNone(call.kwargs.get("item_id"))
+        self.assertEqual(set(files.mapped("sharepoint_state")), {"synced"})
+        self.assertFalse(any(files.mapped("file")))  # purgado tras subir
+        self.assertEqual(document.sharepoint_state, "synced")
+        # Abrir el documento usa el enlace de SharePoint del primer archivo.
+        action = document.action_open_file()
+        self.assertEqual(action["url"], "https://sp/doc")
+
+    def test_multifile_unique_filename_avoids_collision(self):
+        document, files = self._make_multifile_document()
+        # Aunque dos archivos tengan el mismo nombre original, el nombre en
+        # SharePoint es unico por archivo (evita sobrescrituras).
+        files[1].filename = "foto1.jpg"
+        unique_names = files.mapped(lambda item: item._sp_unique_filename())
+        self.assertEqual(len(set(unique_names)), len(files))
+
+    def test_multifile_error_retries_then_fails(self):
+        document, files = self._make_multifile_document()
+        first_file, second_file = files[0], files[1]
+        # El segundo archivo sube correctamente.
+        with patch(SERVICE + "._store_file", return_value=STORE_RESULT):
+            second_file._sync_to_sharepoint()
+        # El primero falla hasta agotar los reintentos (max_attempts=3).
+        with patch(SERVICE + "._store_file", side_effect=Exception("boom")):
+            first_file._sync_to_sharepoint()
+            self.assertEqual(first_file.sharepoint_state, "pending")
+            self.assertEqual(first_file.sharepoint_attempts, 1)
+            self.assertTrue(first_file.file)  # no se purga ante error
+            first_file._sync_to_sharepoint()
+            first_file._sync_to_sharepoint()
+        self.assertEqual(first_file.sharepoint_attempts, 3)
+        self.assertEqual(first_file.sharepoint_state, "error")
+        # Sin archivos pendientes y con uno en error, el documento agrega "error".
+        self.assertEqual(document.sharepoint_state, "error")
