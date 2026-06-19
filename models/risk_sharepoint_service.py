@@ -52,18 +52,23 @@ class RiskSharepointService(models.AbstractModel):
             "site": (get("risk_module.sp_site") or "").strip(),
             "drive": (get("risk_module.sp_drive") or "").strip(),
             "root_folder": (get("risk_module.sp_root_folder") or "Solicitudes").strip(),
-            "purge_local": get("risk_module.sp_purge_local") in ("True", "1", "true", None),
+            "purge_local": get("risk_module.sp_purge_local")
+            in ("True", "1", "true", None),
             "max_attempts": int(get("risk_module.sp_max_attempts") or 5),
         }
 
     def _is_enabled(self):
         cfg = self._config()
-        return bool(cfg["enabled"] and cfg["tenant_id"] and cfg["client_id"] and cfg["site"])
+        return bool(
+            cfg["enabled"] and cfg["tenant_id"] and cfg["client_id"] and cfg["site"]
+        )
 
     @staticmethod
     def _sanitize_name(name):
         """Limpia un segmento de ruta para que sea valido en SharePoint."""
-        cleaned = "".join(" " if ch in _INVALID_NAME_CHARS else ch for ch in (name or ""))
+        cleaned = "".join(
+            " " if ch in _INVALID_NAME_CHARS else ch for ch in (name or "")
+        )
         cleaned = cleaned.strip().strip(".")
         return cleaned or "sin_nombre"
 
@@ -147,9 +152,11 @@ class RiskSharepointService(models.AbstractModel):
         site = self._request("GET", "%s/sites/%s" % (GRAPH_BASE, cfg["site"])).json()
         site_id = site["id"]
         if cfg["drive"]:
-            drives = self._request(
-                "GET", "%s/sites/%s/drives" % (GRAPH_BASE, site_id)
-            ).json().get("value", [])
+            drives = (
+                self._request("GET", "%s/sites/%s/drives" % (GRAPH_BASE, site_id))
+                .json()
+                .get("value", [])
+            )
             drive = next((d for d in drives if d.get("name") == cfg["drive"]), None)
             if not drive:
                 raise UserError(
@@ -215,14 +222,22 @@ class RiskSharepointService(models.AbstractModel):
     def _upload_to_path(self, drive_id, folder_path, filename, content):
         if len(content) < SIMPLE_UPLOAD_LIMIT:
             url = "%s/drives/%s/root:/%s/%s:/content" % (
-                GRAPH_BASE, drive_id, folder_path, filename,
+                GRAPH_BASE,
+                drive_id,
+                folder_path,
+                filename,
             )
             return self._request(
-                "PUT", url, data=content,
+                "PUT",
+                url,
+                data=content,
                 headers={"Content-Type": "application/octet-stream"},
             ).json()
         session_url = "%s/drives/%s/root:/%s/%s:/createUploadSession" % (
-            GRAPH_BASE, drive_id, folder_path, filename,
+            GRAPH_BASE,
+            drive_id,
+            folder_path,
+            filename,
         )
         return self._upload_session(session_url, content)
 
@@ -230,18 +245,23 @@ class RiskSharepointService(models.AbstractModel):
         if len(content) < SIMPLE_UPLOAD_LIMIT:
             url = "%s/drives/%s/items/%s/content" % (GRAPH_BASE, drive_id, item_id)
             return self._request(
-                "PUT", url, data=content,
+                "PUT",
+                url,
+                data=content,
                 headers={"Content-Type": "application/octet-stream"},
             ).json()
         session_url = "%s/drives/%s/items/%s/createUploadSession" % (
-            GRAPH_BASE, drive_id, item_id,
+            GRAPH_BASE,
+            drive_id,
+            item_id,
         )
         return self._upload_session(session_url, content)
 
     def _upload_session(self, session_url, content):
         """Subida por chunks para archivos grandes (>4 MB)."""
         upload_url = self._request(
-            "POST", session_url,
+            "POST",
+            session_url,
             json={"item": {"@microsoft.graph.conflictBehavior": "replace"}},
         ).json()["uploadUrl"]
         total = len(content)
@@ -271,7 +291,9 @@ class RiskSharepointService(models.AbstractModel):
         if not drive_id:
             _, drive_id = self._resolve_location()
         url = "%s/drives/%s/items/%s?select=id,@microsoft.graph.downloadUrl" % (
-            GRAPH_BASE, drive_id, item_id,
+            GRAPH_BASE,
+            drive_id,
+            item_id,
         )
         data = self._request("GET", url).json()
         return data.get("@microsoft.graph.downloadUrl")

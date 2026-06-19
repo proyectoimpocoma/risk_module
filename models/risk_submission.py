@@ -908,6 +908,51 @@ class RiskSubmission(models.Model):
                 partners |= partner
         return partners.ids
 
+    def action_send_submission_approved_email(self):
+        template = self.env.ref(
+            "risk_module.email_template_risk_submission_approved",
+            raise_if_not_found=False,
+        )
+        if not template:
+            _logger.warning("Risk submission approved template not found")
+            return False
+
+        sent = False
+        for record in self:
+            recipient = record._submission_rejected_email_to()
+            if not recipient:
+                _logger.warning(
+                    "Risk submission approved email skipped without recipient submission_id=%s",
+                    record.id,
+                )
+                continue
+
+            record._queue_mail_after_commit(
+                template=template,
+                record_id=record.id,
+                email_values={
+                    "email_from": "reporte@impocoma.com",
+                    "reply_to": "reporte@impocoma.com",
+                    "email_to": recipient,
+                    "recipient_ids": [(5, 0, 0)],
+                },
+                force_send=True,
+                template_context={},
+                success_message="Correo de aprobacion de solicitud enviado a %s."
+                % recipient,
+                failure_message="No fue posible enviar el correo de aprobacion de solicitud a %s."
+                % recipient,
+            )
+
+            _logger.info(
+                "Risk submission approved email scheduled after commit submission_id=%s recipient=%s",
+                record.id,
+                recipient,
+            )
+            sent = True
+
+        return sent
+
     def action_send_submission_rejected_email(self):
         template = self.env.ref(
             "risk_module.email_template_risk_submission_rejected",

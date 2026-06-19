@@ -148,6 +148,7 @@ class RiskSubmissionWorkflow(models.Model):
                     escape(note),
                 )
             record.message_post(body=body)
+            record.action_send_submission_approved_email()
             _logger.info(
                 "Approval confirmed submission_id=%s user_id=%s",
                 record.id,
