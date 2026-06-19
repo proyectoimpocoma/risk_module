@@ -329,11 +329,53 @@ class RiskSubmissionFormValidationMixin:
         submission_id = data.get("submission_id") or request.session.get(
             "risk_submission_id"
         )
-        duplicate = (
-            request.env["risk.module"]
-            .sudo()
-            ._find_active_submission_for_plate(plate, exclude_id=submission_id)
-        )
+
+        # When the session has no submission_id, recover any own draft for this
+        # plate so it is excluded from the duplicate check and can be reused
+        # instead of blocking the user (session can be lost when navigating to
+        # the start page or on browser reload that clears the POST context).
+        own_draft_ids = []
+        if not request.env.user._is_public():
+            partner = request.env.user.partner_id
+            if partner and plate:
+                own_drafts = (
+                    request.env["risk.module"]
+                    .sudo()
+                    .search(
+                        [
+                            ("vehicle_plate", "=", plate),
+                            ("state", "=", "draft"),
+                            ("partner_id", "=", partner.id),
+                        ],
+                        order="create_date desc",
+                    )
+                )
+                if own_drafts:
+                    own_draft_ids = own_drafts.ids
+                    if not submission_id:
+                        submission_id = own_drafts[0].id
+                        data["submission_id"] = submission_id
+                        request.session["risk_submission_id"] = submission_id
+                        _logger.info(
+                            "Recovered own draft submission submission_id=%s plate=%s user_id=%s",
+                            submission_id,
+                            plate,
+                            request.env.user.id,
+                        )
+
+        exclude_ids = set(own_draft_ids)
+        if submission_id:
+            exclude_ids.add(int(submission_id))
+
+        RiskModule = request.env["risk.module"].sudo()
+        domain = [
+            ("vehicle_plate", "=", RiskModule._normalize_plate(plate)),
+            ("state", "in", RiskModule._active_submission_states()),
+        ]
+        if exclude_ids:
+            domain.append(("id", "not in", list(exclude_ids)))
+        duplicate = RiskModule.search(domain, limit=1)
+
         if duplicate:
             return (
                 "Ya existe una solicitud activa para la placa %s. "
