@@ -42,7 +42,7 @@
                 <div t-if="submissions" class="rpd-cards">
                     <t t-foreach="submissions" t-as="submission">
                         <t t-set="bucket"
-                           t-value="{'approved': 'approved', 'rejected': 'rejected', 'correction_required': 'warning', 'correction_submitted': 'warning'}.get(submission.state, 'info')"/>
+                           t-value="{'draft': 'warning', 'approved': 'approved', 'rejected': 'rejected', 'correction_required': 'warning', 'correction_submitted': 'warning'}.get(submission.state, 'info')"/>
                         <t t-set="req" t-value="submission.document_ids.filtered(lambda d: d.required)"/>
                         <t t-set="req_total" t-value="len(req)"/>
                         <t t-set="req_done" t-value="len(req.filtered(lambda d: d.state == 'approved'))"/>
@@ -86,6 +86,12 @@
                             </div>
 
                             <div class="rpd-card-actions">
+                                <a t-if="submission.state == 'draft'"
+                                   t-attf-href="/registro-conductor/continuar/#{submission.id}"
+                                   class="rpd-correct-card-btn">
+                                    <span class="material-symbols-outlined">edit</span>
+                                    Continuar
+                                </a>
                                 <a t-if="submission.state == 'correction_required'"
                                    t-attf-href="/registro-conductor/corregir/#{submission.id}"
                                    class="rpd-correct-card-btn">
@@ -196,6 +202,7 @@
                 <div t-if="request.params.get('upload_error') == 'old_issue_date'" class="alert alert-danger">La fecha de expedicion supera la antiguedad maxima permitida para este documento.</div>
 
                 <!-- Header card -->
+                <t t-set="is_draft" t-value="submission.state == 'draft'"/>
                 <t t-set="needs_correction" t-value="submission.state == 'correction_required'"/>
                 <t t-set="required_documents" t-value="submission.document_ids.filtered(lambda d: d.required)"/>
                 <t t-set="req_total" t-value="len(required_documents)"/>
@@ -210,8 +217,8 @@
                                 <span class="rpd-subtitle-text">Habilitación vehículo <t t-esc="submission.vehicle_plate"/></span>
                             </div>
                         </div>
-                        <div t-attf-class="rpd-status #{'rpd-status-warning' if needs_correction else 'rpd-status-neutral'}">
-                            <span t-if="needs_correction" class="material-symbols-outlined">warning</span>
+                        <div t-attf-class="rpd-status #{'rpd-status-warning' if needs_correction or is_draft else 'rpd-status-neutral'}">
+                            <span t-if="needs_correction or is_draft" class="material-symbols-outlined">warning</span>
                             <span t-esc="submission.portal_state_label"/>
                         </div>
                     </div>
@@ -257,6 +264,17 @@
                         <a t-attf-href="/registro-conductor/corregir/#{submission.id}" class="rpd-action-btn rpd-correct-inline">
                             <span class="material-symbols-outlined">edit</span>
                             Corregir solicitud
+                        </a>
+                    </div>
+                </div>
+                <div t-if="is_draft" class="rpd-alert">
+                    <span class="material-symbols-outlined">edit</span>
+                    <div class="rpd-alert-body">
+                        <h3>Solicitud sin finalizar</h3>
+                        <p>Continua el formulario para enviar la solicitud al equipo de riesgo.</p>
+                        <a t-attf-href="/registro-conductor/continuar/#{submission.id}" class="rpd-action-btn rpd-correct-inline">
+                            <span class="material-symbols-outlined">edit</span>
+                            Continuar solicitud
                         </a>
                     </div>
                 </div>
@@ -327,8 +345,11 @@
             <!-- Bottom action bar.
                  Use submission.state directly: the needs_correction t-set lives inside
                  <main> and is out of scope for this sibling node. -->
-            <div t-if="submission.state == 'correction_required'" class="rpd-actionbar">
-                <a t-attf-href="/registro-conductor/corregir/#{submission.id}" class="rpd-action-btn">
+            <div t-if="submission.state in ('draft', 'correction_required')" class="rpd-actionbar">
+                <a t-if="submission.state == 'draft'" t-attf-href="/registro-conductor/continuar/#{submission.id}" class="rpd-action-btn">
+                    Continuar solicitud
+                </a>
+                <a t-if="submission.state == 'correction_required'" t-attf-href="/registro-conductor/corregir/#{submission.id}" class="rpd-action-btn">
                     Corregir registro
                 </a>
             </div>

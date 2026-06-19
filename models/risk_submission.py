@@ -606,8 +606,8 @@ class RiskSubmission(models.Model):
         This label is used in the portal to present a simplified submission status.
         """
         labels = {
-            "draft": "En revision",
-            "submitted": "En revision",
+            "draft": "Pendiente por completar",
+            "submitted": "Enviado",
             "risk_review": "En revision",
             "external_validation_pending": "En revision",
             "manual_approval_pending": "En revision",
