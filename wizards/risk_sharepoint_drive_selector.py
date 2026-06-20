@@ -150,6 +150,12 @@ class RiskSharepointDriveSelector(models.TransientModel):
         })
         return self._reopen()
 
+    def action_change_drive(self):
+        """Regresa al paso 1 para cambiar la biblioteca."""
+        self.ensure_one()
+        self.write({"stage": "drive", "current_path": "", "current_item_id": "", "folder_choice": False})
+        return self._reopen()
+
     def action_confirm(self):
         """Guarda drive, carpeta raíz e item_id en los parámetros de configuración."""
         self.ensure_one()
