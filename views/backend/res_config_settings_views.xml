@@ -42,6 +42,9 @@
                                 <div class="row">
                                     <label for="risk_sp_drive" class="col-lg-4 o_light_label"/>
                                     <field name="risk_sp_drive" placeholder="Documentos"/>
+                                    <button name="action_risk_sp_select_drive" type="object"
+                                            string="Seleccionar" class="btn-secondary btn-sm ms-2"
+                                            title="Listar y seleccionar la biblioteca desde SharePoint"/>
                                 </div>
                                 <div class="row">
                                     <label for="risk_sp_root_folder" class="col-lg-4 o_light_label"/>

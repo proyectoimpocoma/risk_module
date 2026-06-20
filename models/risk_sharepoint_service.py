@@ -311,6 +311,20 @@ class RiskSharepointService(models.AbstractModel):
         url = "%s/drives/%s/items/%s" % (GRAPH_BASE, drive_id, item_id)
         self._request("DELETE", url)
 
+    def _list_drives(self):
+        """Devuelve lista de dicts con id/name de las bibliotecas del sitio configurado."""
+        cfg = self._config()
+        if not cfg["site"]:
+            raise UserError("Configura el sitio de SharePoint antes de listar las bibliotecas.")
+        site = self._request("GET", "%s/sites/%s" % (GRAPH_BASE, cfg["site"])).json()
+        site_id = site["id"]
+        drives = (
+            self._request("GET", "%s/sites/%s/drives" % (GRAPH_BASE, site_id))
+            .json()
+            .get("value", [])
+        )
+        return [{"id": d["id"], "name": d.get("name", d["id"])} for d in drives]
+
     def _test_connection(self):
         """Resuelve sitio y biblioteca; util para un boton 'Probar conexion'."""
         _LOCATION_CACHE.clear()
