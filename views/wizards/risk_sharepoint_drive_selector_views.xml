@@ -40,7 +40,9 @@
                                 <field name="directory_summary" readonly="1" nolabel="1"/>
                             </group>
                             <group string="Navegación">
-                                <field name="folder_choice" widget="radio" nolabel="1"/>
+                                <field name="folder_choice"
+                                       string="Carpeta"
+                                       placeholder="Selecciona una carpeta para entrar"/>
                             </group>
                         </group>
                         <div class="mt-2">
@@ -48,8 +50,7 @@
                                     class="btn-secondary btn-sm"
                                     invisible="not current_item_id"/>
                             <button string="→ Entrar en carpeta" type="object" name="action_enter_folder"
-                                    class="btn-secondary btn-sm ms-2"
-                                    invisible="not folder_choice"/>
+                                    class="btn-secondary btn-sm ms-2"/>
                             <button string="Refrescar" type="object" name="action_refresh"
                                     class="btn-secondary btn-sm ms-2"/>
                             <button string="⇆ Cambiar biblioteca" type="object" name="action_change_drive"

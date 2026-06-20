@@ -74,7 +74,7 @@ class RiskSharepointDriveSelector(models.TransientModel):
                 folders = svc._list_folders_by_item(
                     technical_drive_id, self.current_item_id
                 )
-                return [(f["name"], f["name"]) for f in folders]
+                return [(f["id"], f["name"]) for f in folders]
             folders = svc._list_folders(self.drive_id, self.current_path or "")
             return [(f, f) for f in folders]
         except Exception as exc:
@@ -104,6 +104,11 @@ class RiskSharepointDriveSelector(models.TransientModel):
                 )
             except Exception as exc:  # noqa: BLE001 - visible para autogestion
                 rec.directory_summary = _("No se pudo listar la carpeta: %s") % exc
+                _logger.exception(
+                    "SharePoint explorer list folder failed drive_id=%s item_id=%s",
+                    rec.selected_drive_id or rec.drive_id,
+                    rec.current_item_id,
+                )
                 continue
             folders = [item for item in children if item["is_folder"]]
             files = [item for item in children if item["is_file"]]
@@ -171,6 +176,18 @@ class RiskSharepointDriveSelector(models.TransientModel):
             return self.selected_drive_id
         return self.env["risk.sharepoint.service"]._drive_id_by_name(self.drive_id)
 
+    def _folder_name_from_choice(self, drive_id, item_id):
+        self.ensure_one()
+        if not self.current_item_id:
+            return item_id
+        children = self.env["risk.sharepoint.service"]._list_children_by_item(
+            drive_id, self.current_item_id
+        )
+        for child in children:
+            if child["is_folder"] and child["id"] == item_id:
+                return child["name"]
+        raise UserError(_("La carpeta seleccionada ya no existe o no es accesible."))
+
     # ── Acciones de navegación ────────────────────────────────────────────
 
     def _reopen(self):
@@ -210,17 +227,24 @@ class RiskSharepointDriveSelector(models.TransientModel):
             raise UserError(_("No se pueden cargar las subcarpetas. Verifica la configuración."))
         svc = self.env["risk.sharepoint.service"]
         technical_drive_id = self._current_drive_id()
+        folder_name = self._folder_name_from_choice(
+            technical_drive_id, self.folder_choice
+        )
         _logger.info(
-            "SharePoint explorer enter folder drive_id=%s current_item_id=%s folder=%s",
+            "SharePoint explorer enter folder drive_id=%s current_item_id=%s folder=%s selected_item_id=%s",
             technical_drive_id,
             self.current_item_id,
+            folder_name,
             self.folder_choice,
         )
-        child_item_id = svc._get_child_item_id(
-            technical_drive_id, self.current_item_id, self.folder_choice
-        )
+        if self.current_item_id:
+            child_item_id = self.folder_choice
+        else:
+            child_item_id = svc._get_child_item_id(
+                technical_drive_id, self.current_item_id, folder_name
+            )
         base = self.current_path or ""
-        new_path = "%s/%s" % (base, self.folder_choice) if base else self.folder_choice
+        new_path = "%s/%s" % (base, folder_name) if base else folder_name
         self.write({
             "current_path": new_path,
             "current_item_id": child_item_id,
