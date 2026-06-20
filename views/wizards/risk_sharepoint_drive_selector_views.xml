@@ -3,20 +3,54 @@
         <field name="name">risk.sharepoint.drive.selector.form</field>
         <field name="model">risk.sharepoint.drive.selector</field>
         <field name="arch" type="xml">
-            <form string="Seleccionar biblioteca de SharePoint">
+            <form string="Seleccionar biblioteca y carpeta">
                 <sheet>
-                    <div class="o_form_view">
+
+                    <!-- Paso 1: elegir biblioteca -->
+                    <div invisible="stage != 'drive'">
+                        <h4>Paso 1 de 2 — Biblioteca</h4>
                         <p class="text-muted">
                             Selecciona la biblioteca (drive) de SharePoint donde se guardarán los documentos.
-                            Esta lista se obtiene directamente desde el sitio configurado.
                         </p>
                         <group>
-                            <field name="drive_id" widget="radio"/>
+                            <field name="drive_id" widget="radio" nolabel="1"/>
                         </group>
                     </div>
+
+                    <!-- Paso 2: navegar carpetas -->
+                    <div invisible="stage != 'folder'">
+                        <h4>Paso 2 de 2 — Carpeta raíz</h4>
+                        <p class="text-muted">
+                            Navega hasta la carpeta donde se crearán las subcarpetas por solicitud.
+                            Si usas la raíz de la biblioteca, deja la selección vacía y confirma.
+                        </p>
+                        <div class="mb-2">
+                            <strong>Ubicación: </strong>
+                            <field name="path_display" readonly="1" nolabel="1" class="text-primary"/>
+                        </div>
+                        <field name="stage" invisible="1"/>
+                        <field name="current_path" invisible="1"/>
+                        <group>
+                            <field name="folder_choice" widget="radio" nolabel="1"/>
+                        </group>
+                        <div class="mt-2">
+                            <button string="↑ Subir un nivel" type="object" name="action_go_up"
+                                    class="btn-secondary btn-sm"
+                                    invisible="not current_path"/>
+                            <button string="→ Entrar en carpeta" type="object" name="action_enter_folder"
+                                    class="btn-secondary btn-sm ms-2"
+                                    invisible="not folder_choice"/>
+                        </div>
+                    </div>
+
                 </sheet>
                 <footer>
-                    <button string="Seleccionar" type="object" name="action_confirm" class="btn-primary"/>
+                    <!-- Etapa drive: avanzar al paso 2 -->
+                    <button string="Siguiente →" type="object" name="action_next_stage"
+                            class="btn-primary" invisible="stage != 'drive'"/>
+                    <!-- Etapa folder: confirmar selección -->
+                    <button string="Seleccionar esta carpeta" type="object" name="action_confirm"
+                            class="btn-primary" invisible="stage != 'folder'"/>
                     <button string="Cancelar" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>

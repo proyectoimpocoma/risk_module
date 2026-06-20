@@ -325,6 +325,34 @@ class RiskSharepointService(models.AbstractModel):
         )
         return [{"id": d["id"], "name": d.get("name", d["id"])} for d in drives]
 
+    def _list_folders(self, drive_name, path=""):
+        """Devuelve nombres de subcarpetas dentro de path en el drive indicado.
+
+        path vacío → raíz del drive.
+        """
+        cfg = self._config()
+        if not cfg["site"]:
+            raise UserError("Configura el sitio de SharePoint antes de navegar carpetas.")
+        # Resolve drive id by name.
+        drives = self._list_drives()
+        drive = next((d for d in drives if d["name"] == drive_name), None)
+        if not drive:
+            raise UserError("No se encontró la biblioteca '%s'." % drive_name)
+        drive_id = drive["id"]
+        if path:
+            url = "%s/drives/%s/root:/%s:/children?$select=name,folder&$filter=folder ne null" % (
+                GRAPH_BASE,
+                drive_id,
+                path,
+            )
+        else:
+            url = "%s/drives/%s/root/children?$select=name,folder&$filter=folder ne null" % (
+                GRAPH_BASE,
+                drive_id,
+            )
+        items = self._request("GET", url).json().get("value", [])
+        return [i["name"] for i in items if "folder" in i]
+
     def _test_connection(self):
         """Resuelve sitio y biblioteca; util para un boton 'Probar conexion'."""
         _LOCATION_CACHE.clear()
