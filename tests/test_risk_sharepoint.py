@@ -295,3 +295,42 @@ class TestRiskSharepoint(RiskModuleTestCase):
         with patch(SERVICE + "._create_folder_under_item") as create_mock:
             wizard.action_create_folder()
         create_mock.assert_called_once_with("DRV", "ROOT", "Pruebas")
+
+    def test_wizard_lists_rows_and_opens_folder(self):
+        root_children = [
+            {
+                "id": "F1",
+                "name": "Contratos",
+                "is_folder": True,
+                "is_file": False,
+                "size": 0,
+                "web_url": "https://sp/f1",
+            },
+            {
+                "id": "D1",
+                "name": "guia.pdf",
+                "is_folder": False,
+                "is_file": True,
+                "size": 12,
+                "web_url": "https://sp/d1",
+            },
+        ]
+        with patch(
+            SERVICE + "._list_children_by_item",
+            side_effect=[root_children, []],
+        ) as list_mock:
+            wizard = self.env["risk.sharepoint.drive.selector"].create(
+                {
+                    "stage": "folder",
+                    "drive_id": "Documentos",
+                    "selected_drive_id": "DRV",
+                    "current_item_id": "ROOT",
+                }
+            )
+            self.assertEqual(len(wizard.line_ids), 2)
+            folder_line = wizard.line_ids.filtered(lambda line: line.is_folder)
+            self.assertEqual(folder_line.name, "Contratos")
+            folder_line.action_open_folder()
+        self.assertEqual(wizard.current_item_id, "F1")
+        self.assertEqual(wizard.current_path, "Contratos")
+        self.assertEqual(list_mock.call_count, 2)

@@ -33,24 +33,33 @@
                         <field name="current_path" invisible="1"/>
                         <field name="current_item_id" invisible="1"/>
                         <field name="test_upload_item_id" invisible="1"/>
+                        <field name="folder_choice" invisible="1"/>
                         <group>
                             <group string="Contenido">
                                 <field name="folder_count" readonly="1"/>
                                 <field name="file_count" readonly="1"/>
-                                <field name="directory_summary" readonly="1" nolabel="1"/>
-                            </group>
-                            <group string="Navegación">
-                                <field name="folder_choice"
-                                       string="Carpeta"
-                                       placeholder="Selecciona una carpeta para entrar"/>
+                                <field name="explorer_message" readonly="1" nolabel="1"
+                                       invisible="not explorer_message"/>
                             </group>
                         </group>
+                        <field name="line_ids" nolabel="1">
+                            <list create="false" edit="false" delete="false">
+                                <field name="item_type" string="Tipo" readonly="1"/>
+                                <field name="name" string="Nombre" readonly="1"/>
+                                <field name="size" string="Tamaño" readonly="1" optional="hide"/>
+                                <button string="Abrir" type="object" name="action_open_folder"
+                                        class="btn-link" invisible="not is_folder"/>
+                                <button string="Ver archivo" type="object" name="action_open_file"
+                                        class="btn-link" invisible="not is_file or not web_url"/>
+                                <field name="is_folder" column_invisible="1"/>
+                                <field name="is_file" column_invisible="1"/>
+                                <field name="web_url" column_invisible="1"/>
+                            </list>
+                        </field>
                         <div class="mt-2">
                             <button string="↑ Subir un nivel" type="object" name="action_go_up"
                                     class="btn-secondary btn-sm"
                                     invisible="not current_item_id"/>
-                            <button string="→ Entrar en carpeta" type="object" name="action_enter_folder"
-                                    class="btn-secondary btn-sm ms-2"/>
                             <button string="Refrescar" type="object" name="action_refresh"
                                     class="btn-secondary btn-sm ms-2"/>
                             <button string="⇆ Cambiar biblioteca" type="object" name="action_change_drive"

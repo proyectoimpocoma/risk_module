@@ -8,6 +8,45 @@ from odoo.exceptions import UserError
 _logger = logging.getLogger(__name__)
 
 
+class RiskSharepointDriveSelectorLine(models.TransientModel):
+    _name = "risk.sharepoint.drive.selector.line"
+    _description = "Elemento del explorador de SharePoint"
+    _order = "sequence, name"
+
+    wizard_id = fields.Many2one(
+        "risk.sharepoint.drive.selector",
+        required=True,
+        ondelete="cascade",
+    )
+    sequence = fields.Integer(default=10)
+    name = fields.Char(required=True)
+    item_id = fields.Char(required=True)
+    item_type = fields.Selection(
+        [("folder", "Carpeta"), ("file", "Archivo")],
+        required=True,
+    )
+    is_folder = fields.Boolean()
+    is_file = fields.Boolean()
+    size = fields.Integer()
+    web_url = fields.Char()
+
+    def action_open_folder(self):
+        self.ensure_one()
+        if not self.is_folder:
+            raise UserError(_("Solo puedes entrar en carpetas."))
+        return self.wizard_id._enter_child_folder(self.item_id, self.name)
+
+    def action_open_file(self):
+        self.ensure_one()
+        if not self.web_url:
+            raise UserError(_("Este archivo no tiene enlace de SharePoint."))
+        return {
+            "type": "ir.actions.act_url",
+            "url": self.web_url,
+            "target": "new",
+        }
+
+
 class RiskSharepointDriveSelector(models.TransientModel):
     _name = "risk.sharepoint.drive.selector"
     _description = "Seleccionar biblioteca y carpeta de SharePoint"
@@ -28,6 +67,15 @@ class RiskSharepointDriveSelector(models.TransientModel):
     # ── Etapa 2: navegación de carpetas ───────────────────────────────────
     current_path = fields.Char(default="")
     current_item_id = fields.Char(default="")   # item_id del directorio actual
+    line_ids = fields.One2many(
+        "risk.sharepoint.drive.selector.line",
+        "wizard_id",
+        string="Elementos",
+    )
+    explorer_message = fields.Text(
+        string="Estado del explorador",
+        readonly=True,
+    )
     folder_choice = fields.Selection(
         selection="_selection_folders",
         string="Carpeta",
@@ -37,7 +85,7 @@ class RiskSharepointDriveSelector(models.TransientModel):
         compute="_compute_path_display",
     )
     directory_summary = fields.Text(
-        string="Contenido",
+        string="Resumen técnico",
         compute="_compute_directory_summary",
     )
     folder_count = fields.Integer(
@@ -170,6 +218,13 @@ class RiskSharepointDriveSelector(models.TransientModel):
                 res["current_path"] = saved_folder
         return res
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        for record in records:
+            record._refresh_lines()
+        return records
+
     def _current_drive_id(self):
         self.ensure_one()
         if self.selected_drive_id:
@@ -188,6 +243,71 @@ class RiskSharepointDriveSelector(models.TransientModel):
                 return child["name"]
         raise UserError(_("La carpeta seleccionada ya no existe o no es accesible."))
 
+    def _refresh_lines(self):
+        self.ensure_one()
+        self.line_ids.unlink()
+        message = ""
+        if self.stage != "folder" or not self.current_item_id:
+            self.explorer_message = message
+            return
+        drive_id = self._current_drive_id()
+        _logger.info(
+            "SharePoint explorer refresh lines drive_id=%s item_id=%s path=%s",
+            drive_id,
+            self.current_item_id,
+            self.current_path,
+        )
+        try:
+            children = self.env["risk.sharepoint.service"]._list_children_by_item(
+                drive_id, self.current_item_id
+            )
+        except Exception as exc:  # noqa: BLE001 - mensaje visible al usuario
+            _logger.exception(
+                "SharePoint explorer refresh lines failed drive_id=%s item_id=%s",
+                drive_id,
+                self.current_item_id,
+            )
+            self.explorer_message = _("No se pudo cargar esta carpeta: %s") % exc
+            return
+        vals_list = []
+        for index, item in enumerate(children, start=1):
+            is_folder = bool(item["is_folder"])
+            vals_list.append({
+                "wizard_id": self.id,
+                "sequence": index,
+                "name": item["name"],
+                "item_id": item["id"],
+                "item_type": "folder" if is_folder else "file",
+                "is_folder": is_folder,
+                "is_file": bool(item["is_file"]),
+                "size": item["size"],
+                "web_url": item["web_url"],
+            })
+        if vals_list:
+            self.env["risk.sharepoint.drive.selector.line"].create(vals_list)
+        folders = len([item for item in children if item["is_folder"]])
+        files = len([item for item in children if item["is_file"]])
+        if folders:
+            message = _(
+                "Selecciona Abrir en una carpeta para navegar. Cuando estés en la ubicación correcta, usa Seleccionar esta carpeta."
+            )
+        elif files:
+            message = _(
+                "Esta ubicación solo contiene archivos. Puedes seleccionarla como carpeta destino o subir un nivel."
+            )
+        else:
+            message = _(
+                "Esta carpeta está vacía. Puedes seleccionarla como destino o crear una subcarpeta."
+            )
+        self.explorer_message = message
+        _logger.info(
+            "SharePoint explorer refresh lines ok drive_id=%s item_id=%s folders=%s files=%s",
+            drive_id,
+            self.current_item_id,
+            folders,
+            files,
+        )
+
     # ── Acciones de navegación ────────────────────────────────────────────
 
     def _reopen(self):
@@ -199,6 +319,27 @@ class RiskSharepointDriveSelector(models.TransientModel):
             "view_mode": "form",
             "target": "new",
         }
+
+    def _enter_child_folder(self, child_item_id, folder_name):
+        self.ensure_one()
+        technical_drive_id = self._current_drive_id()
+        _logger.info(
+            "SharePoint explorer enter folder drive_id=%s current_item_id=%s folder=%s selected_item_id=%s user_id=%s",
+            technical_drive_id,
+            self.current_item_id,
+            folder_name,
+            child_item_id,
+            self.env.user.id,
+        )
+        base = self.current_path or ""
+        new_path = "%s/%s" % (base, folder_name) if base else folder_name
+        self.write({
+            "current_path": new_path,
+            "current_item_id": child_item_id,
+            "folder_choice": False,
+        })
+        self._refresh_lines()
+        return self._reopen()
 
     def action_next_stage(self):
         """Avanza de selección de drive a navegación de carpetas."""
@@ -216,6 +357,7 @@ class RiskSharepointDriveSelector(models.TransientModel):
             "current_item_id": root_item_id,
             "folder_choice": False,
         })
+        self._refresh_lines()
         return self._reopen()
 
     def action_enter_folder(self):
@@ -230,27 +372,13 @@ class RiskSharepointDriveSelector(models.TransientModel):
         folder_name = self._folder_name_from_choice(
             technical_drive_id, self.folder_choice
         )
-        _logger.info(
-            "SharePoint explorer enter folder drive_id=%s current_item_id=%s folder=%s selected_item_id=%s",
-            technical_drive_id,
-            self.current_item_id,
-            folder_name,
-            self.folder_choice,
-        )
         if self.current_item_id:
             child_item_id = self.folder_choice
         else:
             child_item_id = svc._get_child_item_id(
                 technical_drive_id, self.current_item_id, folder_name
             )
-        base = self.current_path or ""
-        new_path = "%s/%s" % (base, folder_name) if base else folder_name
-        self.write({
-            "current_path": new_path,
-            "current_item_id": child_item_id,
-            "folder_choice": False,
-        })
-        return self._reopen()
+        return self._enter_child_folder(child_item_id, folder_name)
 
     def action_go_up(self):
         """Sube un nivel y recupera el item_id del directorio padre."""
@@ -275,6 +403,7 @@ class RiskSharepointDriveSelector(models.TransientModel):
             "current_item_id": parent_item_id,
             "folder_choice": False,
         })
+        self._refresh_lines()
         return self._reopen()
 
     def action_refresh(self):
@@ -286,6 +415,7 @@ class RiskSharepointDriveSelector(models.TransientModel):
             self.current_path,
         )
         self.folder_choice = False
+        self._refresh_lines()
         return self._reopen()
 
     def action_create_folder(self):
@@ -304,6 +434,7 @@ class RiskSharepointDriveSelector(models.TransientModel):
             drive_id, self.current_item_id, self.new_folder_name
         )
         self.new_folder_name = False
+        self._refresh_lines()
         return self._reopen()
 
     def action_upload_test_file(self):
@@ -333,6 +464,7 @@ class RiskSharepointDriveSelector(models.TransientModel):
                 "Archivo de prueba subido correctamente: %s"
             ) % (item.get("name") or filename),
         })
+        self._refresh_lines()
         return self._reopen()
 
     def action_delete_test_file(self):
@@ -354,6 +486,7 @@ class RiskSharepointDriveSelector(models.TransientModel):
             "test_upload_web_url": False,
             "test_upload_message": _("Archivo de prueba eliminado correctamente."),
         })
+        self._refresh_lines()
         return self._reopen()
 
     def action_open_test_file(self):
@@ -375,7 +508,9 @@ class RiskSharepointDriveSelector(models.TransientModel):
             "current_path": "",
             "current_item_id": "",
             "folder_choice": False,
+            "explorer_message": "",
         })
+        self.line_ids.unlink()
         return self._reopen()
 
     def action_confirm(self):
