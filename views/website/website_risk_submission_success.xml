@@ -1,33 +1,45 @@
 <odoo>
     <template id="register_driver_success" name="Registro Vehiculo Exitoso">
         <t t-call="website.layout">
-            <main class="risk-success-page">
-                <section class="risk-brand-header risk-brand-header-compact" aria-label="Impocoma Riesgos">
-                    <div class="risk-brand-mark">
-                        <img src="/risk_module/static/src/img/impocoma_logo.jpeg" alt="Impocoma"/>
+            <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+            <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&amp;display=swap" rel="stylesheet"/>
+            <main class="risk-step-page risk-vehicle-redesign-page">
+                <header class="risk-vr-appbar">
+                    <div class="risk-vr-appbar-title">
+                        <span class="material-symbols-outlined">task_alt</span>
+                        <h1>Habilitación Terceros</h1>
                     </div>
-                    <div class="risk-brand-copy">
-                        <p>Departamento de Riesgo</p>
-                        <h1>Solicitud recibida</h1>
-                        <span>Tu registro fue enviado correctamente para revision documental y validacion interna.</span>
-                    </div>
-                </section>
+                    <a href="/" class="risk-vr-close" aria-label="Cerrar">
+                        <span class="material-symbols-outlined">close</span>
+                    </a>
+                </header>
 
-                <section class="risk-success-card">
-                    <div class="risk-success-status" role="status">
-                        <span class="risk-success-kicker">Radicacion completada</span>
-                        <h2>Solicitud registrada para el vehiculo <strong t-esc="submission.vehicle_plate"/>.</h2>
-                        <p>
-                            El equipo de Riesgo revisara la informacion suministrada. Puedes consultar el estado
-                            o registrar una nueva solicitud.
+                <div class="risk-vr-main">
+                    <div class="risk-vr-success-card">
+                        <div class="risk-vr-success-icon">
+                            <span class="material-symbols-outlined">check_circle</span>
+                        </div>
+                        <h2 class="risk-vr-success-title">Solicitud registrada</h2>
+                        <p class="risk-vr-success-plate">
+                            Vehículo <strong t-esc="submission.vehicle_plate"/>
                         </p>
-                    </div>
+                        <p class="risk-vr-success-message">
+                            Tu registro fue enviado correctamente para revisión documental y validación interna.
+                            El equipo de Riesgo revisará la información suministrada.
+                        </p>
 
-                    <div class="risk-success-actions">
-                        <a t-attf-href="/mis-solicitudes-riesgo/#{submission.id}" class="btn btn-secondary">Ver estado</a>
-                        <a href="/registro-conductor" class="btn btn-primary">Crear otra solicitud</a>
+                        <div class="risk-vr-success-actions">
+                            <a t-attf-href="/mis-solicitudes-riesgo/#{submission.id}" class="risk-vr-back">
+                                <span class="material-symbols-outlined">visibility</span>
+                                VER ESTADO
+                            </a>
+                            <a href="/registro-conductor" class="risk-vr-next">
+                                NUEVA SOLICITUD
+                                <span class="material-symbols-outlined">add</span>
+                            </a>
+                        </div>
                     </div>
-                </section>
+                </div>
             </main>
         </t>
     </template>

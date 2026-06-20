@@ -22,7 +22,6 @@
     padding: 32px 16px 56px;
     color: var(--risk-ink);
 }
-.risk-success-page,
 .risk-portal-page {
     --risk-ink: #121c2c;
     --risk-muted: #574235;
@@ -40,61 +39,6 @@
     margin: 0 auto;
     padding: 42px 16px 64px;
     color: var(--risk-ink);
-}
-.risk-brand-header {
-    display: grid;
-    grid-template-columns: 220px minmax(0, 1fr);
-    gap: 26px;
-    align-items: center;
-    margin-bottom: 20px;
-    padding: 24px;
-    border: 1px solid #0a2d57;
-    border-radius: 8px;
-    background:
-        linear-gradient(135deg, rgba(0, 59, 115, 0.97), rgba(0, 40, 85, 0.96)),
-        linear-gradient(90deg, rgba(247, 124, 0, 0.15), rgba(255, 255, 255, 0));
-    box-shadow: 0 18px 45px rgba(0, 30, 70, 0.18);
-}
-.risk-brand-header-compact {
-    margin-bottom: 24px;
-}
-.risk-brand-mark {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 118px;
-    padding: 16px;
-    border-radius: 6px;
-    background: #fff;
-}
-.risk-brand-mark img {
-    width: 100%;
-    max-width: 185px;
-    height: auto;
-    display: block;
-}
-.risk-brand-copy p {
-    margin: 0 0 8px;
-    color: #d8b46a;
-    font-size: 13px;
-    font-weight: 800;
-    letter-spacing: 0;
-    text-transform: uppercase;
-}
-.risk-brand-copy h1 {
-    margin: 0;
-    color: #fff;
-    font-size: 34px;
-    line-height: 1.08;
-    font-weight: 800;
-}
-.risk-brand-copy span {
-    display: block;
-    max-width: 680px;
-    margin-top: 10px;
-    color: #edf5ef;
-    font-size: 16px;
-    line-height: 1.45;
 }
 .risk-step-header {
     border: 2px solid var(--risk-line);
@@ -739,88 +683,31 @@
     font-weight: 700;
 }
 .risk-step-page .btn-primary,
-.risk-success-page .btn-primary,
 .risk-portal-page .btn-primary {
     border-color: var(--risk-primary);
     background: var(--risk-primary);
     color: #fff;
 }
 .risk-step-page .btn-primary:hover,
-.risk-success-page .btn-primary:hover,
 .risk-portal-page .btn-primary:hover {
     border-color: var(--risk-primary-dark);
     background: var(--risk-primary-dark);
 }
 .risk-step-page .btn-secondary,
-.risk-success-page .btn-secondary,
 .risk-portal-page .btn-secondary {
     border-color: var(--risk-accent);
     background: var(--risk-accent);
     color: #fff;
 }
 .risk-step-page .btn-outline-secondary,
-.risk-success-page .btn-outline-secondary,
 .risk-portal-page .btn-outline-secondary {
     border-color: var(--risk-accent);
     color: var(--risk-accent);
 }
 .risk-step-page .btn-outline-secondary:hover,
-.risk-success-page .btn-outline-secondary:hover,
 .risk-portal-page .btn-outline-secondary:hover {
     background: var(--risk-accent);
     color: #fff;
-}
-.risk-success-card {
-    border: 1px solid #dce5db;
-    border-radius: 8px;
-    background: #fff;
-    box-shadow: 0 16px 45px rgba(23, 32, 42, 0.08);
-}
-.risk-success-status {
-    padding: 30px;
-    border-left: 6px solid var(--risk-primary);
-}
-.risk-success-kicker {
-    display: inline-flex;
-    margin-bottom: 12px;
-    padding: 6px 10px;
-    border-radius: 999px;
-    background: #e7f3e8;
-    color: var(--risk-primary-dark);
-    font-size: 13px;
-    font-weight: 800;
-    text-transform: uppercase;
-}
-.risk-success-status h2 {
-    max-width: 820px;
-    margin: 0;
-    font-size: 28px;
-    line-height: 1.2;
-    font-weight: 800;
-}
-.risk-success-status p {
-    max-width: 760px;
-    margin: 12px 0 0;
-    color: var(--risk-muted);
-    font-size: 16px;
-    line-height: 1.5;
-}
-.risk-success-actions,
-.risk-portal-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-.risk-success-actions {
-    padding: 0 30px 30px;
-    justify-content: flex-start;
-}
-.risk-success-actions .btn {
-    min-width: 170px;
-    border-radius: 6px;
-    font-weight: 700;
 }
 .risk-portal-toolbar {
     margin-bottom: 18px;
@@ -860,23 +747,8 @@
     max-width: 220px;
 }
 @media (max-width: 720px) {
-    .risk-success-page,
     .risk-portal-page {
         padding-top: 24px;
-    }
-    .risk-brand-header {
-        grid-template-columns: 1fr;
-        gap: 16px;
-        padding: 18px;
-    }
-    .risk-brand-mark {
-        min-height: 92px;
-    }
-    .risk-brand-mark img {
-        max-width: 165px;
-    }
-    .risk-brand-copy h1 {
-        font-size: 25px;
     }
     .risk-step-meta,
     .risk-fields,
@@ -915,14 +787,6 @@
     .risk-step-title {
         font-size: 20px;
     }
-    .risk-success-status,
-    .risk-success-actions {
-        padding: 20px;
-    }
-    .risk-success-status h2 {
-        font-size: 23px;
-    }
-    .risk-success-actions .btn,
     .risk-portal-toolbar .btn {
         width: 100%;
     }
@@ -1922,6 +1786,105 @@
         align-items: flex-start;
         flex-direction: column;
         padding-top: 32px;
+    }
+}
+
+/* ----------------------------------------------------------------------------
+   Página de éxito — rediseño Material 3, congruente con pasos 1-7.
+   ------------------------------------------------------------------------- */
+
+.risk-vr-success-card {
+    width: 100%;
+    max-width: 768px;
+    padding: 48px;
+    border: 1px solid var(--vr-outline-variant);
+    border-radius: 12px;
+    background: var(--vr-surface);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+}
+
+.risk-vr-success-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 9999px;
+    background: var(--vr-tertiary);
+    color: #ffffff;
+}
+
+.risk-vr-success-icon .material-symbols-outlined {
+    font-size: 48px;
+}
+
+.risk-vr-success-title {
+    margin: 0;
+    color: var(--vr-secondary);
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 700;
+}
+
+.risk-vr-success-plate {
+    margin: 0;
+    color: var(--vr-on-surface-variant);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.risk-vr-success-plate strong {
+    display: block;
+    margin-top: 4px;
+    color: var(--vr-secondary);
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
+}
+
+.risk-vr-success-message {
+    margin: 0;
+    max-width: 500px;
+    color: var(--vr-on-surface-variant);
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+}
+
+.risk-vr-success-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 24px;
+    width: 100%;
+}
+
+@media (max-width: 640px) {
+    .risk-vr-success-card {
+        padding: 24px;
+    }
+
+    .risk-vr-success-title {
+        font-size: 20px;
+        line-height: 28px;
+    }
+
+    .risk-vr-success-actions {
+        flex-direction: column;
+    }
+
+    .risk-vr-success-actions .risk-vr-back,
+    .risk-vr-success-actions .risk-vr-next {
+        width: 100%;
+        justify-content: center;
     }
 }
 
