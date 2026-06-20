@@ -147,13 +147,16 @@ class ResConfigSettings(models.TransientModel):
             parsed["item_id"],
             self.env.user.id,
         )
+        wizard = self.env["risk.sharepoint.drive.selector"].with_context(
+            graph_children_url=graph_url
+        ).create({})
         return {
             "type": "ir.actions.act_window",
             "name": _("Explorar carpeta SharePoint"),
             "res_model": "risk.sharepoint.drive.selector",
+            "res_id": wizard.id,
             "view_mode": "form",
             "target": "new",
-            "context": dict(self.env.context, graph_children_url=graph_url),
         }
 
     def action_risk_sp_test_root_folder(self):
@@ -171,13 +174,14 @@ class ResConfigSettings(models.TransientModel):
     def action_risk_sp_select_drive(self):
         """Abre el asistente para seleccionar la biblioteca de SharePoint."""
         self.ensure_one()
+        wizard = self.env["risk.sharepoint.drive.selector"].create({})
         return {
             "type": "ir.actions.act_window",
             "name": _("Seleccionar biblioteca"),
             "res_model": "risk.sharepoint.drive.selector",
+            "res_id": wizard.id,
             "view_mode": "form",
             "target": "new",
-            "context": self.env.context,
         }
 
     def action_risk_sp_backfill(self):
