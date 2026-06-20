@@ -82,6 +82,18 @@ class ResConfigSettings(models.TransientModel):
             _("Conexion correcta. Sitio resuelto (drive %s).") % info["drive_id"]
         )
 
+    def action_risk_sp_select_drive(self):
+        """Abre el asistente para seleccionar la biblioteca de SharePoint."""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Seleccionar biblioteca"),
+            "res_model": "risk.sharepoint.drive.selector",
+            "view_mode": "form",
+            "target": "new",
+            "context": self.env.context,
+        }
+
     def action_risk_sp_backfill(self):
         """Marca los documentos existentes con archivo para subirlos al cron."""
         self.ensure_one()

@@ -21,6 +21,7 @@
         "views/backend/risk_document_requirement_views.xml",
         "views/backend/risk_message_template_views.xml",
         "views/wizards/risk_document_reject_wizard_views.xml",
+        "views/wizards/risk_sharepoint_drive_selector_views.xml",
         "views/backend/risk_submission_document_views.xml",
         "views/backend/risk_external_validation_views.xml",
         "views/backend/risk_master_views.xml",
