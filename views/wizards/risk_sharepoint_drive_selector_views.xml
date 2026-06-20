@@ -30,6 +30,7 @@
                         </div>
                         <field name="stage" invisible="1"/>
                         <field name="current_path" invisible="1"/>
+                        <field name="current_item_id" invisible="1"/>
                         <group>
                             <field name="folder_choice" widget="radio" nolabel="1"/>
                         </group>
