@@ -27,7 +27,10 @@ class RiskSharepointDriveSelectorLine(models.TransientModel):
     )
     is_folder = fields.Boolean()
     is_file = fields.Boolean()
-    size = fields.Integer()
+    # Tamaño en bytes. Las carpetas de SharePoint pueden superar el límite de
+    # int4 (~2.1 GB), así que usamos Float (columna numérica) para evitar el
+    # error "integer out of range" al insertar.
+    size = fields.Float(digits=(20, 0))
     web_url = fields.Char()
 
     def action_open_folder(self):

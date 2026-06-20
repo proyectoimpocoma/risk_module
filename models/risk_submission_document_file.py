@@ -32,7 +32,9 @@ class RiskSubmissionDocumentFile(models.Model):
     file = fields.Binary(string="Archivo", attachment=True)
     filename = fields.Char(string="Nombre de archivo", required=True)
     mimetype = fields.Char(string="Tipo MIME")
-    file_size = fields.Integer(string="Tamano bytes")
+    # Float (columna numérica) en vez de Integer/int4 para soportar archivos
+    # de más de ~2.1 GB sin provocar "integer out of range".
+    file_size = fields.Float(string="Tamano bytes", digits=(20, 0))
     uploaded_by_id = fields.Many2one(
         "res.users",
         string="Cargado por",
