@@ -12,6 +12,11 @@ from .common import RiskModuleTestCase
 
 SERVICE = "odoo.addons.risk_module.models.risk_sharepoint_service.RiskSharepointService"
 STORE_RESULT = {"item_id": "ITEM1", "web_url": "https://sp/doc", "drive_id": "DRV"}
+GRAPH_CHILDREN_URL = (
+    "https://graph.microsoft.com/v1.0/drives/"
+    "b!gez_dayfjUOHGN7zIyyjsS4niVearxxOjuDIxfBOgt_o-0VZgd1PTpRbnPT0bI1_"
+    "/items/01IHQFHOPOO3IRU3KVANHIQ7XLJCD6XP3U/children"
+)
 
 
 @tagged("post_install", "-at_install")
@@ -199,3 +204,94 @@ class TestRiskSharepoint(RiskModuleTestCase):
         self.assertEqual(first_file.sharepoint_state, "error")
         # Sin archivos pendientes y con uno en error, el documento agrega "error".
         self.assertEqual(document.sharepoint_state, "error")
+
+    def test_parse_graph_children_url(self):
+        parsed = self.env["risk.sharepoint.service"]._parse_children_url(
+            GRAPH_CHILDREN_URL
+        )
+        self.assertEqual(
+            parsed["drive_id"],
+            "b!gez_dayfjUOHGN7zIyyjsS4niVearxxOjuDIxfBOgt_o-0VZgd1PTpRbnPT0bI1_",
+        )
+        self.assertEqual(parsed["item_id"], "01IHQFHOPOO3IRU3KVANHIQ7XLJCD6XP3U")
+
+    def test_store_file_uses_configured_root_item(self):
+        set_param = self.env["ir.config_parameter"].sudo().set_param
+        set_param(
+            "risk_module.sp_drive_id",
+            "b!gez_dayfjUOHGN7zIyyjsS4niVearxxOjuDIxfBOgt_o-0VZgd1PTpRbnPT0bI1_",
+        )
+        set_param("risk_module.sp_root_item_id", "01IHQFHOPOO3IRU3KVANHIQ7XLJCD6XP3U")
+        service = self.env["risk.sharepoint.service"]
+        with patch(
+            SERVICE + "._ensure_folder_under_item",
+            return_value="TARGET_FOLDER",
+        ) as ensure_mock, patch(
+            SERVICE + "._upload_to_parent_item",
+            return_value=STORE_RESULT,
+        ) as upload_mock:
+            service._store_file(
+                ["Solicitudes", "RISK ABC123", "Conductor"], "doc.pdf", b"abc"
+            )
+        ensure_mock.assert_called_once_with(
+            "b!gez_dayfjUOHGN7zIyyjsS4niVearxxOjuDIxfBOgt_o-0VZgd1PTpRbnPT0bI1_",
+            "01IHQFHOPOO3IRU3KVANHIQ7XLJCD6XP3U",
+            ["RISK ABC123", "Conductor"],
+        )
+        upload_mock.assert_called_once()
+
+    def test_list_children_by_item_returns_folders_and_files(self):
+        service = self.env["risk.sharepoint.service"]
+        with patch(SERVICE + "._request") as request_mock:
+            request_mock.return_value.json.return_value = {
+                "value": [
+                    {"id": "F1", "name": "Carpeta", "folder": {}, "webUrl": "https://sp/f"},
+                    {"id": "D1", "name": "doc.pdf", "file": {}, "size": 12, "webUrl": "https://sp/d"},
+                ]
+            }
+            items = service._list_children_by_item("DRV", "ROOT")
+        self.assertEqual(len(items), 2)
+        self.assertTrue(items[0]["is_folder"])
+        self.assertTrue(items[1]["is_file"])
+
+    def test_wizard_upload_and_delete_test_file(self):
+        wizard = self.env["risk.sharepoint.drive.selector"].create(
+            {
+                "stage": "folder",
+                "drive_id": "Documentos",
+                "selected_drive_id": "DRV",
+                "current_item_id": "ROOT",
+                "test_file": self.TEST_DUMMY_FILE,
+                "test_filename": "prueba.pdf",
+            }
+        )
+        with patch(
+            SERVICE + "._upload_test_file",
+            return_value={
+                "id": "TEST_ITEM",
+                "name": "prueba.pdf",
+                "webUrl": "https://sp/prueba.pdf",
+            },
+        ) as upload_mock:
+            wizard.action_upload_test_file()
+        upload_mock.assert_called_once()
+        self.assertEqual(wizard.test_upload_item_id, "TEST_ITEM")
+        self.assertEqual(wizard.test_upload_web_url, "https://sp/prueba.pdf")
+        with patch(SERVICE + "._delete") as delete_mock:
+            wizard.action_delete_test_file()
+        delete_mock.assert_called_once_with("TEST_ITEM", drive_id="DRV")
+        self.assertFalse(wizard.test_upload_item_id)
+
+    def test_wizard_create_folder(self):
+        wizard = self.env["risk.sharepoint.drive.selector"].create(
+            {
+                "stage": "folder",
+                "drive_id": "Documentos",
+                "selected_drive_id": "DRV",
+                "current_item_id": "ROOT",
+                "new_folder_name": "Pruebas",
+            }
+        )
+        with patch(SERVICE + "._create_folder_under_item") as create_mock:
+            wizard.action_create_folder()
+        create_mock.assert_called_once_with("DRV", "ROOT", "Pruebas")

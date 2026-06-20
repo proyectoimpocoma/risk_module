@@ -29,21 +29,53 @@
                             <field name="path_display" readonly="1" nolabel="1" class="text-primary"/>
                         </div>
                         <field name="stage" invisible="1"/>
+                        <field name="selected_drive_id" invisible="1"/>
                         <field name="current_path" invisible="1"/>
                         <field name="current_item_id" invisible="1"/>
+                        <field name="test_upload_item_id" invisible="1"/>
                         <group>
-                            <field name="folder_choice" widget="radio" nolabel="1"/>
+                            <group string="Contenido">
+                                <field name="folder_count" readonly="1"/>
+                                <field name="file_count" readonly="1"/>
+                                <field name="directory_summary" readonly="1" nolabel="1"/>
+                            </group>
+                            <group string="Navegación">
+                                <field name="folder_choice" widget="radio" nolabel="1"/>
+                            </group>
                         </group>
                         <div class="mt-2">
                             <button string="↑ Subir un nivel" type="object" name="action_go_up"
                                     class="btn-secondary btn-sm"
-                                    invisible="not current_path"/>
+                                    invisible="not current_item_id"/>
                             <button string="→ Entrar en carpeta" type="object" name="action_enter_folder"
                                     class="btn-secondary btn-sm ms-2"
                                     invisible="not folder_choice"/>
+                            <button string="Refrescar" type="object" name="action_refresh"
+                                    class="btn-secondary btn-sm ms-2"/>
                             <button string="⇆ Cambiar biblioteca" type="object" name="action_change_drive"
                                     class="btn-secondary btn-sm ms-2"/>
                         </div>
+                        <group string="Crear carpeta">
+                            <field name="new_folder_name" placeholder="Nombre de la nueva carpeta"/>
+                            <button string="Crear carpeta" type="object" name="action_create_folder"
+                                    class="btn-secondary" invisible="not new_folder_name"/>
+                        </group>
+                        <group string="Prueba de escritura">
+                            <field name="test_file" filename="test_filename"/>
+                            <field name="test_filename"/>
+                            <field name="test_upload_message" readonly="1" nolabel="1"
+                                   invisible="not test_upload_message"/>
+                            <field name="test_upload_web_url" widget="url" readonly="1"
+                                   invisible="not test_upload_web_url"/>
+                            <div>
+                                <button string="Subir prueba" type="object" name="action_upload_test_file"
+                                        class="btn-secondary" invisible="not test_file"/>
+                                <button string="Abrir prueba" type="object" name="action_open_test_file"
+                                        class="btn-secondary ms-2" invisible="not test_upload_web_url"/>
+                                <button string="Eliminar prueba" type="object" name="action_delete_test_file"
+                                        class="btn-secondary ms-2" invisible="not test_upload_item_id"/>
+                            </div>
+                        </group>
                     </div>
 
                 </sheet>

@@ -1,5 +1,9 @@
+import logging
+
 from odoo import _, fields, models
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 
 class ResConfigSettings(models.TransientModel):
@@ -37,12 +41,28 @@ class ResConfigSettings(models.TransientModel):
         help="Nombre de la biblioteca (drive). Si se deja vacio se usa la "
         "biblioteca por defecto del sitio.",
     )
+    risk_sp_drive_id = fields.Char(
+        string="Drive ID",
+        config_parameter="risk_module.sp_drive_id",
+        help="ID tecnico de la biblioteca obtenido desde Microsoft Graph.",
+    )
     risk_sp_root_folder = fields.Char(
         string="Carpeta raiz",
         config_parameter="risk_module.sp_root_folder",
         default="Solicitudes",
         help="Carpeta raiz dentro de la biblioteca donde se crea el arbol de "
         "solicitudes.",
+    )
+    risk_sp_root_item_id = fields.Char(
+        string="Item ID carpeta raiz",
+        config_parameter="risk_module.sp_root_item_id",
+        help="ID tecnico de la carpeta raiz donde se crearan las solicitudes.",
+    )
+    risk_sp_graph_children_url = fields.Char(
+        string="URL Graph /children",
+        config_parameter="risk_module.sp_graph_children_url",
+        help="URL copiada desde Graph Explorer para una carpeta: "
+        "https://graph.microsoft.com/v1.0/drives/<drive_id>/items/<item_id>/children",
     )
     risk_sp_purge_local = fields.Boolean(
         string="Eliminar copia local tras subir",
@@ -79,7 +99,73 @@ class ResConfigSettings(models.TransientModel):
         except Exception as exc:  # noqa: BLE001 - mostramos el error al usuario
             raise UserError(_("No se pudo conectar con SharePoint: %s") % exc)
         return self._notify(
-            _("Conexion correcta. Sitio resuelto (drive %s).") % info["drive_id"]
+            _("Conexion correcta. Drive %s, carpeta %s.")
+            % (info["drive_id"], info["root_item_id"])
+        )
+
+    def action_risk_sp_apply_graph_url(self):
+        """Guarda drive_id/item_id desde una URL /children de Graph Explorer."""
+        self.ensure_one()
+        service = self.env["risk.sharepoint.service"]
+        parsed = service._parse_children_url(self.risk_sp_graph_children_url)
+        _logger.info(
+            "SharePoint settings apply Graph URL drive_id=%s item_id=%s user_id=%s",
+            parsed["drive_id"],
+            parsed["item_id"],
+            self.env.user.id,
+        )
+        cfg = self.env["ir.config_parameter"].sudo()
+        cfg.set_param("risk_module.sp_drive_id", parsed["drive_id"])
+        cfg.set_param("risk_module.sp_root_item_id", parsed["item_id"])
+        try:
+            drive_name = service._get_drive_name(parsed["drive_id"])
+        except Exception:
+            drive_name = self.risk_sp_drive or parsed["drive_id"]
+        cfg.set_param("risk_module.sp_drive", drive_name)
+        cfg.set_param(
+            "risk_module.sp_root_folder",
+            self.risk_sp_root_folder or "Solicitudes",
+        )
+        from odoo.addons.risk_module.models.risk_sharepoint_service import _LOCATION_CACHE
+
+        _LOCATION_CACHE.clear()
+        return self._notify(
+            _("URL aplicada. Drive %s, carpeta %s.")
+            % (parsed["drive_id"], parsed["item_id"])
+        )
+
+    def action_risk_sp_explore_graph_url(self):
+        """Abre el explorador de carpetas desde la URL /children ingresada."""
+        self.ensure_one()
+        graph_url = self.risk_sp_graph_children_url
+        if not graph_url:
+            raise UserError(_("Pega primero la URL Graph /children."))
+        parsed = self.env["risk.sharepoint.service"]._parse_children_url(graph_url)
+        _logger.info(
+            "SharePoint settings open explorer from Graph URL drive_id=%s item_id=%s user_id=%s",
+            parsed["drive_id"],
+            parsed["item_id"],
+            self.env.user.id,
+        )
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Explorar carpeta SharePoint"),
+            "res_model": "risk.sharepoint.drive.selector",
+            "view_mode": "form",
+            "target": "new",
+            "context": dict(self.env.context, graph_children_url=graph_url),
+        }
+
+    def action_risk_sp_test_root_folder(self):
+        """Valida acceso de lectura a la carpeta raiz configurada."""
+        self.ensure_one()
+        try:
+            info = self.env["risk.sharepoint.service"]._test_root_folder()
+        except Exception as exc:  # noqa: BLE001 - mostramos el error al usuario
+            raise UserError(_("No se pudo acceder a la carpeta: %s") % exc)
+        return self._notify(
+            _("Carpeta accesible. Drive %s, carpeta %s.")
+            % (info["drive_id"], info["item_id"])
         )
 
     def action_risk_sp_select_drive(self):

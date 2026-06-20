@@ -47,8 +47,29 @@
                                             title="Listar y seleccionar la biblioteca desde SharePoint"/>
                                 </div>
                                 <div class="row">
+                                    <label for="risk_sp_drive_id" class="col-lg-4 o_light_label"/>
+                                    <field name="risk_sp_drive_id" placeholder="b!..." readonly="1"/>
+                                </div>
+                                <div class="row">
                                     <label for="risk_sp_root_folder" class="col-lg-4 o_light_label"/>
                                     <field name="risk_sp_root_folder"/>
+                                </div>
+                                <div class="row">
+                                    <label for="risk_sp_root_item_id" class="col-lg-4 o_light_label"/>
+                                    <field name="risk_sp_root_item_id" placeholder="01..." readonly="1"/>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="risk_sp_graph_children_url" class="col-lg-4 o_light_label"/>
+                                    <field name="risk_sp_graph_children_url"
+                                           placeholder="https://graph.microsoft.com/v1.0/drives/.../items/.../children"/>
+                                </div>
+                                <div class="mt8">
+                                    <button name="action_risk_sp_apply_graph_url" type="object"
+                                            string="Aplicar URL Graph" class="btn-secondary"/>
+                                    <button name="action_risk_sp_explore_graph_url" type="object"
+                                            string="Explorar carpeta" class="btn-secondary ms-2"/>
+                                    <button name="action_risk_sp_test_root_folder" type="object"
+                                            string="Probar carpeta" class="btn-secondary ms-2"/>
                                 </div>
                             </div>
                         </setting>

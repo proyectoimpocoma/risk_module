@@ -1,4 +1,5 @@
 import logging
+from urllib.parse import unquote, urlparse
 
 import requests
 
@@ -51,6 +52,7 @@ class RiskSharepointService(models.AbstractModel):
             "client_secret": get("risk_module.sp_client_secret") or "",
             "site": (get("risk_module.sp_site") or "").strip(),
             "drive": (get("risk_module.sp_drive") or "").strip(),
+            "drive_id": (get("risk_module.sp_drive_id") or "").strip(),
             "root_folder": (get("risk_module.sp_root_folder") or "Solicitudes").strip(),
             "root_item_id": get("risk_module.sp_root_item_id") or "",
             "purge_local": get("risk_module.sp_purge_local")
@@ -61,7 +63,11 @@ class RiskSharepointService(models.AbstractModel):
     def _is_enabled(self):
         cfg = self._config()
         return bool(
-            cfg["enabled"] and cfg["tenant_id"] and cfg["client_id"] and cfg["site"]
+            cfg["enabled"]
+            and cfg["tenant_id"]
+            and cfg["client_id"]
+            and cfg["client_secret"]
+            and (cfg["site"] or cfg["drive_id"])
         )
 
     @staticmethod
@@ -72,6 +78,27 @@ class RiskSharepointService(models.AbstractModel):
         )
         cleaned = cleaned.strip().strip(".")
         return cleaned or "sin_nombre"
+
+    @staticmethod
+    def _parse_children_url(url):
+        """Extrae drive_id e item_id desde una URL de Graph /children."""
+        parsed = urlparse((url or "").strip())
+        path_parts = [unquote(part) for part in parsed.path.split("/") if part]
+        try:
+            drive_index = path_parts.index("drives")
+            item_index = path_parts.index("items")
+        except ValueError as exc:
+            raise UserError(
+                "La URL debe tener el formato /v1.0/drives/<drive_id>/items/<item_id>/children."
+            ) from exc
+        if len(path_parts) <= drive_index + 1 or len(path_parts) <= item_index + 1:
+            raise UserError("La URL de Graph no contiene drive_id o item_id.")
+        if "children" not in path_parts[item_index + 2 :]:
+            raise UserError("La URL debe apuntar al endpoint /children de la carpeta.")
+        return {
+            "drive_id": path_parts[drive_index + 1],
+            "item_id": path_parts[item_index + 1],
+        }
 
     # ------------------------------------------------------------------
     # Autenticacion
@@ -146,10 +173,13 @@ class RiskSharepointService(models.AbstractModel):
     def _resolve_location(self):
         """Devuelve (site_id, drive_id), cacheado por configuracion."""
         cfg = self._config()
-        key = (cfg["site"], cfg["drive"])
+        key = (cfg["site"], cfg["drive"], cfg["drive_id"])
         cached = _LOCATION_CACHE.get(key)
         if cached:
             return cached
+        if cfg["drive_id"]:
+            _LOCATION_CACHE[key] = ("", cfg["drive_id"])
+            return _LOCATION_CACHE[key]
         site = self._request("GET", "%s/sites/%s" % (GRAPH_BASE, cfg["site"])).json()
         site_id = site["id"]
         if cfg["drive"]:
@@ -196,6 +226,126 @@ class RiskSharepointService(models.AbstractModel):
             path_parts.append(segment)
         return "/".join(path_parts)
 
+    def _ensure_folder_under_item(self, drive_id, parent_item_id, segments):
+        """Crea segmentos debajo de un item_id y devuelve el item_id final."""
+        current_item_id = parent_item_id
+        for raw_segment in segments:
+            segment = self._sanitize_name(raw_segment)
+            url = "%s/drives/%s/items/%s/children" % (
+                GRAPH_BASE,
+                drive_id,
+                current_item_id,
+            )
+            payload = {
+                "name": segment,
+                "folder": {},
+                "@microsoft.graph.conflictBehavior": "fail",
+            }
+            try:
+                item = self._request("POST", url, json=payload).json()
+                current_item_id = item["id"]
+            except requests.HTTPError as exc:
+                if not (exc.response is not None and exc.response.status_code == 409):
+                    raise
+                current_item_id = self._get_child_item_id(
+                    drive_id, current_item_id, segment
+                )
+        return current_item_id
+
+    def _list_children_by_item(self, drive_id, item_id):
+        """Lista carpetas y archivos hijos de un item de SharePoint."""
+        _logger.info(
+            "SharePoint list children requested drive_id=%s item_id=%s",
+            drive_id,
+            item_id,
+        )
+        url = (
+            "%s/drives/%s/items/%s/children"
+            "?$select=id,name,folder,file,size,webUrl"
+            % (GRAPH_BASE, drive_id, item_id)
+        )
+        items = self._request("GET", url).json().get("value", [])
+        result = [
+            {
+                "id": item["id"],
+                "name": item.get("name", item["id"]),
+                "is_folder": "folder" in item,
+                "is_file": "file" in item,
+                "size": item.get("size") or 0,
+                "web_url": item.get("webUrl") or "",
+            }
+            for item in items
+        ]
+        result.sort(key=lambda item: (not item["is_folder"], item["name"].lower()))
+        _logger.info(
+            "SharePoint list children ok drive_id=%s item_id=%s folders=%s files=%s",
+            drive_id,
+            item_id,
+            len([item for item in result if item["is_folder"]]),
+            len([item for item in result if item["is_file"]]),
+        )
+        return result
+
+    def _create_folder_under_item(self, drive_id, parent_item_id, folder_name):
+        """Crea una subcarpeta directa bajo parent_item_id."""
+        safe_name = self._sanitize_name(folder_name)
+        _logger.info(
+            "SharePoint create folder requested drive_id=%s parent_item_id=%s folder=%s",
+            drive_id,
+            parent_item_id,
+            safe_name,
+        )
+        url = "%s/drives/%s/items/%s/children" % (
+            GRAPH_BASE,
+            drive_id,
+            parent_item_id,
+        )
+        payload = {
+            "name": safe_name,
+            "folder": {},
+            "@microsoft.graph.conflictBehavior": "fail",
+        }
+        try:
+            item = self._request("POST", url, json=payload).json()
+        except requests.HTTPError as exc:
+            if exc.response is not None and exc.response.status_code == 409:
+                _logger.info(
+                    "SharePoint create folder conflict drive_id=%s parent_item_id=%s folder=%s",
+                    drive_id,
+                    parent_item_id,
+                    safe_name,
+                )
+                raise UserError("Ya existe una carpeta llamada '%s'." % safe_name) from exc
+            raise
+        _logger.info(
+            "SharePoint create folder ok drive_id=%s parent_item_id=%s folder=%s item_id=%s",
+            drive_id,
+            parent_item_id,
+            safe_name,
+            item.get("id"),
+        )
+        return item
+
+    def _upload_test_file(self, drive_id, parent_item_id, filename, content):
+        """Sube un archivo de prueba en una carpeta concreta."""
+        safe_name = self._sanitize_name(filename)
+        _logger.info(
+            "SharePoint test upload requested drive_id=%s parent_item_id=%s filename=%s size=%s",
+            drive_id,
+            parent_item_id,
+            safe_name,
+            len(content or b""),
+        )
+        item = self._upload_to_parent_item(drive_id, parent_item_id, safe_name, content)
+        _logger.info(
+            "SharePoint test upload ok drive_id=%s parent_item_id=%s filename=%s item_id=%s",
+            drive_id,
+            parent_item_id,
+            safe_name,
+            item.get("id"),
+        )
+        return item
+
     # ------------------------------------------------------------------
     # API publica usada por el modelo de documento
     # ------------------------------------------------------------------
@@ -208,9 +358,17 @@ class RiskSharepointService(models.AbstractModel):
         Devuelve dict(item_id, web_url, drive_id).
         """
         _, drive_id = self._resolve_location()
+        cfg = self._config()
         safe_name = self._sanitize_name(filename)
         if item_id:
             item = self._upload_to_item(drive_id, item_id, content)
+        elif cfg["root_item_id"]:
+            parent_item_id = self._ensure_folder_under_item(
+                drive_id, cfg["root_item_id"], folder_segments[1:]
+            )
+            item = self._upload_to_parent_item(
+                drive_id, parent_item_id, safe_name, content
+            )
         else:
             folder_path = self._ensure_folder(drive_id, folder_segments)
             item = self._upload_to_path(drive_id, folder_path, safe_name, content)
@@ -238,6 +396,28 @@ class RiskSharepointService(models.AbstractModel):
             GRAPH_BASE,
             drive_id,
             folder_path,
+            filename,
+        )
+        return self._upload_session(session_url, content)
+
+    def _upload_to_parent_item(self, drive_id, parent_item_id, filename, content):
+        if len(content) < SIMPLE_UPLOAD_LIMIT:
+            url = "%s/drives/%s/items/%s:/%s:/content" % (
+                GRAPH_BASE,
+                drive_id,
+                parent_item_id,
+                filename,
+            )
+            return self._request(
+                "PUT",
+                url,
+                data=content,
+                headers={"Content-Type": "application/octet-stream"},
+            ).json()
+        session_url = "%s/drives/%s/items/%s:/%s:/createUploadSession" % (
+            GRAPH_BASE,
+            drive_id,
+            parent_item_id,
             filename,
         )
         return self._upload_session(session_url, content)
@@ -326,6 +506,12 @@ class RiskSharepointService(models.AbstractModel):
         )
         return [{"id": d["id"], "name": d.get("name", d["id"])} for d in drives]
 
+    def _get_drive_name(self, drive_id):
+        data = self._request(
+            "GET", "%s/drives/%s?$select=id,name" % (GRAPH_BASE, drive_id)
+        ).json()
+        return data.get("name") or drive_id
+
     def _drive_id_by_name(self, drive_name):
         """Resuelve el ID interno de un drive a partir de su nombre."""
         drives = self._list_drives()
@@ -344,13 +530,28 @@ class RiskSharepointService(models.AbstractModel):
 
     def _list_folders_by_item(self, drive_id, item_id):
         """Lista subcarpetas directas de un item dado su ID. Devuelve dicts id/name."""
-        url = "%s/drives/%s/items/%s/children?$select=id,name,folder" % (
+        items = self._list_children_by_item(drive_id, item_id)
+        return [{"id": i["id"], "name": i["name"]} for i in items if i["is_folder"]]
+
+    def _test_root_folder(self):
+        cfg = self._config()
+        _, drive_id = self._resolve_location()
+        item_id = cfg["root_item_id"]
+        if not item_id:
+            if cfg["drive"]:
+                item_id, drive_id = self._get_drive_root_item_id(cfg["drive"])
+            else:
+                item = self._request(
+                    "GET", "%s/drives/%s/root?$select=id" % (GRAPH_BASE, drive_id)
+                ).json()
+                item_id = item["id"]
+        url = "%s/drives/%s/items/%s/children?$top=1&$select=id,name,folder,file" % (
             GRAPH_BASE,
             drive_id,
             item_id,
         )
-        items = self._request("GET", url).json().get("value", [])
-        return [{"id": i["id"], "name": i["name"]} for i in items if "folder" in i]
+        self._request("GET", url).json()
+        return {"drive_id": drive_id, "item_id": item_id}
 
     def _get_child_item_id(self, drive_id, parent_item_id, child_name):
         """Resuelve el item_id de una subcarpeta dada el ID del padre y el nombre."""
@@ -406,4 +607,9 @@ class RiskSharepointService(models.AbstractModel):
         """Resuelve sitio y biblioteca; util para un boton 'Probar conexion'."""
         _LOCATION_CACHE.clear()
         site_id, drive_id = self._resolve_location()
-        return {"site_id": site_id, "drive_id": drive_id}
+        info = self._test_root_folder()
+        return {
+            "site_id": site_id,
+            "drive_id": drive_id,
+            "root_item_id": info["item_id"],
+        }

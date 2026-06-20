@@ -1,5 +1,11 @@
+import base64
+import logging
+from datetime import datetime
+
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 
 class RiskSharepointDriveSelector(models.TransientModel):
@@ -17,6 +23,7 @@ class RiskSharepointDriveSelector(models.TransientModel):
         selection="_selection_drives",
         string="Biblioteca",
     )
+    selected_drive_id = fields.Char()
 
     # ── Etapa 2: navegación de carpetas ───────────────────────────────────
     current_path = fields.Char(default="")
@@ -29,6 +36,24 @@ class RiskSharepointDriveSelector(models.TransientModel):
         string="Ubicación actual",
         compute="_compute_path_display",
     )
+    directory_summary = fields.Text(
+        string="Contenido",
+        compute="_compute_directory_summary",
+    )
+    folder_count = fields.Integer(
+        string="Carpetas",
+        compute="_compute_directory_summary",
+    )
+    file_count = fields.Integer(
+        string="Archivos",
+        compute="_compute_directory_summary",
+    )
+    new_folder_name = fields.Char(string="Nueva carpeta")
+    test_file = fields.Binary(string="Archivo de prueba")
+    test_filename = fields.Char(string="Nombre archivo prueba")
+    test_upload_item_id = fields.Char(string="Item prueba", readonly=True)
+    test_upload_web_url = fields.Char(string="Enlace prueba", readonly=True)
+    test_upload_message = fields.Text(string="Resultado prueba", readonly=True)
 
     # ── Selections ────────────────────────────────────────────────────────
 
@@ -45,8 +70,10 @@ class RiskSharepointDriveSelector(models.TransientModel):
         try:
             svc = self.env["risk.sharepoint.service"]
             if self.current_item_id:
-                drive_id = svc._drive_id_by_name(self.drive_id)
-                folders = svc._list_folders_by_item(drive_id, self.current_item_id)
+                technical_drive_id = self._current_drive_id()
+                folders = svc._list_folders_by_item(
+                    technical_drive_id, self.current_item_id
+                )
                 return [(f["name"], f["name"]) for f in folders]
             folders = svc._list_folders(self.drive_id, self.current_path or "")
             return [(f, f) for f in folders]
@@ -63,6 +90,39 @@ class RiskSharepointDriveSelector(models.TransientModel):
             ]
             rec.path_display = " / ".join(p for p in parts if p) or "raíz"
 
+    @api.depends("drive_id", "selected_drive_id", "current_item_id")
+    def _compute_directory_summary(self):
+        for rec in self:
+            rec.directory_summary = ""
+            rec.folder_count = 0
+            rec.file_count = 0
+            if rec.stage != "folder" or not rec.current_item_id:
+                continue
+            try:
+                children = rec.env["risk.sharepoint.service"]._list_children_by_item(
+                    rec._current_drive_id(), rec.current_item_id
+                )
+            except Exception as exc:  # noqa: BLE001 - visible para autogestion
+                rec.directory_summary = _("No se pudo listar la carpeta: %s") % exc
+                continue
+            folders = [item for item in children if item["is_folder"]]
+            files = [item for item in children if item["is_file"]]
+            rec.folder_count = len(folders)
+            rec.file_count = len(files)
+            lines = []
+            if folders:
+                lines.append(_("Carpetas:"))
+                lines.extend("  [DIR] %s" % item["name"] for item in folders)
+            if files:
+                if lines:
+                    lines.append("")
+                lines.append(_("Archivos:"))
+                lines.extend(
+                    "  [FILE] %s (%s bytes)" % (item["name"], item["size"])
+                    for item in files
+                )
+            rec.directory_summary = "\n".join(lines) or _("La carpeta está vacía.")
+
     # ── Default get ───────────────────────────────────────────────────────
 
     @api.model
@@ -70,22 +130,46 @@ class RiskSharepointDriveSelector(models.TransientModel):
         res = super().default_get(fields_list)
         get = self.env["ir.config_parameter"].sudo().get_param
         saved_drive = get("risk_module.sp_drive") or ""
+        saved_drive_id = get("risk_module.sp_drive_id") or ""
         saved_folder = get("risk_module.sp_root_folder") or ""
         saved_item_id = get("risk_module.sp_root_item_id") or ""
+        graph_url = self.env.context.get("graph_children_url")
 
-        if saved_drive and saved_item_id:
+        if graph_url:
+            svc = self.env["risk.sharepoint.service"]
+            parsed = svc._parse_children_url(graph_url)
+            try:
+                drive_name = svc._get_drive_name(parsed["drive_id"])
+            except Exception:
+                drive_name = saved_drive or parsed["drive_id"]
+            res.update({
+                "stage": "folder",
+                "drive_id": drive_name,
+                "selected_drive_id": parsed["drive_id"],
+                "current_path": saved_folder,
+                "current_item_id": parsed["item_id"],
+            })
+        elif saved_drive and saved_item_id:
             # Ya hay una ubicación guardada: abrir directamente en etapa carpeta
             res.update({
                 "stage": "folder",
                 "drive_id": saved_drive,
+                "selected_drive_id": saved_drive_id,
                 "current_path": saved_folder,
                 "current_item_id": saved_item_id,
             })
         elif saved_drive:
             res["drive_id"] = saved_drive
+            res["selected_drive_id"] = saved_drive_id
             if saved_folder:
                 res["current_path"] = saved_folder
         return res
+
+    def _current_drive_id(self):
+        self.ensure_one()
+        if self.selected_drive_id:
+            return self.selected_drive_id
+        return self.env["risk.sharepoint.service"]._drive_id_by_name(self.drive_id)
 
     # ── Acciones de navegación ────────────────────────────────────────────
 
@@ -110,6 +194,7 @@ class RiskSharepointDriveSelector(models.TransientModel):
         root_item_id, _drive_id = svc._get_drive_root_item_id(self.drive_id)
         self.write({
             "stage": "folder",
+            "selected_drive_id": _drive_id,
             "current_path": "",
             "current_item_id": root_item_id,
             "folder_choice": False,
@@ -124,8 +209,16 @@ class RiskSharepointDriveSelector(models.TransientModel):
         if self.folder_choice == "__error__":
             raise UserError(_("No se pueden cargar las subcarpetas. Verifica la configuración."))
         svc = self.env["risk.sharepoint.service"]
-        drive_id = svc._drive_id_by_name(self.drive_id)
-        child_item_id = svc._get_child_item_id(drive_id, self.current_item_id, self.folder_choice)
+        technical_drive_id = self._current_drive_id()
+        _logger.info(
+            "SharePoint explorer enter folder drive_id=%s current_item_id=%s folder=%s",
+            technical_drive_id,
+            self.current_item_id,
+            self.folder_choice,
+        )
+        child_item_id = svc._get_child_item_id(
+            technical_drive_id, self.current_item_id, self.folder_choice
+        )
         base = self.current_path or ""
         new_path = "%s/%s" % (base, self.folder_choice) if base else self.folder_choice
         self.write({
@@ -141,8 +234,18 @@ class RiskSharepointDriveSelector(models.TransientModel):
         parts = [p for p in (self.current_path or "").split("/") if p]
         new_path = "/".join(parts[:-1])
         svc = self.env["risk.sharepoint.service"]
-        drive_id = svc._drive_id_by_name(self.drive_id)
-        parent_item_id = svc._get_item_parent_id(drive_id, self.current_item_id) or ""
+        technical_drive_id = self._current_drive_id()
+        _logger.info(
+            "SharePoint explorer go up drive_id=%s current_item_id=%s path=%s",
+            technical_drive_id,
+            self.current_item_id,
+            self.current_path,
+        )
+        parent_item_id = svc._get_item_parent_id(
+            technical_drive_id, self.current_item_id
+        )
+        if not parent_item_id:
+            raise UserError(_("Ya estás en la raíz de la biblioteca."))
         self.write({
             "current_path": new_path,
             "current_item_id": parent_item_id,
@@ -150,10 +253,105 @@ class RiskSharepointDriveSelector(models.TransientModel):
         })
         return self._reopen()
 
+    def action_refresh(self):
+        self.ensure_one()
+        _logger.info(
+            "SharePoint explorer refresh drive_id=%s item_id=%s path=%s",
+            self._current_drive_id() if self.drive_id else "",
+            self.current_item_id,
+            self.current_path,
+        )
+        self.folder_choice = False
+        return self._reopen()
+
+    def action_create_folder(self):
+        self.ensure_one()
+        if not self.new_folder_name:
+            raise UserError(_("Indica el nombre de la carpeta."))
+        drive_id = self._current_drive_id()
+        _logger.info(
+            "SharePoint explorer create folder drive_id=%s parent_item_id=%s folder=%s user_id=%s",
+            drive_id,
+            self.current_item_id,
+            self.new_folder_name,
+            self.env.user.id,
+        )
+        self.env["risk.sharepoint.service"]._create_folder_under_item(
+            drive_id, self.current_item_id, self.new_folder_name
+        )
+        self.new_folder_name = False
+        return self._reopen()
+
+    def action_upload_test_file(self):
+        self.ensure_one()
+        if not self.test_file:
+            raise UserError(_("Carga un archivo de prueba."))
+        drive_id = self._current_drive_id()
+        filename = self.test_filename or (
+            "prueba_odoo_sharepoint_%s.txt" % datetime.now().strftime("%Y%m%d_%H%M%S")
+        )
+        content = base64.b64decode(self.test_file)
+        _logger.info(
+            "SharePoint explorer test upload drive_id=%s parent_item_id=%s filename=%s size=%s user_id=%s",
+            drive_id,
+            self.current_item_id,
+            filename,
+            len(content),
+            self.env.user.id,
+        )
+        item = self.env["risk.sharepoint.service"]._upload_test_file(
+            drive_id, self.current_item_id, filename, content
+        )
+        self.write({
+            "test_upload_item_id": item.get("id"),
+            "test_upload_web_url": item.get("webUrl"),
+            "test_upload_message": _(
+                "Archivo de prueba subido correctamente: %s"
+            ) % (item.get("name") or filename),
+        })
+        return self._reopen()
+
+    def action_delete_test_file(self):
+        self.ensure_one()
+        if not self.test_upload_item_id:
+            raise UserError(_("No hay archivo de prueba para eliminar."))
+        drive_id = self._current_drive_id()
+        _logger.info(
+            "SharePoint explorer delete test file drive_id=%s item_id=%s user_id=%s",
+            drive_id,
+            self.test_upload_item_id,
+            self.env.user.id,
+        )
+        self.env["risk.sharepoint.service"]._delete(
+            self.test_upload_item_id, drive_id=drive_id
+        )
+        self.write({
+            "test_upload_item_id": False,
+            "test_upload_web_url": False,
+            "test_upload_message": _("Archivo de prueba eliminado correctamente."),
+        })
+        return self._reopen()
+
+    def action_open_test_file(self):
+        self.ensure_one()
+        if not self.test_upload_web_url:
+            raise UserError(_("No hay enlace de prueba para abrir."))
+        return {
+            "type": "ir.actions.act_url",
+            "url": self.test_upload_web_url,
+            "target": "new",
+        }
+
     def action_change_drive(self):
         """Regresa al paso 1 para cambiar la biblioteca."""
         self.ensure_one()
-        self.write({"stage": "drive", "current_path": "", "current_item_id": "", "folder_choice": False})
+        self.write({
+            "stage": "drive",
+            "selected_drive_id": "",
+            "current_path": "",
+            "current_item_id": "",
+            "folder_choice": False,
+        })
         return self._reopen()
 
     def action_confirm(self):
@@ -172,11 +370,22 @@ class RiskSharepointDriveSelector(models.TransientModel):
                 item_id, _drive_id = svc._resolve_item_id_for_path(
                     self.drive_id, self.current_path or ""
                 )
+                self.selected_drive_id = _drive_id
             except Exception:
                 item_id = ""
 
         cfg = self.env["ir.config_parameter"].sudo()
+        _logger.info(
+            "SharePoint explorer confirm folder drive=%s drive_id=%s path=%s item_id=%s user_id=%s",
+            self.drive_id,
+            self.selected_drive_id,
+            self.current_path,
+            item_id,
+            self.env.user.id,
+        )
         cfg.set_param("risk_module.sp_drive", self.drive_id)
+        if self.selected_drive_id:
+            cfg.set_param("risk_module.sp_drive_id", self.selected_drive_id)
         cfg.set_param("risk_module.sp_root_folder", self.current_path or "Solicitudes")
         if item_id:
             cfg.set_param("risk_module.sp_root_item_id", item_id)
