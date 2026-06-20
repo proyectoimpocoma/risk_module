@@ -52,6 +52,7 @@ class RiskSharepointService(models.AbstractModel):
             "site": (get("risk_module.sp_site") or "").strip(),
             "drive": (get("risk_module.sp_drive") or "").strip(),
             "root_folder": (get("risk_module.sp_root_folder") or "Solicitudes").strip(),
+            "root_item_id": get("risk_module.sp_root_item_id") or "",
             "purge_local": get("risk_module.sp_purge_local")
             in ("True", "1", "true", None),
             "max_attempts": int(get("risk_module.sp_max_attempts") or 5),
@@ -325,28 +326,76 @@ class RiskSharepointService(models.AbstractModel):
         )
         return [{"id": d["id"], "name": d.get("name", d["id"])} for d in drives]
 
-    def _list_folders(self, drive_name, path=""):
-        """Devuelve nombres de subcarpetas dentro de path en el drive indicado.
-
-        path vacío → raíz del drive.
-        """
-        cfg = self._config()
-        if not cfg["site"]:
-            raise UserError("Configura el sitio de SharePoint antes de navegar carpetas.")
-        # Resolve drive id by name.
+    def _drive_id_by_name(self, drive_name):
+        """Resuelve el ID interno de un drive a partir de su nombre."""
         drives = self._list_drives()
         drive = next((d for d in drives if d["name"] == drive_name), None)
         if not drive:
             raise UserError("No se encontró la biblioteca '%s'." % drive_name)
-        drive_id = drive["id"]
+        return drive["id"]
+
+    def _get_drive_root_item_id(self, drive_name):
+        """Devuelve (item_id, drive_id) de la raíz del drive."""
+        drive_id = self._drive_id_by_name(drive_name)
+        item = self._request(
+            "GET", "%s/drives/%s/root?$select=id" % (GRAPH_BASE, drive_id)
+        ).json()
+        return item["id"], drive_id
+
+    def _list_folders_by_item(self, drive_id, item_id):
+        """Lista subcarpetas directas de un item dado su ID. Devuelve dicts id/name."""
+        url = "%s/drives/%s/items/%s/children?$select=id,name,folder" % (
+            GRAPH_BASE,
+            drive_id,
+            item_id,
+        )
+        items = self._request("GET", url).json().get("value", [])
+        return [{"id": i["id"], "name": i["name"]} for i in items if "folder" in i]
+
+    def _get_child_item_id(self, drive_id, parent_item_id, child_name):
+        """Resuelve el item_id de una subcarpeta dada el ID del padre y el nombre."""
+        url = "%s/drives/%s/items/%s:/%s?$select=id,name" % (
+            GRAPH_BASE,
+            drive_id,
+            parent_item_id,
+            child_name,
+        )
+        return self._request("GET", url).json()["id"]
+
+    def _get_item_parent_id(self, drive_id, item_id):
+        """Devuelve el item_id del directorio padre."""
+        url = "%s/drives/%s/items/%s?$select=id,parentReference" % (
+            GRAPH_BASE,
+            drive_id,
+            item_id,
+        )
+        item = self._request("GET", url).json()
+        return item.get("parentReference", {}).get("id")
+
+    def _resolve_item_id_for_path(self, drive_name, path=""):
+        """Devuelve (item_id, drive_id) de una ruta relativa a la raíz del drive."""
+        drive_id = self._drive_id_by_name(drive_name)
         if path:
-            url = "%s/drives/%s/root:/%s:/children?$select=name,folder&$filter=folder ne null" % (
+            url = "%s/drives/%s/root:/%s?$select=id" % (GRAPH_BASE, drive_id, path)
+        else:
+            url = "%s/drives/%s/root?$select=id" % (GRAPH_BASE, drive_id)
+        return self._request("GET", url).json()["id"], drive_id
+
+    def _list_folders(self, drive_name, path=""):
+        """Devuelve nombres de subcarpetas dentro de path en el drive indicado.
+
+        path vacío → raíz del drive.  Usa rutas para compatibilidad con código existente;
+        para navegación nueva preferir _list_folders_by_item (más estable ante renombrados).
+        """
+        drive_id = self._drive_id_by_name(drive_name)
+        if path:
+            url = "%s/drives/%s/root:/%s:/children?$select=id,name,folder" % (
                 GRAPH_BASE,
                 drive_id,
                 path,
             )
         else:
-            url = "%s/drives/%s/root/children?$select=name,folder&$filter=folder ne null" % (
+            url = "%s/drives/%s/root/children?$select=id,name,folder" % (
                 GRAPH_BASE,
                 drive_id,
             )
