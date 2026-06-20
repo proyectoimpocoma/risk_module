@@ -41,6 +41,8 @@
                             <button string="→ Entrar en carpeta" type="object" name="action_enter_folder"
                                     class="btn-secondary btn-sm ms-2"
                                     invisible="not folder_choice"/>
+                            <button string="⇆ Cambiar biblioteca" type="object" name="action_change_drive"
+                                    class="btn-secondary btn-sm ms-2"/>
                         </div>
                     </div>
 
