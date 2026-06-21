@@ -57,23 +57,27 @@
                             <field name="dest_display" readonly="1" nolabel="1"/>
                         </div>
                     </div>
+                    <group string="Destino en SharePoint">
+                        <field name="party"/>
+                        <field name="active" invisible="1"/>
+                        <field name="dest_drive_id" invisible="1"/>
+                        <field name="dest_item_id" invisible="1"/>
+                        <field name="dest_display" readonly="1"/>
+                        <field name="dest_label" placeholder="Carpeta raíz global (Ajustes)"
+                               invisible="not dest_label"/>
+                        <button name="action_pick_folder" type="object"
+                                string="Elegir carpeta destino"
+                                class="btn-secondary" icon="fa-folder-open"/>
+                        <button name="action_clear_folder" type="object"
+                                string="Usar carpeta raíz global"
+                                class="btn-link"
+                                invisible="not dest_item_id"
+                                confirm="¿Volver a usar la carpeta raíz global para este tipo?"/>
+                    </group>
                     <group>
-                        <group string="Destino en SharePoint">
-                            <field name="party"/>
-                            <field name="active" invisible="1"/>
-                            <field name="dest_drive_id" invisible="1"/>
-                            <field name="dest_item_id" invisible="1"/>
-                            <field name="dest_display" readonly="1"/>
-                            <field name="dest_label" placeholder="Carpeta raíz global (Ajustes)"
-                                   invisible="not dest_label"/>
-                            <button name="action_pick_folder" type="object"
-                                    string="Elegir carpeta destino"
-                                    class="btn-secondary" icon="fa-folder-open"/>
-                            <button name="action_clear_folder" type="object"
-                                    string="Usar carpeta raíz global"
-                                    class="btn-link"
-                                    invisible="not dest_item_id"
-                                    confirm="¿Volver a usar la carpeta raíz global para este tipo?"/>
+                        <group string="Variables disponibles">
+                            <field name="tokens_help" nolabel="1" readonly="1"
+                                   class="risk-sp-token-field"/>
                         </group>
                         <group string="Formato del archivo">
                             <field name="folder_template"
@@ -86,20 +90,14 @@
                             <field name="duplicate_policy_display" readonly="1"/>
                         </group>
                     </group>
-                    <group>
-                        <group string="Variables disponibles">
-                            <field name="tokens_help" nolabel="1" readonly="1"
-                                   class="risk-sp-token-field"/>
-                        </group>
-                        <group string="Vista previa"
-                               help="Solo para previsualizar; no guarda nada.">
-                            <field name="preview_submission_id"/>
-                            <field name="preview_document_type"/>
-                            <field name="preview_folder" readonly="1"
-                                   invisible="not preview_submission_id"/>
-                            <field name="preview_filename" readonly="1"
-                                   invisible="not preview_submission_id"/>
-                        </group>
+                    <group string="Vista previa"
+                           help="Solo para previsualizar; no guarda nada.">
+                        <field name="preview_submission_id"/>
+                        <field name="preview_document_type"/>
+                        <field name="preview_folder" readonly="1"
+                               invisible="not preview_submission_id"/>
+                        <field name="preview_filename" readonly="1"
+                               invisible="not preview_submission_id"/>
                     </group>
                 </sheet>
             </form>

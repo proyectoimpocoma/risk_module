@@ -1,36 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Rutas por defecto, una por tipo. noupdate="1" para no sobrescribir los
-         cambios que haga el usuario al actualizar el modulo. Reproducen la
-         estructura clasica: <ref> <placa> / <tipo>. -->
+         cambios que haga el usuario al actualizar el modulo. -->
     <data noupdate="1">
         <record id="route_driver" model="risk.sharepoint.route">
             <field name="party">driver</field>
-            <field name="folder_template">{ref} {placa}/Conductor</field>
+            <field name="folder_template">{conductor} {conductor_doc}</field>
             <field name="filename_template">{documento} {conductor}</field>
             <field name="append_id" eval="True"/>
         </record>
         <record id="route_owner" model="risk.sharepoint.route">
             <field name="party">owner</field>
-            <field name="folder_template">{ref} {placa}/Propietario</field>
+            <field name="folder_template">{conductor} {conductor_doc}</field>
             <field name="filename_template">{documento} {propietario}</field>
             <field name="append_id" eval="True"/>
         </record>
         <record id="route_vehicle" model="risk.sharepoint.route">
             <field name="party">vehicle</field>
-            <field name="folder_template">{ref} {placa}/Vehiculo</field>
+            <field name="folder_template">{placa}</field>
             <field name="filename_template">{documento} {placa}</field>
             <field name="append_id" eval="True"/>
         </record>
         <record id="route_semi_trailer" model="risk.sharepoint.route">
             <field name="party">semi_trailer</field>
-            <field name="folder_template">{ref} {placa}/Remolque</field>
+            <field name="folder_template">{conductor} {conductor_doc}</field>
             <field name="filename_template">{documento} {remolque}</field>
             <field name="append_id" eval="True"/>
         </record>
         <record id="route_other" model="risk.sharepoint.route">
             <field name="party">other</field>
-            <field name="folder_template">{ref} {placa}/Otros</field>
+            <field name="folder_template">{conductor} {conductor_doc}</field>
             <field name="filename_template">{documento}</field>
             <field name="append_id" eval="True"/>
         </record>

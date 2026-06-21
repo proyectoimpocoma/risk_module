@@ -84,12 +84,35 @@ class TestRiskSharepointRoute(RiskModuleTestCase):
         self.assertEqual(ctx["placa"], "XYZ789")
         self.assertEqual(ctx["propietario"], "Transportes Demo")
         self.assertEqual(ctx["conductor"], "Conductor Demo")
+        self.assertEqual(ctx["conductor_doc"], "12345678")
         self.assertEqual(ctx["tipo"], "Vehiculo")
         self.assertEqual(ctx["documento"], "SOAT")
         self.assertEqual(ctx["fecha"], "2026-05-09")
         self.assertEqual(ctx["anio"], "2026")
         self.assertEqual(ctx["mes"], "05")
         self.assertEqual(ctx["id"], document.id)
+
+    def test_token_context_driver_name_falls_back_to_master(self):
+        self.env["risk.driver"].create(
+            {
+                "name": "Juan Perez",
+                "document_number": "98765432",
+            }
+        )
+        submission = self.make_submission(
+            driver_name="98765432",
+            driver_document_number="98765432",
+        )
+        document = self.make_document(
+            submission, document_type="driver_id", party="driver"
+        )
+        ctx = document._sp_token_context()
+        self.assertEqual(ctx["conductor"], "Juan Perez")
+        self.assertEqual(ctx["conductor_doc"], "98765432")
+        segments = self.service._render_path_segments(
+            "{conductor} {conductor_doc}", ctx
+        )
+        self.assertEqual(segments, ["Juan Perez 98765432"])
 
     def test_token_context_renders_default_route(self):
         # Integracion renderer + contexto con la plantilla por defecto del tipo.
@@ -102,13 +125,26 @@ class TestRiskSharepointRoute(RiskModuleTestCase):
         segments = self.service._render_path_segments(
             route.folder_template, ctx
         )
-        # {ref} {placa}/Vehiculo => [<ref> XYZ789, Vehiculo]
-        self.assertEqual(segments[-1], "Vehiculo")
-        self.assertIn("XYZ789", segments[0])
+        self.assertEqual(segments, ["XYZ789"])
         name = self.service._apply_filename_template(
             route.filename_template, ctx, document.filename or "doc.pdf"
         )
         self.assertEqual(name, "SOAT XYZ789.pdf")
+
+    def test_token_context_renders_driver_route_as_name_and_document(self):
+        submission = self.make_submission(
+            driver_name="Conductor Demo",
+            driver_document_number="12345678",
+        )
+        document = self.make_document(
+            submission, document_type="driver_id", party="driver"
+        )
+        route = self.Route._route_for_party("driver")
+        ctx = document._sp_token_context()
+        segments = self.service._render_path_segments(
+            route.folder_template, ctx
+        )
+        self.assertEqual(segments, ["Conductor Demo 12345678"])
 
     # ── Modelo de rutas ───────────────────────────────────────────────
     def test_seed_routes_loaded(self):
@@ -146,10 +182,9 @@ class TestRiskSharepointRoute(RiskModuleTestCase):
             submission, document_type="soat", party="vehicle"
         )
         segments = doc._sp_folder_segments()
-        # raiz global + plantilla {ref} {placa}/Vehiculo
+        # raiz global + plantilla {placa} para documentos del vehiculo.
         self.assertEqual(segments[0], "Solicitudes")
-        self.assertEqual(segments[-1], "Vehiculo")
-        self.assertIn("XYZ789", segments[1])
+        self.assertEqual(segments[1], "XYZ789")
 
     def test_folder_segments_fallback_without_route(self):
         submission = self.make_submission(plate="XYZ789")
@@ -228,7 +263,7 @@ class TestRiskSharepointRoute(RiskModuleTestCase):
         self.assertEqual(drive, "DRV")
         # Segmentos relativos a la carpeta destino: sin la raiz global.
         self.assertNotIn("Solicitudes", segments)
-        self.assertEqual(segments[-1], "Vehiculo")
+        self.assertEqual(segments[-1], "XYZ789")
 
     def test_sync_passes_dest_to_store_file(self):
         route = self.Route._route_for_party("vehicle")

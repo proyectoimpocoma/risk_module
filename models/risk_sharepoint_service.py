@@ -137,13 +137,23 @@ class RiskSharepointService(models.AbstractModel):
         Mantener las claves en sincronia con ``TEMPLATE_TOKENS``.
         """
         form_date = submission.form_date
+        driver_document = (submission.driver_document_number or "").strip()
+        driver_name = (submission.driver_name or "").strip()
+        if driver_document and (
+            not driver_name or driver_name == driver_document
+        ):
+            driver = submission.driver_id or self.env["risk.driver"].find_by_document(
+                driver_document
+            )
+            if driver and driver.name:
+                driver_name = driver.name
         return {
             "placa": submission.vehicle_plate or "",
             "remolque": submission.semi_trailer_plate or "",
             "propietario": submission.owner_name or "",
             "propietario_doc": submission.owner_document_number or "",
-            "conductor": submission.driver_name or "",
-            "conductor_doc": submission.driver_document_number or "",
+            "conductor": driver_name,
+            "conductor_doc": driver_document,
             "tipo": party_label or "",
             "documento": doc_label or "",
             "ref": submission.name or ("Solicitud-%s" % submission.id),
