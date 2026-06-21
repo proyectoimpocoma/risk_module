@@ -497,6 +497,27 @@ class RiskSubmission(models.Model):
         string="Validaciones externas",
         copy=False,
     )
+    warning_ids = fields.One2many(
+        "risk.warning",
+        "submission_id",
+        string="Advertencias de riesgo",
+        copy=False,
+    )
+    warning_count = fields.Integer(
+        string="Advertencias",
+        compute="_compute_warning_summary",
+        store=True,
+    )
+    critical_warning_count = fields.Integer(
+        string="Criticas",
+        compute="_compute_warning_summary",
+        store=True,
+    )
+    new_critical_warning_count = fields.Integer(
+        string="Criticas sin revisar",
+        compute="_compute_warning_summary",
+        store=True,
+    )
 
     def _is_risk_analyst_without_leader_rights(self):
         """
@@ -561,6 +582,19 @@ class RiskSubmission(models.Model):
             record.document_progress_label = "%s / %s aprobados" % (
                 record.document_approved_count,
                 record.document_required_count,
+            )
+
+    @api.depends("warning_ids.state", "warning_ids.severity")
+    def _compute_warning_summary(self):
+        for record in self:
+            warnings = record.warning_ids.filtered(
+                lambda item: item.state in ("new", "reviewed", "confirmed")
+            )
+            critical = warnings.filtered(lambda item: item.severity == "critical")
+            record.warning_count = len(warnings)
+            record.critical_warning_count = len(critical)
+            record.new_critical_warning_count = len(
+                critical.filtered(lambda item: item.state == "new")
             )
 
     @api.depends(
@@ -1229,6 +1263,283 @@ class RiskSubmission(models.Model):
             domain.append(("id", "!=", int(exclude_id)))
         return self.search(domain, limit=1)
 
+    @api.model
+    def _risk_warning_normalize_email(self, value):
+        return (value or "").strip().lower()
+
+    @api.model
+    def _risk_warning_normalize_digits(self, value):
+        return "".join(character for character in (value or "") if character.isdigit())
+
+    @api.model
+    def _risk_warning_normalize_name(self, value):
+        return " ".join((value or "").strip().lower().split())
+
+    @api.model
+    def _risk_warning_watched_fields(self):
+        return {
+            "vehicle_plate",
+            "owner_name",
+            "owner_document_number",
+            "owner_phone",
+            "owner_email",
+            "registered_owner_document_number",
+            "registered_owner_phone",
+            "driver_name",
+            "driver_document_number",
+            "driver_phone",
+            "driver_optional_phone",
+            "driver_email",
+        }
+
+    def _risk_warning_related_submissions(self, field_name, value, states=False):
+        self.ensure_one()
+        if not value:
+            return self.browse()
+        domain = [(field_name, "=", value), ("id", "!=", self.id)]
+        if states:
+            domain.append(("state", "in", states))
+        return self.search(domain, limit=20)
+
+    def _risk_warning_related_email_submissions(self, field_names, value, states=False):
+        self.ensure_one()
+        if not value:
+            return self.browse()
+        related = self.browse()
+        for field_name in field_names:
+            domain = [(field_name, "!=", False), ("id", "!=", self.id)]
+            if states:
+                domain.append(("state", "in", states))
+            candidates = self.search(domain, limit=50)
+            related |= candidates.filtered(
+                lambda item: self._risk_warning_normalize_email(
+                    getattr(item, field_name)
+                )
+                == value
+            )
+        return related
+
+    def _risk_warning_related_digit_submissions(self, field_names, value, states=False):
+        self.ensure_one()
+        if not value:
+            return self.browse()
+        related = self.browse()
+        for field_name in field_names:
+            domain = [(field_name, "!=", False), ("id", "!=", self.id)]
+            if states:
+                domain.append(("state", "in", states))
+            candidates = self.search(domain, limit=50)
+            related |= candidates.filtered(
+                lambda item: self._risk_warning_normalize_digits(
+                    getattr(item, field_name)
+                )
+                == value
+            )
+        return related
+
+    def _risk_warning_create_once(
+        self,
+        rule_code,
+        category,
+        severity,
+        matched_value,
+        message,
+        related_submissions=False,
+    ):
+        self.ensure_one()
+        matched_value = (matched_value or "").strip()
+        if not matched_value:
+            return self.env["risk.warning"]
+        Warning = self.env["risk.warning"].sudo()
+        existing = Warning.search(
+            [
+                ("submission_id", "=", self.id),
+                ("rule_code", "=", rule_code),
+                ("matched_value", "=", matched_value),
+            ],
+            limit=1,
+        )
+        if existing:
+            if related_submissions:
+                existing.related_submission_ids = [(6, 0, related_submissions.ids)]
+            return existing
+        return Warning.create(
+            {
+                "submission_id": self.id,
+                "rule_code": rule_code,
+                "category": category,
+                "severity": severity,
+                "matched_value": matched_value,
+                "message": message,
+                "related_submission_ids": [
+                    (6, 0, related_submissions.ids if related_submissions else [])
+                ],
+            }
+        )
+
+    def _generate_risk_warnings(self):
+        """Create internal risk warnings from deterministic first-pass rules."""
+        active_states = self._active_submission_states()
+        for record in self:
+            owner_email = record._risk_warning_normalize_email(record.owner_email)
+            driver_email = record._risk_warning_normalize_email(record.driver_email)
+            email_fields = ["owner_email", "driver_email"]
+            for field_name, label, email in (
+                ("owner_email", "correo del propietario", owner_email),
+                ("driver_email", "correo del conductor", driver_email),
+            ):
+                if not email:
+                    continue
+                active_related = record._risk_warning_related_email_submissions(
+                    email_fields,
+                    email,
+                    states=active_states,
+                )
+                if active_related:
+                    record._risk_warning_create_once(
+                        "duplicate_%s_active" % field_name,
+                        "email",
+                        "warning",
+                        email,
+                        "El %s ya aparece en otra solicitud activa." % label,
+                        active_related,
+                    )
+                rejected_related = record._risk_warning_related_email_submissions(
+                    email_fields,
+                    email,
+                    states=["rejected"],
+                )
+                if rejected_related:
+                    record._risk_warning_create_once(
+                        "rejected_%s_history" % field_name,
+                        "history",
+                        "warning",
+                        email,
+                        "El %s aparece en una solicitud rechazada anteriormente."
+                        % label,
+                        rejected_related,
+                    )
+
+            phone_values = [
+                ("owner_phone", "telefono del propietario", record.owner_phone),
+                (
+                    "registered_owner_phone",
+                    "telefono del propietario registrado",
+                    record.registered_owner_phone,
+                ),
+                ("driver_phone", "telefono del conductor", record.driver_phone),
+                (
+                    "driver_optional_phone",
+                    "telefono opcional del conductor",
+                    record.driver_optional_phone,
+                ),
+            ]
+            phone_fields = [item[0] for item in phone_values]
+            for field_name, label, raw_value in phone_values:
+                phone = record._risk_warning_normalize_digits(raw_value)
+                if not phone:
+                    continue
+                active_related = record._risk_warning_related_digit_submissions(
+                    phone_fields,
+                    phone,
+                    states=active_states,
+                )
+                if active_related:
+                    record._risk_warning_create_once(
+                        "duplicate_%s_active" % field_name,
+                        "phone",
+                        "warning",
+                        phone,
+                        "El %s ya aparece en otra solicitud activa." % label,
+                        active_related,
+                    )
+                rejected_related = record._risk_warning_related_digit_submissions(
+                    phone_fields,
+                    phone,
+                    states=["rejected"],
+                )
+                if rejected_related:
+                    record._risk_warning_create_once(
+                        "rejected_%s_history" % field_name,
+                        "history",
+                        "warning",
+                        phone,
+                        "El %s aparece en una solicitud rechazada anteriormente."
+                        % label,
+                        rejected_related,
+                    )
+
+            owner_doc = record._risk_warning_normalize_digits(
+                record.owner_document_number
+            )
+            if owner_doc:
+                related = record._risk_warning_related_digit_submissions(
+                    ["owner_document_number", "registered_owner_document_number"],
+                    owner_doc,
+                )
+                different_name = related.filtered(
+                    lambda item: record._risk_warning_normalize_name(item.owner_name)
+                    and record._risk_warning_normalize_name(item.owner_name)
+                    != record._risk_warning_normalize_name(record.owner_name)
+                )
+                if different_name:
+                    record._risk_warning_create_once(
+                        "owner_document_different_name",
+                        "document",
+                        "critical",
+                        owner_doc,
+                        "El documento del propietario existe con un nombre diferente.",
+                        different_name,
+                    )
+
+            driver_doc = record._risk_warning_normalize_digits(
+                record.driver_document_number
+            )
+            if driver_doc:
+                related = record._risk_warning_related_digit_submissions(
+                    ["driver_document_number", "owner_document_number"],
+                    driver_doc,
+                )
+                different_name = related.filtered(
+                    lambda item: record._risk_warning_normalize_name(item.driver_name)
+                    and record._risk_warning_normalize_name(item.driver_name)
+                    != record._risk_warning_normalize_name(record.driver_name)
+                )
+                if different_name:
+                    record._risk_warning_create_once(
+                        "driver_document_different_name",
+                        "document",
+                        "critical",
+                        driver_doc,
+                        "El documento del conductor existe con un nombre diferente.",
+                        different_name,
+                    )
+
+            plate = record._normalize_plate(record.vehicle_plate)
+            if plate:
+                related = record._risk_warning_related_submissions(
+                    "vehicle_plate",
+                    plate,
+                )
+                different_owner = related.filtered(
+                    lambda item: record._risk_warning_normalize_digits(
+                        item.owner_document_number
+                    )
+                    and record._risk_warning_normalize_digits(
+                        item.owner_document_number
+                    )
+                    != owner_doc
+                )
+                if different_owner:
+                    record._risk_warning_create_once(
+                        "plate_different_owner",
+                        "plate",
+                        "critical",
+                        plate,
+                        "La placa aparece asociada a otro propietario.",
+                        different_owner,
+                    )
+
     @api.model_create_multi
     def create(self, vals_list):
         """Create risk submission records and normalize key fields.
@@ -1262,6 +1573,7 @@ class RiskSubmission(models.Model):
         submitted_records = records.filtered(lambda record: record.state == "submitted")
         if submitted_records:
             submitted_records.action_send_submission_received_email()
+        records._generate_risk_warnings()
         return records
 
     def write(self, vals):
@@ -1305,4 +1617,11 @@ class RiskSubmission(models.Model):
         )
         if submitted_records:
             submitted_records.action_send_submission_received_email()
+        if self._risk_warning_watched_fields().intersection(vals) or vals.get("state") in (
+            "submitted",
+            "risk_review",
+            "manual_approval_pending",
+            "documents_review",
+        ):
+            self._generate_risk_warnings()
         return result

@@ -17,6 +17,8 @@
                 <field name="document_pending_count"/>
                 <field name="document_received_count"/>
                 <field name="document_rejected_count"/>
+                <field name="warning_count"/>
+                <field name="new_critical_warning_count"/>
                 <field name="next_action_label"/>
                 <templates>
                     <t t-name="card">
@@ -68,6 +70,16 @@
                                     <field name="next_action_label"/>
                                 </strong>
                             </div>
+                            <div class="risk-submission-next-action"
+                                 t-if="record.warning_count.raw_value">
+                                <span>Advertencias</span>
+                                <strong>
+                                    <field name="warning_count"/>
+                                    <t t-if="record.new_critical_warning_count.raw_value">
+                                        / <field name="new_critical_warning_count"/> criticas
+                                    </t>
+                                </strong>
+                            </div>
 
                             <div class="risk-submission-card-footer">
                                 <span>
@@ -110,6 +122,8 @@
                 <field name="owner_city" string="Ciudad"/>
                 <field name="driver_name" string="Conductor"/>
                 <field name="next_action_label" string="Siguiente accion" optional="show"/>
+                <field name="warning_count" string="Advertencias" optional="show"/>
+                <field name="new_critical_warning_count" string="Criticas nuevas" optional="show"/>
                 <field name="document_progress_label" string="Documentos" optional="hide"/>
                 <field name="satellite_company" string="Empresa Satelital" optional="hide"/>
                 <button name="action_open_printable" type="object" string="PDF" icon="fa-print"/>

@@ -3,6 +3,7 @@ import logging
 from markupsafe import escape
 
 from odoo import fields, models
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -23,6 +24,7 @@ class RiskSubmissionWorkflow(models.Model):
                 "risk_reviewed_at": fields.Datetime.now(),
             }
         )
+        self._generate_risk_warnings()
 
     def action_skip_external_validation(self):
         _logger.info(
@@ -125,6 +127,15 @@ class RiskSubmissionWorkflow(models.Model):
             )
             record._check_documents_ready_for_approval()
             record._check_active_vehicle_driver_assignment()
+            record._generate_risk_warnings()
+            if (
+                record.new_critical_warning_count
+                and not self.env.user.has_group("risk_module.group_risk_manager")
+            ):
+                raise UserError(
+                    "La solicitud tiene advertencias criticas sin revisar. "
+                    "Marcalas como revisadas o solicita a un lider aprobar con excepcion."
+                )
             record.write(
                 {
                     "state": "approved",

@@ -96,6 +96,12 @@
                         <strong>Base de terceros:</strong>
                         <field name="master_validation_summary" readonly="1" nolabel="1"/>
                     </div>
+                    <div class="alert alert-danger" role="status"
+                         invisible="not new_critical_warning_count"
+                         groups="risk_module.group_risk_user">
+                        <strong>Advertencias criticas:</strong>
+                        Esta solicitud tiene advertencias criticas sin revisar. Revisalas antes de aprobar.
+                    </div>
 
                     <group>
                         <group string="Información General">
@@ -122,6 +128,70 @@
                     </group>
 
                     <notebook>
+                        <page string="Advertencias de riesgo" name="risk_warnings_page"
+                              groups="risk_module.group_risk_user">
+                            <group string="Resumen">
+                                <group>
+                                    <field name="warning_count" readonly="1"/>
+                                    <field name="critical_warning_count" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="new_critical_warning_count" readonly="1"/>
+                                </group>
+                            </group>
+                            <field name="warning_ids" nolabel="1" readonly="1">
+                                <list string="Advertencias"
+                                      decoration-danger="severity == 'critical' and state == 'new'"
+                                      decoration-warning="severity == 'warning'"
+                                      decoration-muted="state == 'dismissed'">
+                                    <field name="severity" widget="badge"
+                                           decoration-danger="severity == 'critical'"
+                                           decoration-warning="severity == 'warning'"
+                                           decoration-info="severity == 'info'"/>
+                                    <field name="state" widget="badge"
+                                           decoration-info="state == 'new'"
+                                           decoration-success="state in ('reviewed', 'confirmed')"
+                                           decoration-muted="state == 'dismissed'"/>
+                                    <field name="category"/>
+                                    <field name="message"/>
+                                    <field name="matched_value"/>
+                                    <field name="related_submission_ids" widget="many2many_tags"/>
+                                    <field name="reviewed_by_id"/>
+                                    <field name="reviewed_at"/>
+                                    <button name="action_mark_reviewed" type="object"
+                                            string="Revisada"
+                                            icon="fa-check"
+                                            invisible="state != 'new'"/>
+                                    <button name="action_confirm" type="object"
+                                            string="Confirmar"
+                                            icon="fa-exclamation-triangle"
+                                            invisible="state == 'confirmed'"/>
+                                    <button name="action_dismiss" type="object"
+                                            string="Descartar"
+                                            icon="fa-times"
+                                            invisible="state == 'dismissed'"/>
+                                </list>
+                                <form string="Advertencia de riesgo">
+                                    <sheet>
+                                        <group>
+                                            <field name="severity"/>
+                                            <field name="state"/>
+                                            <field name="category"/>
+                                            <field name="rule_code"/>
+                                            <field name="matched_value"/>
+                                        </group>
+                                        <group>
+                                            <field name="message"/>
+                                            <field name="related_submission_ids" widget="many2many_tags"/>
+                                            <field name="review_note"/>
+                                            <field name="reviewed_by_id"/>
+                                            <field name="reviewed_at"/>
+                                        </group>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+
                         <!-- Pestaña 1: Propietario -->
                         <page string="Propietario / Tenedor" name="owner_page">
                             <group string="Datos del Propietario / Tenedor / Poseedor">

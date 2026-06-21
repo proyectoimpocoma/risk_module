@@ -11,6 +11,7 @@ from . import risk_submission_owner
 from . import risk_submission_master_sync
 from . import risk_document_requirement
 from . import risk_message_template
+from . import risk_warning
 from . import risk_submission_documents
 from . import risk_sharepoint_service
 from . import risk_sharepoint_route
@@ -36,6 +37,7 @@ __all__ = [
     "risk_submission_master_sync",
     "risk_document_requirement",
     "risk_message_template",
+    "risk_warning",
     "risk_submission_documents",
     "risk_sharepoint_service",
     "risk_sharepoint_route",

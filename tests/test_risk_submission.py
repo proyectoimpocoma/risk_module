@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from odoo import fields
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 from odoo.addons.risk_module.controllers.risk_submission_form_mapper import (
     RiskSubmissionFormMapperMixin,
@@ -22,6 +22,20 @@ class TestRiskSubmission(RiskModuleTestCase):
         )
         self.submission = self.make_submission(owner=self.portal_user)
 
+    def _make_internal_user(self, login, groups):
+        return (
+            self.env["res.users"]
+            .with_context(no_reset_password=True)
+            .create(
+                {
+                    "name": login,
+                    "login": login,
+                    "email": login,
+                    "group_ids": [(6, 0, [group.id for group in groups])],
+                }
+            )
+        )
+
     def test_create_normalizes_plate(self):
         self.assertEqual(self.submission.vehicle_plate, "ABC123")
 
@@ -29,6 +43,44 @@ class TestRiskSubmission(RiskModuleTestCase):
         self.assertEqual(
             self.submission.satellite_url, "https://rastreo.example.com"
         )
+
+    def test_duplicate_owner_email_creates_warning(self):
+        other = self.make_submission(
+            owner=self.other_portal_user,
+            plate="DUP456",
+            owner_email=self.submission.owner_email,
+        )
+
+        warning = other.warning_ids.filtered(
+            lambda item: item.rule_code == "duplicate_owner_email_active"
+        )
+
+        self.assertTrue(warning)
+        self.assertEqual(warning.severity, "warning")
+        self.assertIn(self.submission, warning.related_submission_ids)
+
+    def test_same_plate_with_different_owner_creates_critical_warning(self):
+        old = self.make_submission(
+            owner=self.other_portal_user,
+            state="rejected",
+            plate="PLT123",
+            owner_document_number="900111222",
+            owner_name="Transportes Antiguos",
+        )
+        current = self.make_submission(
+            owner=self.portal_user,
+            plate="PLT123",
+            owner_document_number="900999888",
+            owner_name="Transportes Nuevos",
+        )
+
+        warning = current.warning_ids.filtered(
+            lambda item: item.rule_code == "plate_different_owner"
+        )
+
+        self.assertTrue(warning)
+        self.assertEqual(warning.severity, "critical")
+        self.assertIn(old, warning.related_submission_ids)
 
     def test_portal_ownership_values_are_assigned(self):
         self.assertEqual(self.submission.partner_id, self.portal_user.partner_id)
@@ -446,6 +498,53 @@ class TestRiskSubmission(RiskModuleTestCase):
         self.assertEqual(self.submission.state, "approved")
         self.assertEqual(self.submission.approval_user_id, self.env.user)
         self.assertFalse(self.submission.rejection_user_id)
+
+    def test_approval_blocks_analyst_when_critical_warning_is_new(self):
+        analyst = self._make_internal_user(
+            "risk-analyst-warning@example.com",
+            [self.env.ref("risk_module.group_risk_user")],
+        )
+        self.submission.action_request_documents()
+        for document in self.submission.document_ids:
+            self.approve_document(document)
+        self.submission.write({"state": "documents_review"})
+        self.env["risk.warning"].create(
+            {
+                "submission_id": self.submission.id,
+                "rule_code": "test_critical_warning",
+                "category": "plate",
+                "severity": "critical",
+                "matched_value": "ABC123",
+                "message": "Alerta critica de prueba.",
+            }
+        )
+
+        with self.assertRaises(UserError):
+            self.submission.with_user(analyst).action_confirm_approval("Ok")
+
+    def test_manager_can_approve_with_new_critical_warning(self):
+        manager = self._make_internal_user(
+            "risk-manager-warning@example.com",
+            [self.env.ref("risk_module.group_risk_manager")],
+        )
+        self.submission.action_request_documents()
+        for document in self.submission.document_ids:
+            self.approve_document(document)
+        self.submission.write({"state": "documents_review"})
+        self.env["risk.warning"].create(
+            {
+                "submission_id": self.submission.id,
+                "rule_code": "test_manager_exception",
+                "category": "plate",
+                "severity": "critical",
+                "matched_value": "ABC123",
+                "message": "Alerta critica de prueba.",
+            }
+        )
+
+        self.submission.with_user(manager).action_confirm_approval("Excepcion revisada")
+
+        self.assertEqual(self.submission.state, "approved")
 
     def test_validiti_manual_approval_moves_to_manual_approval(self):
         validation = self.make_validation(self.submission)
