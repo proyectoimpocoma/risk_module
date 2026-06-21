@@ -3,10 +3,14 @@
 Estas pruebas no tocan la red: el renderer es texto puro y el contexto se
 construye desde una solicitud/documento de prueba.
 """
+from unittest.mock import patch
+
 from odoo.exceptions import ValidationError
 from odoo.tests.common import tagged
 
 from .common import RiskModuleTestCase
+
+SERVICE = "odoo.addons.risk_module.models.risk_sharepoint_service.RiskSharepointService"
 
 
 @tagged("post_install", "-at_install")
@@ -195,3 +199,63 @@ class TestRiskSharepointRoute(RiskModuleTestCase):
         doc.filename = "soat.pdf"
         self.Route._route_for_party("vehicle").active = False
         self.assertEqual(doc._sp_filename(), "soat.pdf")
+
+    # ── Carpeta destino por tipo (fase 5) ─────────────────────────────
+    def test_upload_target_without_dest_uses_global_root(self):
+        submission = self.make_submission(plate="XYZ789")
+        doc = self.make_document(
+            submission, document_type="soat", party="vehicle"
+        )
+        segments, base, drive = doc._sp_upload_target()
+        self.assertIsNone(base)
+        self.assertIsNone(drive)
+        # Sin destino: el primer segmento es la carpeta raiz global.
+        self.assertEqual(segments[0], "Solicitudes")
+
+    def test_upload_target_with_dest_is_relative(self):
+        route = self.Route._route_for_party("vehicle")
+        route.write({
+            "dest_drive_id": "DRV",
+            "dest_item_id": "ITEM",
+            "dest_label": "Biblioteca / 2 Vehiculo",
+        })
+        submission = self.make_submission(plate="XYZ789")
+        doc = self.make_document(
+            submission, document_type="soat", party="vehicle"
+        )
+        segments, base, drive = doc._sp_upload_target()
+        self.assertEqual(base, "ITEM")
+        self.assertEqual(drive, "DRV")
+        # Segmentos relativos a la carpeta destino: sin la raiz global.
+        self.assertNotIn("Solicitudes", segments)
+        self.assertEqual(segments[-1], "Vehiculo")
+
+    def test_sync_passes_dest_to_store_file(self):
+        route = self.Route._route_for_party("vehicle")
+        route.write({
+            "dest_drive_id": "DRV",
+            "dest_item_id": "ITEM",
+            "dest_label": "Biblioteca / 2 Vehiculo",
+        })
+        submission = self.make_submission(plate="XYZ789")
+        doc = self.make_document(
+            submission, document_type="soat", party="vehicle"
+        )
+        doc.write({"file": self.TEST_DUMMY_FILE, "filename": "soat.pdf"})
+        store_result = {"item_id": "I", "web_url": "u", "drive_id": "DRV"}
+        with patch(SERVICE + "._store_file", return_value=store_result) as mocked:
+            doc._sync_to_sharepoint()
+        self.assertEqual(mocked.call_args.kwargs.get("base_item_id"), "ITEM")
+        self.assertEqual(mocked.call_args.kwargs.get("drive_id"), "DRV")
+
+    def test_clear_folder_resets_to_global_root(self):
+        route = self.Route._route_for_party("vehicle")
+        route.write({
+            "dest_drive_id": "DRV",
+            "dest_item_id": "ITEM",
+            "dest_label": "Biblioteca / 2 Vehiculo",
+        })
+        route.action_clear_folder()
+        self.assertFalse(route.dest_item_id)
+        self.assertFalse(route.dest_drive_id)
+        self.assertFalse(route.dest_label)

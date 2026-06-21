@@ -4,8 +4,10 @@
         <field name="name">risk.sharepoint.route.list</field>
         <field name="model">risk.sharepoint.route</field>
         <field name="arch" type="xml">
-            <list string="Rutas SharePoint" editable="bottom">
+            <list string="Rutas SharePoint">
                 <field name="party"/>
+                <field name="dest_label" string="Carpeta destino"
+                       placeholder="Carpeta raíz global"/>
                 <field name="folder_template"/>
                 <field name="filename_template"/>
                 <field name="append_id"/>
@@ -19,6 +21,15 @@
         <field name="model">risk.sharepoint.route</field>
         <field name="arch" type="xml">
             <form string="Ruta SharePoint">
+                <header>
+                    <button name="action_pick_folder" type="object"
+                            string="Elegir carpeta destino" class="btn-primary"
+                            icon="fa-folder-open"/>
+                    <button name="action_clear_folder" type="object"
+                            string="Usar carpeta raíz global"
+                            invisible="not dest_item_id"
+                            confirm="¿Volver a usar la carpeta raíz global para este tipo?"/>
+                </header>
                 <sheet>
                     <widget name="web_ribbon" title="Archivado" bg_color="text-bg-danger"
                             invisible="active"/>
@@ -26,10 +37,13 @@
                         <group string="Destino por tipo">
                             <field name="party"/>
                             <field name="active" invisible="1"/>
+                            <field name="dest_drive_id" invisible="1"/>
+                            <field name="dest_item_id" invisible="1"/>
+                            <field name="dest_label" placeholder="Carpeta raíz global (Ajustes)"/>
                             <field name="folder_template"
-                                   placeholder="{ref} {placa}/Conductor"/>
+                                   placeholder="{conductor_doc} {conductor}"/>
                             <field name="filename_template"
-                                   placeholder="{documento} {conductor}"/>
+                                   placeholder="{documento} {fecha}"/>
                             <field name="append_id"/>
                         </group>
                         <group string="Variables disponibles">
@@ -56,7 +70,7 @@
         <field name="view_mode">list,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Configura dónde y con qué nombre se guardan los documentos por tipo</p>
-            <p>Cada tipo (conductor, propietario, vehículo, semi/remolque) usa una plantilla de carpeta y de nombre con variables como <code>{placa}</code> o <code>{conductor}</code>. Todo cuelga de la carpeta raíz configurada en Ajustes.</p>
+            <p>Cada tipo (conductor, propietario, vehículo, semi/remolque) puede tener su propia carpeta de SharePoint (botón <b>Elegir carpeta destino</b>) y plantillas de carpeta y nombre con variables como <code>{placa}</code> o <code>{conductor}</code>. Si no se elige carpeta, cuelga de la carpeta raíz configurada en Ajustes.</p>
         </field>
     </record>
 

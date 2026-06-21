@@ -178,11 +178,14 @@ class RiskSubmissionDocumentFile(models.Model):
             return
         content = base64.b64decode(self.file)
         try:
+            segments, base_item_id, drive_id = self.document_id._sp_upload_target()
             result = service._store_file(
-                self.document_id._sp_folder_segments(),
+                segments,
                 self.document_id._sp_filename(document_file=self),
                 content,
                 item_id=self.sharepoint_item_id or None,
+                base_item_id=base_item_id,
+                drive_id=drive_id,
             )
         except Exception as exc:  # noqa: BLE001 - se registra y se reintenta luego
             self._sp_mark_error(str(exc), cfg)

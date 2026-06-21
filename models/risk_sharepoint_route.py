@@ -7,9 +7,11 @@ from .risk_sharepoint_service import TEMPLATE_TOKENS, TOKEN_RE
 class RiskSharepointRoute(models.Model):
     """Configuracion autogestionable de ruta y nombre por tipo de documento.
 
-    Una fila por ``party``. Todas las rutas cuelgan de la carpeta raiz global
-    (``sp_root_item_id``); aqui solo se define el arbol de subcarpetas y el
-    nombre del archivo mediante plantillas con variables ``{token}``.
+    Una fila por ``party``. Cada tipo puede tener su propia carpeta destino en
+    SharePoint (``dest_item_id``, elegida con el explorador) o, si se deja
+    vacia, colgar de la carpeta raiz global (``sp_root_item_id``). Dentro de esa
+    base, las plantillas con variables ``{token}`` definen las subcarpetas y el
+    nombre del archivo.
     """
 
     _name = "risk.sharepoint.route"
@@ -29,10 +31,10 @@ class RiskSharepointRoute(models.Model):
     )
     folder_template = fields.Char(
         string="Plantilla de carpeta",
-        required=True,
         default="{ref} {placa}/{tipo}",
-        help="Subcarpetas dentro de la carpeta raiz. Usa / para anidar y "
-        "variables como {placa} o {propietario}.",
+        help="Subcarpetas dentro de la carpeta destino (o de la raiz global si "
+        "no se elige una). Usa / para anidar y variables como {placa}. "
+        "Dejala vacia para guardar directamente en la carpeta destino.",
     )
     filename_template = fields.Char(
         string="Plantilla de nombre",
@@ -47,6 +49,20 @@ class RiskSharepointRoute(models.Model):
         "archivos en la misma carpeta.",
     )
     active = fields.Boolean(default=True)
+
+    # ── Carpeta destino por tipo (elegida con el explorador) ──────────
+    # Si estan vacios, la ruta cuelga de la carpeta raiz global; si tienen
+    # valor, los documentos de este tipo van a esta carpeta y las subcarpetas
+    # de la plantilla se crean dentro de ella.
+    dest_drive_id = fields.Char(string="Drive destino", copy=False)
+    dest_item_id = fields.Char(string="Item destino", copy=False)
+    dest_label = fields.Char(
+        string="Carpeta destino",
+        readonly=True,
+        copy=False,
+        help="Carpeta de SharePoint donde se guardan los documentos de este "
+        "tipo. Si esta vacia se usa la carpeta raiz global de Ajustes.",
+    )
 
     # ── Vista previa (campos no almacenados, solo para el formulario) ──
     preview_submission_id = fields.Many2one(
@@ -95,6 +111,7 @@ class RiskSharepointRoute(models.Model):
         "filename_template",
         "append_id",
         "party",
+        "dest_label",
         "preview_submission_id",
         "preview_document_type",
     )
@@ -123,7 +140,9 @@ class RiskSharepointRoute(models.Model):
                 rec_id=submission.id,
             )
             segments = service._render_path_segments(rec.folder_template, ctx)
-            full = ([root_folder] if root_folder else []) + segments
+            # La base es la carpeta destino del tipo (si la hay) o la raiz global.
+            base = rec.dest_label or root_folder
+            full = ([base] if base else []) + segments
             rec.preview_folder = "/".join(full)
             rec.preview_filename = service._apply_filename_template(
                 rec.filename_template,
@@ -165,3 +184,27 @@ class RiskSharepointRoute(models.Model):
         que un tipo sin ruta activa cae al comportamiento clasico.
         """
         return self.search([("party", "=", party)], limit=1)
+
+    def action_pick_folder(self):
+        """Abre el explorador de SharePoint para fijar la carpeta de este tipo."""
+        self.ensure_one()
+        party_label = dict(self._fields["party"].selection).get(self.party, "")
+        wizard = self.env["risk.sharepoint.drive.selector"].with_context(
+            route_id=self.id,
+        ).create({})
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Elegir carpeta para %s") % party_label,
+            "res_model": "risk.sharepoint.drive.selector",
+            "res_id": wizard.id,
+            "view_mode": "form",
+            "target": "new",
+        }
+
+    def action_clear_folder(self):
+        """Vuelve a usar la carpeta raiz global para este tipo."""
+        self.write({
+            "dest_drive_id": False,
+            "dest_item_id": False,
+            "dest_label": False,
+        })

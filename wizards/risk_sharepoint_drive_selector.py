@@ -191,6 +191,24 @@ class RiskSharepointDriveSelector(models.TransientModel):
         saved_item_id = get("risk_module.sp_root_item_id") or ""
         graph_url = self.env.context.get("graph_children_url")
 
+        route_id = self.env.context.get("route_id")
+        if route_id:
+            route = self.env["risk.sharepoint.route"].browse(route_id)
+            if route.exists() and route.dest_item_id and route.dest_drive_id:
+                svc = self.env["risk.sharepoint.service"]
+                try:
+                    drive_name = svc._get_drive_name(route.dest_drive_id)
+                except Exception:
+                    drive_name = saved_drive or route.dest_drive_id
+                res.update({
+                    "stage": "folder",
+                    "drive_id": drive_name,
+                    "selected_drive_id": route.dest_drive_id,
+                    "current_path": "",
+                    "current_item_id": route.dest_item_id,
+                })
+                return res
+
         if graph_url:
             svc = self.env["risk.sharepoint.service"]
             parsed = svc._parse_children_url(graph_url)
@@ -516,6 +534,31 @@ class RiskSharepointDriveSelector(models.TransientModel):
         self.line_ids.unlink()
         return self._reopen()
 
+    def _confirm_into_route(self, route_id, item_id):
+        """Guarda la carpeta elegida como destino de una ruta por tipo."""
+        self.ensure_one()
+        route = self.env["risk.sharepoint.route"].browse(route_id)
+        if not route.exists():
+            raise UserError(_("La ruta ya no existe."))
+        label_parts = [self.drive_id] + [
+            part for part in (self.current_path or "").split("/") if part
+        ]
+        dest_label = " / ".join(part for part in label_parts if part)
+        _logger.info(
+            "SharePoint explorer confirm route route_id=%s drive_id=%s item_id=%s path=%s user_id=%s",
+            route_id,
+            self.selected_drive_id,
+            item_id,
+            self.current_path,
+            self.env.user.id,
+        )
+        route.write({
+            "dest_drive_id": self.selected_drive_id or self._current_drive_id(),
+            "dest_item_id": item_id,
+            "dest_label": dest_label,
+        })
+        return {"type": "ir.actions.act_window_close"}
+
     def action_confirm(self):
         """Guarda drive, carpeta raíz e item_id en los parámetros de configuración."""
         self.ensure_one()
@@ -535,6 +578,12 @@ class RiskSharepointDriveSelector(models.TransientModel):
                 self.selected_drive_id = _drive_id
             except Exception:
                 item_id = ""
+
+        # Si el explorador se abrió para una ruta concreta, guardamos la carpeta
+        # en esa ruta en vez de en la configuración global.
+        route_id = self.env.context.get("route_id")
+        if route_id:
+            return self._confirm_into_route(route_id, item_id)
 
         cfg = self.env["ir.config_parameter"].sudo()
         _logger.info(

@@ -461,19 +461,41 @@ class RiskSharepointService(models.AbstractModel):
     # ------------------------------------------------------------------
     # API publica usada por el modelo de documento
     # ------------------------------------------------------------------
-    def _store_file(self, folder_segments, filename, content, item_id=None):
+    def _store_file(
+        self,
+        folder_segments,
+        filename,
+        content,
+        item_id=None,
+        base_item_id=None,
+        drive_id=None,
+    ):
         """Sube ``content`` a SharePoint.
 
-        Si ``item_id`` esta presente, sube una nueva version del item existente;
-        si no, crea el archivo (creando antes el arbol de carpetas).
+        - ``item_id``: sube una nueva version del item existente.
+        - ``base_item_id``: carpeta destino explicita (p. ej. la carpeta del
+          tipo). ``folder_segments`` son las subcarpetas relativas a ella.
+        - en otro caso usa la raiz global (``root_item_id``), donde el primer
+          segmento es el nombre de la carpeta raiz y se descarta.
+
+        ``drive_id`` permite forzar la biblioteca del destino; si no se indica
+        se resuelve la configurada por defecto.
 
         Devuelve dict(item_id, web_url, drive_id).
         """
-        _, drive_id = self._resolve_location()
+        if not drive_id:
+            _, drive_id = self._resolve_location()
         cfg = self._config()
         safe_name = self._sanitize_name(filename)
         if item_id:
             item = self._upload_to_item(drive_id, item_id, content)
+        elif base_item_id:
+            parent_item_id = self._ensure_folder_under_item(
+                drive_id, base_item_id, folder_segments
+            )
+            item = self._upload_to_parent_item(
+                drive_id, parent_item_id, safe_name, content
+            )
         elif cfg["root_item_id"]:
             parent_item_id = self._ensure_folder_under_item(
                 drive_id, cfg["root_item_id"], folder_segments[1:]

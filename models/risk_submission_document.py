@@ -715,6 +715,23 @@ class RiskSubmissionDocument(models.Model):
             rec_id=rec_id,
         )
 
+    def _sp_upload_target(self):
+        """Devuelve (folder_segments, base_item_id, drive_id) para la subida.
+
+        Si el tipo tiene carpeta destino propia, devuelve solo las subcarpetas
+        de la plantilla (relativas a esa carpeta) junto con su item/drive. Si
+        no, usa la raiz global con la ruta clasica de ``_sp_folder_segments``.
+        """
+        self.ensure_one()
+        service = self.env["risk.sharepoint.service"]
+        route = self.env["risk.sharepoint.route"]._route_for_party(self.party)
+        if route and route.dest_item_id:
+            segments = service._render_path_segments(
+                route.folder_template, self._sp_token_context()
+            )
+            return segments, route.dest_item_id, route.dest_drive_id or None
+        return self._sp_folder_segments(), None, None
+
     def _sp_create_version(self, is_replacement=False, triggered_by_rejection=False):
         """Registra un intento de carga en el historial (estado 'pending')."""
         self.ensure_one()
@@ -772,11 +789,14 @@ class RiskSubmissionDocument(models.Model):
             return
         content = base64.b64decode(self.file)
         try:
+            segments, base_item_id, drive_id = self._sp_upload_target()
             result = service._store_file(
-                self._sp_folder_segments(),
+                segments,
                 self._sp_filename(),
                 content,
                 item_id=self.sharepoint_item_id or None,
+                base_item_id=base_item_id,
+                drive_id=drive_id,
             )
         except Exception as exc:  # noqa: BLE001 - se registra y se reintenta luego
             self._sp_mark_error(str(exc), cfg)
