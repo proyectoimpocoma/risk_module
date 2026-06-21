@@ -146,6 +146,31 @@ class TestRiskSharepointRoute(RiskModuleTestCase):
         )
         self.assertEqual(segments, ["Conductor Demo 12345678"])
 
+    def test_default_routes_render_by_party(self):
+        submission = self.make_submission(
+            plate="XYZ789",
+            semi_trailer_plate="R12345",
+            owner_name="Transportes Demo",
+            owner_document_number="900123456",
+            driver_name="Conductor Demo",
+            driver_document_number="12345678",
+        )
+        cases = [
+            ("driver", "driver_id", ["Conductor Demo 12345678"]),
+            ("owner", "owner_document", ["Transportes Demo 900123456"]),
+            ("semi_trailer", "semi_registration", ["R12345"]),
+            ("vehicle", "soat", ["XYZ789"]),
+        ]
+        for party, document_type, expected in cases:
+            route = self.Route._route_for_party(party)
+            document = self.make_document(
+                submission, document_type=document_type, party=party
+            )
+            segments = self.service._render_path_segments(
+                route.folder_template, document._sp_token_context()
+            )
+            self.assertEqual(segments, expected)
+
     # ── Modelo de rutas ───────────────────────────────────────────────
     def test_seed_routes_loaded(self):
         parties = set(self.Route.search([]).mapped("party"))

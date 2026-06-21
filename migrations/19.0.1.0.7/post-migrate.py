@@ -1,6 +1,6 @@
-"""Post-migrate: 19.0.1.0.5 -> 19.0.1.0.6.
+"""Post-migrate: 19.0.1.0.6 -> 19.0.1.0.7.
 
-Ajusta las rutas SharePoint base por tipo.
+Corrige las rutas SharePoint para que cada tipo use su propia entidad.
 """
 
 import logging
@@ -19,13 +19,13 @@ FOLDER_TEMPLATES = {
 def migrate(cr, version):
     if not version:
         _logger.info(
-            "risk_module 19.0.1.0.6 post-migrate: fresh install detected, "
+            "risk_module 19.0.1.0.7 post-migrate: fresh install detected, "
             "skipping data fix (data files will populate defaults)."
         )
         return
 
     _logger.info(
-        "risk_module 19.0.1.0.6 post-migrate: updating SharePoint route "
+        "risk_module 19.0.1.0.7 post-migrate: updating SharePoint route "
         "folder templates by party (previous version=%s).",
         version,
     )
@@ -41,6 +41,6 @@ def migrate(cr, version):
         )
         updated += cr.rowcount
     _logger.info(
-        "risk_module 19.0.1.0.6 post-migrate: updated %s SharePoint routes.",
+        "risk_module 19.0.1.0.7 post-migrate: updated %s SharePoint routes.",
         updated,
     )

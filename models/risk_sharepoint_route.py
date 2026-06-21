@@ -31,7 +31,7 @@ class RiskSharepointRoute(models.Model):
     )
     folder_template = fields.Char(
         string="Plantilla de carpeta",
-        default="{conductor} {conductor_doc}",
+        default="{documento}",
         help="Subcarpetas dentro de la carpeta destino (o de la raiz global si "
         "no se elige una). Usa / para anidar y variables como {placa}. "
         "Dejala vacia para guardar directamente en la carpeta destino.",
