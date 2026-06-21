@@ -3,6 +3,13 @@ from datetime import timedelta
 from odoo import fields
 from odoo.exceptions import ValidationError
 
+from odoo.addons.risk_module.controllers.risk_submission_form_mapper import (
+    RiskSubmissionFormMapperMixin,
+)
+from odoo.addons.risk_module.controllers.risk_submission_form_validation import (
+    RiskSubmissionFormValidationMixin,
+)
+
 from .common import RiskModuleTestCase
 
 
@@ -63,6 +70,32 @@ class TestRiskSubmission(RiskModuleTestCase):
                 limit=1,
             )
         )
+
+    def test_same_owner_on_license_clears_hidden_extra_owners(self):
+        data = {
+            "same_owner_on_license": "yes",
+            "registered_owner_document_type": "cc",
+            "registered_owner_document_number": "87654321",
+            "registered_owner_name": "Propietario Registrado",
+            "registered_owner_phone": "3001112233",
+            "extra_owners": [
+                {
+                    "name": "Copropietario Oculto",
+                    "document_type": "cc",
+                    "document_number": "987654",
+                    "role": "owner",
+                    "phone": "3009998888",
+                    "email": "copropietario@example.com",
+                }
+            ],
+        }
+
+        RiskSubmissionFormValidationMixin()._normalize_step_data(2, data)
+        commands = RiskSubmissionFormMapperMixin()._extra_owner_commands(data)
+
+        self.assertFalse(data["registered_owner_document_number"])
+        self.assertEqual(data["extra_owners"], [])
+        self.assertEqual(commands, [(5, 0, 0)])
 
     def test_master_assignment_is_activated_on_approval(self):
         self.submission._sync_master_records(activate_assignment=True)

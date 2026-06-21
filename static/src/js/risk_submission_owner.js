@@ -8,7 +8,7 @@
             return;
         }
 
-        function fieldInputs() {
+        function registeredOwnerInputs() {
             return document.querySelectorAll(
                 "input[name='registered_owner_document_type'], " +
                 "#registered_owner_document_number, " +
@@ -17,14 +17,23 @@
             );
         }
 
+        function extraOwnerInputs() {
+            return document.querySelectorAll(
+                "[data-registered-owner-field='1'] input, " +
+                "[data-registered-owner-field='1'] select"
+            );
+        }
+
         function syncState() {
             var sameOwner = toggle.checked;
+            var extraOwnersList = document.getElementById("extra-owners-list");
+            var addOwnerButton = document.getElementById("add-extra-owner");
             valueInput.value = sameOwner ? "yes" : "no";
 
             Array.prototype.forEach.call(fields, function (field) {
                 field.classList.toggle("is-disabled", sameOwner);
             });
-            Array.prototype.forEach.call(fieldInputs(), function (input) {
+            Array.prototype.forEach.call(registeredOwnerInputs(), function (input) {
                 input.disabled = sameOwner;
                 input.required = !sameOwner && (
                     input.name === "registered_owner_document_type" ||
@@ -39,6 +48,15 @@
                         input.value = "";
                     }
                 }
+            });
+            if (sameOwner && extraOwnersList) {
+                extraOwnersList.innerHTML = "";
+            }
+            if (addOwnerButton) {
+                addOwnerButton.disabled = sameOwner;
+            }
+            Array.prototype.forEach.call(extraOwnerInputs(), function (input) {
+                input.disabled = sameOwner;
             });
         }
 

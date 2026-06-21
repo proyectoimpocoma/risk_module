@@ -53,6 +53,7 @@ class RiskSubmissionFormValidationMixin:
                     "registered_owner_phone",
                 ):
                     data[field] = ""
+                data["extra_owners"] = []
         if before_plate != data.get("vehicle_plate") or before_semi != data.get("semi_trailer_plate"):
             _logger.debug(
                 "Normalized vehicle data step=%s plate=%s semi_present=%s",

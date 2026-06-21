@@ -98,6 +98,8 @@ class RiskSubmissionFormMapperMixin:
         """Build One2many write commands for the additional owners: clear the
         existing lines and recreate them from the session data."""
         commands = [(5, 0, 0)]
+        if data.get("same_owner_on_license") == "yes":
+            return commands
         for index, owner in enumerate(data.get("extra_owners") or []):
             commands.append(
                 (
