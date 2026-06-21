@@ -13,6 +13,7 @@ from . import risk_document_requirement
 from . import risk_message_template
 from . import risk_submission_documents
 from . import risk_sharepoint_service
+from . import risk_sharepoint_route
 from . import risk_submission_document
 from . import risk_submission_document_file
 from . import risk_submission_document_version
@@ -37,6 +38,7 @@ __all__ = [
     "risk_message_template",
     "risk_submission_documents",
     "risk_sharepoint_service",
+    "risk_sharepoint_route",
     "risk_submission_document",
     "risk_submission_document_file",
     "risk_submission_document_version",

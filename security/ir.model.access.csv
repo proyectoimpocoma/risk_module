@@ -30,3 +30,5 @@ access_risk_message_template_wizard,risk.message.template.wizard.analyst,model_r
 access_risk_additional_document_wizard,risk.additional.document.wizard.analyst,model_risk_additional_document_wizard,risk_module.group_risk_user,1,1,1,0
 access_risk_sharepoint_drive_selector,risk.sharepoint.drive.selector.manager,model_risk_sharepoint_drive_selector,risk_module.group_risk_manager,1,1,1,1
 access_risk_sharepoint_drive_selector_line,risk.sharepoint.drive.selector.line.manager,model_risk_sharepoint_drive_selector_line,risk_module.group_risk_manager,1,1,1,1
+access_risk_sharepoint_route,risk.sharepoint.route.user,model_risk_sharepoint_route,risk_module.group_risk_user,1,0,0,0
+access_risk_sharepoint_route_manager,risk.sharepoint.route.manager,model_risk_sharepoint_route,risk_module.group_risk_manager,1,1,1,1

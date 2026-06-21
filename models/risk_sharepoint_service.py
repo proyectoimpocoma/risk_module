@@ -1,4 +1,5 @@
 import logging
+import re
 from urllib.parse import unquote, urlparse
 
 import requests
@@ -7,6 +8,29 @@ from odoo import models
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
+
+# Variables disponibles en las plantillas de ruta y nombre de archivo
+# (lista blanca). token -> descripcion, usada para la ayuda en la UI y para
+# validar las plantillas que configura el usuario.
+TEMPLATE_TOKENS = {
+    "placa": "Placa del vehiculo",
+    "remolque": "Placa del semirremolque",
+    "propietario": "Nombre del propietario",
+    "propietario_doc": "Documento del propietario",
+    "conductor": "Nombre del conductor",
+    "conductor_doc": "Cedula del conductor",
+    "tipo": "Tipo (conductor, propietario, vehiculo...)",
+    "documento": "Tipo de documento",
+    "ref": "Referencia de la solicitud",
+    "fecha": "Fecha de la solicitud (AAAA-MM-DD)",
+    "anio": "Ano de la solicitud",
+    "mes": "Mes de la solicitud (01-12)",
+    "id": "Identificador interno del archivo",
+}
+
+# Reconoce {token} con nombres en minusculas y guion bajo.
+TOKEN_RE = re.compile(r"\{([a-z_]+)\}")
+_WHITESPACE_RE = re.compile(r"\s+")
 
 try:
     import msal
@@ -99,6 +123,94 @@ class RiskSharepointService(models.AbstractModel):
             "drive_id": path_parts[drive_index + 1],
             "item_id": path_parts[item_index + 1],
         }
+
+    # ------------------------------------------------------------------
+    # Motor de plantillas (ruta y nombre por tipo de documento)
+    # ------------------------------------------------------------------
+    def _build_token_context(
+        self, submission, party_label="", doc_label="", rec_id=None
+    ):
+        """Construye el diccionario de variables desde una solicitud.
+
+        Centraliza la parte derivada de ``risk.module`` para que la usen tanto
+        la subida real (con un documento) como la vista previa de las rutas.
+        Mantener las claves en sincronia con ``TEMPLATE_TOKENS``.
+        """
+        form_date = submission.form_date
+        return {
+            "placa": submission.vehicle_plate or "",
+            "remolque": submission.semi_trailer_plate or "",
+            "propietario": submission.owner_name or "",
+            "propietario_doc": submission.owner_document_number or "",
+            "conductor": submission.driver_name or "",
+            "conductor_doc": submission.driver_document_number or "",
+            "tipo": party_label or "",
+            "documento": doc_label or "",
+            "ref": submission.name or ("Solicitud-%s" % submission.id),
+            "fecha": form_date.isoformat() if form_date else "",
+            "anio": str(form_date.year) if form_date else "",
+            "mes": "%02d" % form_date.month if form_date else "",
+            "id": rec_id if rec_id is not None else submission.id,
+        }
+
+    @staticmethod
+    def _split_extension(filename):
+        """Separa (stem, extension) de un nombre. La extension va sin punto."""
+        name = (filename or "").strip()
+        if "." in name:
+            stem, ext = name.rsplit(".", 1)
+            return stem, ext
+        return name, ""
+
+    def _render_template(self, template, context):
+        """Sustituye los tokens ``{x}`` de ``template`` usando ``context``.
+
+        Los tokens desconocidos o con valor vacio se eliminan. Devuelve el
+        texto crudo, sin sanear ni dividir en segmentos.
+        """
+        if not template:
+            return ""
+
+        def _replace(match):
+            value = context.get(match.group(1))
+            return "" if value in (None, False) else str(value)
+
+        return TOKEN_RE.sub(_replace, template)
+
+    def _render_path_segments(self, template, context):
+        """Renderiza una plantilla de carpeta como lista de segmentos saneados.
+
+        Divide por ``/``, colapsa espacios, descarta segmentos vacios (p. ej.
+        de variables sin valor) y sanea cada uno con ``_sanitize_name``.
+        """
+        rendered = self._render_template(template, context)
+        segments = []
+        for raw in rendered.split("/"):
+            collapsed = _WHITESPACE_RE.sub(" ", raw).strip()
+            if not collapsed:
+                continue
+            segments.append(self._sanitize_name(collapsed))
+        return segments
+
+    def _apply_filename_template(
+        self, template, context, original_filename, append_id=False, rec_id=None
+    ):
+        """Construye el nombre de archivo final a partir de la plantilla.
+
+        La extension se conserva siempre del nombre original (las plantillas
+        definen solo el 'stem'). Si la plantilla queda vacia se usa el nombre
+        original como respaldo. Con ``append_id`` se anade ``(id)`` para
+        garantizar unicidad en documentos con varios archivos.
+        """
+        stem_src, ext = self._split_extension(original_filename)
+        rendered = _WHITESPACE_RE.sub(
+            " ", self._render_template(template, context)
+        ).strip()
+        stem = rendered or stem_src or "documento"
+        if append_id and rec_id is not None:
+            stem = "%s (%s)" % (stem, rec_id)
+        name = "%s.%s" % (stem, ext) if ext else stem
+        return self._sanitize_name(name)
 
     # ------------------------------------------------------------------
     # Autenticacion

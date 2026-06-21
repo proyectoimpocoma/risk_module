@@ -180,7 +180,7 @@ class RiskSubmissionDocumentFile(models.Model):
         try:
             result = service._store_file(
                 self.document_id._sp_folder_segments(),
-                self._sp_unique_filename(),
+                self.document_id._sp_filename(document_file=self),
                 content,
                 item_id=self.sharepoint_item_id or None,
             )

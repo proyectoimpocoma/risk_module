@@ -631,8 +631,29 @@ class RiskSubmissionDocument(models.Model):
             if vals:
                 record.write(vals)
 
-    def _sp_folder_segments(self):
-        """Ruta de carpetas en SharePoint para este documento."""
+    def _sp_token_context(self, document_file=None):
+        """Variables disponibles para las plantillas de ruta/nombre.
+
+        ``document_file`` permite que ``{id}`` apunte al archivo concreto en
+        documentos multi-archivo; si es ``None`` se usa el id del documento.
+        """
+        self.ensure_one()
+        party_label = dict(self._fields["party"].selection).get(
+            self.party, self.party or "otro"
+        )
+        doc_label = dict(self._fields["document_type"].selection).get(
+            self.document_type, self.document_type or ""
+        )
+        rec_id = document_file.id if document_file is not None else self.id
+        return self.env["risk.sharepoint.service"]._build_token_context(
+            self.submission_id,
+            party_label=party_label,
+            doc_label=doc_label,
+            rec_id=rec_id,
+        )
+
+    def _sp_classic_folder_segments(self):
+        """Ruta clasica (sin ruta configurada): raiz / <ref> <placa> / <tipo>."""
         self.ensure_one()
         cfg = self.env["risk.sharepoint.service"]._config()
         submission = self.submission_id
@@ -643,6 +664,56 @@ class RiskSubmissionDocument(models.Model):
             self.party, self.party or "otro"
         )
         return [cfg["root_folder"], sub_folder, party_label]
+
+    def _sp_folder_segments(self):
+        """Ruta de carpetas en SharePoint para este documento.
+
+        Si hay una ruta activa para el ``party`` se renderiza su plantilla de
+        carpeta (relativa a la raiz global); si no, se usa la ruta clasica.
+        El primer segmento es siempre el nombre de la carpeta raiz: ``_store_file``
+        lo ignora cuando hay ``root_item_id`` configurado.
+        """
+        self.ensure_one()
+        service = self.env["risk.sharepoint.service"]
+        route = self.env["risk.sharepoint.route"]._route_for_party(self.party)
+        if route:
+            segments = service._render_path_segments(
+                route.folder_template, self._sp_token_context()
+            )
+            if segments:
+                cfg = service._config()
+                return [cfg["root_folder"]] + segments
+        return self._sp_classic_folder_segments()
+
+    def _sp_filename(self, document_file=None):
+        """Nombre del archivo en SharePoint segun la ruta del ``party``.
+
+        Sin ruta activa se conserva el comportamiento clasico (nombre original,
+        o ``nombre (id)`` para multi-archivo). En multi-archivo se fuerza el
+        ``(id)`` aunque la ruta no lo pida, para evitar colisiones entre los
+        archivos de un mismo documento.
+        """
+        self.ensure_one()
+        service = self.env["risk.sharepoint.service"]
+        is_multi = document_file is not None
+        source_name = (
+            (document_file.filename if is_multi else self.filename)
+            or self.name
+            or "documento"
+        )
+        route = self.env["risk.sharepoint.route"]._route_for_party(self.party)
+        if not route:
+            if is_multi:
+                return document_file._sp_unique_filename()
+            return source_name
+        rec_id = document_file.id if is_multi else self.id
+        return service._apply_filename_template(
+            route.filename_template,
+            self._sp_token_context(document_file=document_file),
+            source_name,
+            append_id=route.append_id or is_multi,
+            rec_id=rec_id,
+        )
 
     def _sp_create_version(self, is_replacement=False, triggered_by_rejection=False):
         """Registra un intento de carga en el historial (estado 'pending')."""
@@ -703,7 +774,7 @@ class RiskSubmissionDocument(models.Model):
         try:
             result = service._store_file(
                 self._sp_folder_segments(),
-                self.filename or self.name or "documento",
+                self._sp_filename(),
                 content,
                 item_id=self.sharepoint_item_id or None,
             )

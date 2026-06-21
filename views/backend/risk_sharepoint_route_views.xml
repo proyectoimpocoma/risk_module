@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_risk_sharepoint_route_list" model="ir.ui.view">
+        <field name="name">risk.sharepoint.route.list</field>
+        <field name="model">risk.sharepoint.route</field>
+        <field name="arch" type="xml">
+            <list string="Rutas SharePoint" editable="bottom">
+                <field name="party"/>
+                <field name="folder_template"/>
+                <field name="filename_template"/>
+                <field name="append_id"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_risk_sharepoint_route_form" model="ir.ui.view">
+        <field name="name">risk.sharepoint.route.form</field>
+        <field name="model">risk.sharepoint.route</field>
+        <field name="arch" type="xml">
+            <form string="Ruta SharePoint">
+                <sheet>
+                    <widget name="web_ribbon" title="Archivado" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    <group>
+                        <group string="Destino por tipo">
+                            <field name="party"/>
+                            <field name="active" invisible="1"/>
+                            <field name="folder_template"
+                                   placeholder="{ref} {placa}/Conductor"/>
+                            <field name="filename_template"
+                                   placeholder="{documento} {conductor}"/>
+                            <field name="append_id"/>
+                        </group>
+                        <group string="Variables disponibles">
+                            <field name="tokens_help" nolabel="1" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Vista previa"
+                           help="Solo para previsualizar; no guarda nada.">
+                        <field name="preview_submission_id"/>
+                        <field name="preview_document_type"/>
+                        <field name="preview_folder" readonly="1"
+                               invisible="not preview_submission_id"/>
+                        <field name="preview_filename" readonly="1"
+                               invisible="not preview_submission_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_risk_sharepoint_route" model="ir.actions.act_window">
+        <field name="name">Rutas SharePoint</field>
+        <field name="res_model">risk.sharepoint.route</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Configura dónde y con qué nombre se guardan los documentos por tipo</p>
+            <p>Cada tipo (conductor, propietario, vehículo, semi/remolque) usa una plantilla de carpeta y de nombre con variables como <code>{placa}</code> o <code>{conductor}</code>. Todo cuelga de la carpeta raíz configurada en Ajustes.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_risk_sharepoint_route"
+              name="Rutas SharePoint"
+              parent="menu_risk_module_configuration"
+              action="action_risk_sharepoint_route"
+              sequence="40"
+              groups="risk_module.group_risk_manager"/>
+</odoo>
