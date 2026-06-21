@@ -1,6 +1,6 @@
 import logging
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
@@ -78,6 +78,71 @@ class ResConfigSettings(models.TransientModel):
         help="Numero maximo de reintentos antes de dejar un documento en "
         "estado de error para revision manual.",
     )
+    risk_sp_config_status = fields.Selection(
+        [
+            ("disabled", "Desactivado"),
+            ("incomplete", "Incompleto"),
+            ("ready", "Listo para validar"),
+        ],
+        string="Estado",
+        compute="_compute_risk_sp_config_status",
+    )
+    risk_sp_config_summary = fields.Char(
+        string="Resumen",
+        compute="_compute_risk_sp_config_status",
+    )
+    risk_sp_location_summary = fields.Char(
+        string="Destino actual",
+        compute="_compute_risk_sp_config_status",
+    )
+    risk_sp_show_advanced = fields.Boolean(string="Mostrar ajustes avanzados")
+
+    @api.depends(
+        "risk_sp_enabled",
+        "risk_sp_tenant_id",
+        "risk_sp_client_id",
+        "risk_sp_client_secret",
+        "risk_sp_site",
+        "risk_sp_drive",
+        "risk_sp_drive_id",
+        "risk_sp_root_folder",
+        "risk_sp_root_item_id",
+    )
+    def _compute_risk_sp_config_status(self):
+        for rec in self:
+            has_credentials = bool(
+                rec.risk_sp_tenant_id
+                and rec.risk_sp_client_id
+                and rec.risk_sp_client_secret
+            )
+            has_site_or_drive = bool(rec.risk_sp_site or rec.risk_sp_drive_id)
+            has_location = bool(rec.risk_sp_drive or rec.risk_sp_drive_id)
+            has_root = bool(rec.risk_sp_root_folder or rec.risk_sp_root_item_id)
+            if not rec.risk_sp_enabled:
+                rec.risk_sp_config_status = "disabled"
+                rec.risk_sp_config_summary = _(
+                    "Los documentos se conservaran solo en Odoo."
+                )
+            elif has_credentials and has_site_or_drive and has_location and has_root:
+                rec.risk_sp_config_status = "ready"
+                rec.risk_sp_config_summary = _(
+                    "La configuracion minima esta completa. Ejecuta las pruebas para validar permisos."
+                )
+            else:
+                rec.risk_sp_config_status = "incomplete"
+                rec.risk_sp_config_summary = _(
+                    "Completa credenciales, sitio y carpeta antes de sincronizar documentos."
+                )
+            location_parts = []
+            if rec.risk_sp_site:
+                location_parts.append(rec.risk_sp_site)
+            if rec.risk_sp_drive:
+                location_parts.append(rec.risk_sp_drive)
+            if rec.risk_sp_root_folder:
+                location_parts.append(rec.risk_sp_root_folder)
+            rec.risk_sp_location_summary = " / ".join(location_parts) or _(
+                "Sin destino seleccionado"
+            )
 
     def _notify(self, message, kind="success"):
         return {

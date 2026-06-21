@@ -4,14 +4,24 @@
         <field name="name">risk.sharepoint.route.list</field>
         <field name="model">risk.sharepoint.route</field>
         <field name="arch" type="xml">
-            <list string="Rutas SharePoint">
-                <field name="party"/>
-                <field name="dest_label" string="Carpeta destino"
-                       placeholder="Carpeta raíz global"/>
-                <field name="folder_template"/>
-                <field name="filename_template"/>
-                <field name="append_id"/>
-                <field name="active" widget="boolean_toggle"/>
+            <list string="Rutas SharePoint" class="risk-sp-route-list">
+                <field name="party" string="Documentos de" widget="badge"
+                       decoration-info="party == 'driver'"
+                       decoration-primary="party == 'owner'"
+                       decoration-success="party == 'vehicle'"
+                       decoration-warning="party == 'semi_trailer'"
+                       decoration-muted="party == 'other'"/>
+                <field name="dest_display" string="Guardar en" readonly="1"/>
+                <field name="route_preview_display" string="Vista previa" readonly="1"/>
+                <field name="folder_template" string="Plantilla de carpeta" optional="hide"/>
+                <field name="filename_template" string="Plantilla de nombre" optional="hide"/>
+                <field name="duplicate_policy_display" string="Duplicados" readonly="1"/>
+                <field name="append_id" string="Evitar duplicados" widget="boolean_toggle"
+                       optional="hide"/>
+                <button name="action_pick_folder" type="object"
+                        string="Elegir carpeta" class="btn-link"
+                        icon="fa-folder-open"/>
+                <field name="active" string="Activo" widget="boolean_toggle"/>
             </list>
         </field>
     </record>
@@ -30,34 +40,66 @@
                             invisible="not dest_item_id"
                             confirm="¿Volver a usar la carpeta raíz global para este tipo?"/>
                 </header>
-                <sheet>
+                <sheet class="risk-sp-route-form">
                     <widget name="web_ribbon" title="Archivado" bg_color="text-bg-danger"
                             invisible="active"/>
+                    <div class="risk-sp-route-summary">
+                        <div>
+                            <span class="risk-sp-step-pill">Ruta SharePoint</span>
+                            <h3>
+                                Documentos de <field name="party" readonly="1" nolabel="1"/>
+                            </h3>
+                            <field name="route_preview_display" readonly="1" nolabel="1"
+                                   class="risk-sp-route-preview"/>
+                        </div>
+                        <div class="risk-sp-route-destination">
+                            <span>Guardar en</span>
+                            <field name="dest_display" readonly="1" nolabel="1"/>
+                        </div>
+                    </div>
                     <group>
-                        <group string="Destino por tipo">
+                        <group string="Destino en SharePoint">
                             <field name="party"/>
                             <field name="active" invisible="1"/>
                             <field name="dest_drive_id" invisible="1"/>
                             <field name="dest_item_id" invisible="1"/>
-                            <field name="dest_label" placeholder="Carpeta raíz global (Ajustes)"/>
+                            <field name="dest_display" readonly="1"/>
+                            <field name="dest_label" placeholder="Carpeta raíz global (Ajustes)"
+                                   invisible="not dest_label"/>
+                            <button name="action_pick_folder" type="object"
+                                    string="Elegir carpeta destino"
+                                    class="btn-secondary" icon="fa-folder-open"/>
+                            <button name="action_clear_folder" type="object"
+                                    string="Usar carpeta raíz global"
+                                    class="btn-link"
+                                    invisible="not dest_item_id"
+                                    confirm="¿Volver a usar la carpeta raíz global para este tipo?"/>
+                        </group>
+                        <group string="Formato del archivo">
                             <field name="folder_template"
+                                   string="Estructura de carpetas"
                                    placeholder="{conductor_doc} {conductor}"/>
                             <field name="filename_template"
+                                   string="Nombre del archivo"
                                    placeholder="{documento} {fecha}"/>
-                            <field name="append_id"/>
-                        </group>
-                        <group string="Variables disponibles">
-                            <field name="tokens_help" nolabel="1" readonly="1"/>
+                            <field name="append_id" string="Evitar duplicados"/>
+                            <field name="duplicate_policy_display" readonly="1"/>
                         </group>
                     </group>
-                    <group string="Vista previa"
-                           help="Solo para previsualizar; no guarda nada.">
-                        <field name="preview_submission_id"/>
-                        <field name="preview_document_type"/>
-                        <field name="preview_folder" readonly="1"
-                               invisible="not preview_submission_id"/>
-                        <field name="preview_filename" readonly="1"
-                               invisible="not preview_submission_id"/>
+                    <group>
+                        <group string="Variables disponibles">
+                            <field name="tokens_help" nolabel="1" readonly="1"
+                                   class="risk-sp-token-field"/>
+                        </group>
+                        <group string="Vista previa"
+                               help="Solo para previsualizar; no guarda nada.">
+                            <field name="preview_submission_id"/>
+                            <field name="preview_document_type"/>
+                            <field name="preview_folder" readonly="1"
+                                   invisible="not preview_submission_id"/>
+                            <field name="preview_filename" readonly="1"
+                                   invisible="not preview_submission_id"/>
+                        </group>
                     </group>
                 </sheet>
             </form>

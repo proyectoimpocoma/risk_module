@@ -384,6 +384,266 @@
     }
 }
 
+.risk-sp-status-panel,
+.risk-sp-field-panel {
+    max-width: 760px;
+}
+
+.risk-sp-status-panel {
+    display: grid;
+    gap: 8px;
+    padding: 12px 14px;
+    border: 1px solid #dce5db;
+    border-radius: 8px;
+    background: #f7fbf8;
+}
+
+.risk-sp-status-copy {
+    color: #344054;
+    font-weight: 700;
+}
+
+.risk-sp-location-copy {
+    color: #667085;
+    font-size: 13px;
+}
+
+.risk-sp-action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.risk-sp-inline-button {
+    white-space: nowrap;
+}
+
+.risk-sp-advanced {
+    padding: 10px 12px;
+    border: 1px dashed #cfd8d3;
+    border-radius: 8px;
+    background: #fbfcfd;
+}
+
+.risk-sp-advanced label {
+    color: #344054;
+    font-weight: 800;
+}
+
+.risk-sp-advanced-body {
+    padding-top: 8px;
+    border-top: 1px solid #edf0f2;
+}
+
+.risk-sp-maintenance {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.risk-sp-route-link {
+    font-weight: 700;
+}
+
+.risk-sp-explorer {
+    max-width: 980px;
+}
+
+.risk-sp-wizard-head {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    padding: 14px 16px;
+    border: 1px solid #dce5db;
+    border-radius: 8px;
+    background: #f7fbf8;
+}
+
+.risk-sp-wizard-head h4 {
+    margin: 4px 0;
+    color: #1f2933;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.risk-sp-wizard-head p {
+    margin: 0;
+}
+
+.risk-sp-step-pill {
+    display: inline-flex;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #e7f2fb;
+    color: #245a7d;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.risk-sp-current-path {
+    min-width: 240px;
+    max-width: 380px;
+    padding: 10px 12px;
+    border: 1px solid #edf0f2;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.risk-sp-current-path span,
+.risk-sp-counts span {
+    display: block;
+    margin-bottom: 3px;
+    color: #667085;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.risk-sp-current-path .o_field_widget {
+    overflow-wrap: anywhere;
+    color: #1f2933;
+    font-weight: 800;
+}
+
+.risk-sp-counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 6px 0 10px;
+}
+
+.risk-sp-counts > div {
+    min-width: 116px;
+    padding: 10px 12px;
+    border: 1px solid #edf0f2;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.risk-sp-counts .o_field_widget {
+    color: #1f2933;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.risk-sp-route-form {
+    max-width: 1120px;
+}
+
+.risk-sp-route-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 0.42fr);
+    gap: 16px;
+    align-items: stretch;
+    margin-bottom: 16px;
+    padding: 16px;
+    border: 1px solid #dce5db;
+    border-radius: 8px;
+    background: #f7fbf8;
+}
+
+.risk-sp-route-summary h3 {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: baseline;
+    margin: 6px 0 8px;
+    color: #1f2933;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.risk-sp-route-summary h3 .o_field_widget {
+    color: #245a7d;
+}
+
+.risk-sp-route-preview {
+    color: #344054;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.risk-sp-route-destination {
+    padding: 12px 14px;
+    border: 1px solid #edf0f2;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.risk-sp-route-destination span {
+    display: block;
+    margin-bottom: 4px;
+    color: #667085;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.risk-sp-route-destination .o_field_widget {
+    color: #1f2933;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.risk-sp-route-list .o_data_cell {
+    vertical-align: middle;
+}
+
+.risk-sp-token-field,
+.risk-sp-token-field .o_field_html,
+.risk-sp-token-field .o_field_widget {
+    display: block;
+    width: 100%;
+}
+
+.risk-sp-token-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 10px;
+    width: 100%;
+}
+
+.risk-sp-token-chip {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-height: 76px;
+    padding: 7px 9px;
+    border: 1px solid #edf0f2;
+    border-radius: 8px;
+    background: #fbfcfd;
+}
+
+.risk-sp-token-chip code {
+    color: #245a7d;
+    font-weight: 800;
+}
+
+.risk-sp-token-chip small {
+    color: #667085;
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+@media (max-width: 900px) {
+    .risk-sp-wizard-head {
+        display: block;
+    }
+
+    .risk-sp-current-path {
+        max-width: none;
+        margin-top: 12px;
+    }
+
+    .risk-sp-route-summary {
+        grid-template-columns: 1fr;
+    }
+}
+
 .risk-submission-kanban .o_kanban_record {
     padding: 0;
 }

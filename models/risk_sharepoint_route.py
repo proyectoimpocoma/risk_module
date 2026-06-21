@@ -63,6 +63,26 @@ class RiskSharepointRoute(models.Model):
         help="Carpeta de SharePoint donde se guardan los documentos de este "
         "tipo. Si esta vacia se usa la carpeta raiz global de Ajustes.",
     )
+    dest_display = fields.Char(
+        string="Guardar en",
+        compute="_compute_route_display",
+    )
+    folder_display = fields.Char(
+        string="Estructura de carpetas",
+        compute="_compute_route_display",
+    )
+    filename_display = fields.Char(
+        string="Nombre del archivo",
+        compute="_compute_route_display",
+    )
+    route_preview_display = fields.Char(
+        string="Vista previa",
+        compute="_compute_route_display",
+    )
+    duplicate_policy_display = fields.Char(
+        string="Duplicados",
+        compute="_compute_route_display",
+    )
 
     # ── Vista previa (campos no almacenados, solo para el formulario) ──
     preview_submission_id = fields.Many2one(
@@ -95,16 +115,45 @@ class RiskSharepointRoute(models.Model):
 
     def _compute_tokens_help(self):
         rows = "".join(
-            "<tr><td class='pe-3'><code>{%s}</code></td><td>%s</td></tr>"
+            "<span class='risk-sp-token-chip'><code>{%s}</code><small>%s</small></span>"
             % (token, label)
             for token, label in TEMPLATE_TOKENS.items()
         )
-        html = (
-            "<table class='table table-sm o_main_table'><tbody>%s</tbody></table>"
-            % rows
-        )
+        html = "<div class='risk-sp-token-grid'>%s</div>" % rows
         for rec in self:
             rec.tokens_help = html
+
+    @api.depends(
+        "dest_label",
+        "folder_template",
+        "filename_template",
+        "append_id",
+    )
+    def _compute_route_display(self):
+        root_folder = self.env["risk.sharepoint.service"]._config().get(
+            "root_folder"
+        ) or _("Carpeta raiz global")
+        for rec in self:
+            destination = rec.dest_label or _("%s (global)") % root_folder
+            folder_template = rec.folder_template or _("Sin subcarpetas")
+            filename_template = rec.filename_template or _("Nombre original")
+            duplicate_suffix = " (id)" if rec.append_id else ""
+            rec.dest_display = destination
+            rec.folder_display = folder_template
+            rec.filename_display = "%s%s.pdf" % (
+                filename_template,
+                duplicate_suffix,
+            )
+            rec.duplicate_policy_display = (
+                _("Evita sobrescrituras con (id)")
+                if rec.append_id
+                else _("Permite reemplazo por nombre")
+            )
+            rec.route_preview_display = "%s / %s / %s" % (
+                destination,
+                folder_template,
+                rec.filename_display,
+            )
 
     @api.depends(
         "folder_template",
@@ -191,7 +240,7 @@ class RiskSharepointRoute(models.Model):
         party_label = dict(self._fields["party"].selection).get(self.party, "")
         wizard = self.env["risk.sharepoint.drive.selector"].with_context(
             route_id=self.id,
-        ).create({})
+        ).create({"route_id": self.id})
         return {
             "type": "ir.actions.act_window",
             "name": _("Elegir carpeta para %s") % party_label,

@@ -4,14 +4,19 @@
         <field name="model">risk.sharepoint.drive.selector</field>
         <field name="arch" type="xml">
             <form string="Seleccionar biblioteca y carpeta">
-                <sheet>
+                <sheet class="risk-sp-explorer">
 
                     <!-- Paso 1: elegir biblioteca -->
                     <div invisible="stage != 'drive'">
-                        <h4>Paso 1 de 2 — Biblioteca</h4>
-                        <p class="text-muted">
-                            Selecciona la biblioteca (drive) de SharePoint donde se guardarán los documentos.
-                        </p>
+                        <div class="risk-sp-wizard-head">
+                            <div>
+                                <span class="risk-sp-step-pill">Paso 1 de 2</span>
+                                <h4>Biblioteca de documentos</h4>
+                                <p class="text-muted">
+                                    Selecciona el drive de SharePoint donde se guardarán los documentos.
+                                </p>
+                            </div>
+                        </div>
                         <group>
                             <field name="drive_id" widget="radio" nolabel="1"/>
                         </group>
@@ -19,14 +24,18 @@
 
                     <!-- Paso 2: navegar carpetas -->
                     <div invisible="stage != 'folder'">
-                        <h4>Paso 2 de 2 — Carpeta raíz</h4>
-                        <p class="text-muted">
-                            Navega hasta la carpeta donde se crearán las subcarpetas por solicitud.
-                            Si usas la raíz de la biblioteca, deja la selección vacía y confirma.
-                        </p>
-                        <div class="mb-2">
-                            <strong>Ubicación: </strong>
-                            <field name="path_display" readonly="1" nolabel="1" class="text-primary"/>
+                        <div class="risk-sp-wizard-head">
+                            <div>
+                                <span class="risk-sp-step-pill">Paso 2 de 2</span>
+                                <h4>Carpeta raíz</h4>
+                                <p class="text-muted">
+                                    Navega hasta la carpeta donde se crearán las subcarpetas por solicitud.
+                                </p>
+                            </div>
+                            <div class="risk-sp-current-path">
+                                <span>Ubicación actual</span>
+                                <field name="path_display" readonly="1" nolabel="1"/>
+                            </div>
                         </div>
                         <field name="stage" invisible="1"/>
                         <field name="selected_drive_id" invisible="1"/>
@@ -36,8 +45,16 @@
                         <field name="folder_choice" invisible="1"/>
                         <group>
                             <group string="Contenido">
-                                <field name="folder_count" readonly="1"/>
-                                <field name="file_count" readonly="1"/>
+                                <div class="risk-sp-counts">
+                                    <div>
+                                        <span>Carpetas</span>
+                                        <field name="folder_count" readonly="1" nolabel="1"/>
+                                    </div>
+                                    <div>
+                                        <span>Archivos</span>
+                                        <field name="file_count" readonly="1" nolabel="1"/>
+                                    </div>
+                                </div>
                                 <field name="explorer_message" readonly="1" nolabel="1"
                                        invisible="not explorer_message"/>
                             </group>
@@ -48,27 +65,33 @@
                                 <field name="name" string="Nombre" readonly="1"/>
                                 <field name="size" string="Tamaño" readonly="1" optional="hide"/>
                                 <button string="Abrir" type="object" name="action_open_folder"
-                                        class="btn-link" invisible="not is_folder"/>
+                                        class="btn-link" icon="fa-folder-open"
+                                        invisible="not is_folder"/>
                                 <button string="Ver archivo" type="object" name="action_open_file"
-                                        class="btn-link" invisible="not is_file or not web_url"/>
+                                        class="btn-link" icon="fa-external-link"
+                                        invisible="not is_file or not web_url"/>
                                 <field name="is_folder" column_invisible="1"/>
                                 <field name="is_file" column_invisible="1"/>
                                 <field name="web_url" column_invisible="1"/>
                             </list>
                         </field>
-                        <div class="mt-2">
-                            <button string="↑ Subir un nivel" type="object" name="action_go_up"
+                        <div class="mt-2 risk-sp-action-row">
+                            <button string="Subir nivel" type="object" name="action_go_up"
                                     class="btn-secondary btn-sm"
+                                    icon="fa-level-up"
                                     invisible="not current_item_id"/>
                             <button string="Refrescar" type="object" name="action_refresh"
-                                    class="btn-secondary btn-sm ms-2"/>
-                            <button string="⇆ Cambiar biblioteca" type="object" name="action_change_drive"
-                                    class="btn-secondary btn-sm ms-2"/>
+                                    class="btn-secondary btn-sm"
+                                    icon="fa-refresh"/>
+                            <button string="Cambiar biblioteca" type="object" name="action_change_drive"
+                                    class="btn-secondary btn-sm"
+                                    icon="fa-exchange"/>
                         </div>
                         <group string="Crear carpeta">
                             <field name="new_folder_name" placeholder="Nombre de la nueva carpeta"/>
                             <button string="Crear carpeta" type="object" name="action_create_folder"
-                                    class="btn-secondary" invisible="not new_folder_name"/>
+                                    class="btn-secondary" icon="fa-plus"
+                                    invisible="not new_folder_name"/>
                         </group>
                         <group string="Prueba de escritura">
                             <field name="test_file" filename="test_filename"/>
@@ -79,11 +102,14 @@
                                    invisible="not test_upload_web_url"/>
                             <div>
                                 <button string="Subir prueba" type="object" name="action_upload_test_file"
-                                        class="btn-secondary" invisible="not test_file"/>
+                                        class="btn-secondary" icon="fa-upload"
+                                        invisible="not test_file"/>
                                 <button string="Abrir prueba" type="object" name="action_open_test_file"
-                                        class="btn-secondary ms-2" invisible="not test_upload_web_url"/>
+                                        class="btn-secondary ms-2" icon="fa-external-link"
+                                        invisible="not test_upload_web_url"/>
                                 <button string="Eliminar prueba" type="object" name="action_delete_test_file"
-                                        class="btn-secondary ms-2" invisible="not test_upload_item_id"/>
+                                        class="btn-secondary ms-2" icon="fa-trash"
+                                        invisible="not test_upload_item_id"/>
                             </div>
                         </group>
                     </div>
@@ -91,11 +117,13 @@
                 </sheet>
                 <footer>
                     <!-- Etapa drive: avanzar al paso 2 -->
-                    <button string="Siguiente →" type="object" name="action_next_stage"
-                            class="btn-primary" invisible="stage != 'drive'"/>
+                    <button string="Siguiente" type="object" name="action_next_stage"
+                            class="btn-primary" icon="fa-arrow-right"
+                            invisible="stage != 'drive'"/>
                     <!-- Etapa folder: confirmar selección -->
                     <button string="Seleccionar esta carpeta" type="object" name="action_confirm"
-                            class="btn-primary" invisible="stage != 'folder'"/>
+                            class="btn-primary" icon="fa-check"
+                            invisible="stage != 'folder'"/>
                     <button string="Cancelar" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>

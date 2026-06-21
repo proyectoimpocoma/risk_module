@@ -60,6 +60,17 @@ class RiskSharepointDriveSelector(models.TransientModel):
         required=True,
     )
 
+    # Ruta por tipo de documento a la que pertenece esta seleccion (si la hay).
+    # Se persiste en el wizard para que sobreviva a la navegacion de carpetas y
+    # al confirmar; depender solo del contexto hacia que se perdiera tras el
+    # primer _reopen() y la carpeta se guardara en la config global en vez de en
+    # la ruta concreta.
+    route_id = fields.Many2one(
+        "risk.sharepoint.route",
+        string="Ruta destino",
+        readonly=True,
+    )
+
     # ── Etapa 1: selección de drive ───────────────────────────────────────
     drive_id = fields.Selection(
         selection="_selection_drives",
@@ -193,6 +204,7 @@ class RiskSharepointDriveSelector(models.TransientModel):
 
         route_id = self.env.context.get("route_id")
         if route_id:
+            res["route_id"] = route_id
             route = self.env["risk.sharepoint.route"].browse(route_id)
             if route.exists() and route.dest_item_id and route.dest_drive_id:
                 svc = self.env["risk.sharepoint.service"]
@@ -581,7 +593,7 @@ class RiskSharepointDriveSelector(models.TransientModel):
 
         # Si el explorador se abrió para una ruta concreta, guardamos la carpeta
         # en esa ruta en vez de en la configuración global.
-        route_id = self.env.context.get("route_id")
+        route_id = self.route_id.id or self.env.context.get("route_id")
         if route_id:
             return self._confirm_into_route(route_id, item_id)
 
