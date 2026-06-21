@@ -69,6 +69,15 @@
                                autocomplete="off"
                                placeholder="Nombre de la empresa de rastreo"/>
                     </div>
+                    <div class="risk-vr-field risk-vr-field-full">
+                        <label for="satellite_url">URL de la empresa de rastreo</label>
+                        <input id="satellite_url" name="satellite_url" type="url"
+                               t-att-value="data.get('satellite_url')"
+                               required="required"
+                               maxlength="200"
+                               autocomplete="url"
+                               placeholder="https://rastreo.ejemplo.com"/>
+                    </div>
                     <div class="risk-vr-field">
                         <label for="satellite_user">Usuario</label>
                         <input id="satellite_user" name="satellite_user" type="text"

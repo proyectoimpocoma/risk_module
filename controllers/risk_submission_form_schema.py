@@ -21,6 +21,7 @@ CHOICE_VALUES = {
 
 TEXT_LIMITS = {
     "satellite_company": 80,
+    "satellite_url": 200,
     "satellite_user": 80,
     "satellite_password": 80,
     "owner_name": 140,
@@ -45,6 +46,7 @@ STEP_FIELDS = {
         "has_semi_trailer",
         "semi_trailer_plate",
         "satellite_company",
+        "satellite_url",
         "satellite_user",
         "satellite_password",
     ),

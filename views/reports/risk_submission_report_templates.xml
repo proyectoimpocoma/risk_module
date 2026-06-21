@@ -29,6 +29,10 @@
                         <div class="risk-row">
                             <div class="risk-cell w45">EMPRESA SATELITAL:<span class="risk-line w55"
                                     t-esc="o.satellite_company or ''" /></div>
+                            <div class="risk-cell w55">URL RASTREO:<span class="risk-line w65"
+                                    t-esc="o.satellite_url or ''" /></div>
+                        </div>
+                        <div class="risk-row">
                             <div class="risk-cell w30">USUARIO:<span class="risk-line w65"
                                     t-esc="o.satellite_user or ''" /></div>
                             <div class="risk-cell w25">CLAVE:<span class="risk-line w65"

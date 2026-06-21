@@ -25,6 +25,11 @@ class TestRiskSubmission(RiskModuleTestCase):
     def test_create_normalizes_plate(self):
         self.assertEqual(self.submission.vehicle_plate, "ABC123")
 
+    def test_create_stores_satellite_tracking_url(self):
+        self.assertEqual(
+            self.submission.satellite_url, "https://rastreo.example.com"
+        )
+
     def test_portal_ownership_values_are_assigned(self):
         self.assertEqual(self.submission.partner_id, self.portal_user.partner_id)
         self.assertEqual(self.submission.portal_user_id, self.portal_user)

@@ -79,6 +79,7 @@ class RiskModuleTestCase(TransactionCase):
             "vehicle_plate": plate or self.TEST_PLATE,
             "form_date": "2026-05-09",
             "state": state,
+            "satellite_url": "https://rastreo.example.com",
         }
         if owner:
             values.update(

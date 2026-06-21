@@ -26,6 +26,7 @@ class RiskSubmissionFormMapperMixin:
             "vehicle_plate": plate,
             "semi_trailer_plate": data.get("semi_trailer_plate"),
             "satellite_company": data.get("satellite_company"),
+            "satellite_url": data.get("satellite_url"),
             "satellite_user": data.get("satellite_user"),
             "satellite_password": data.get("satellite_password"),
             "owner_name": data.get("owner_name"),

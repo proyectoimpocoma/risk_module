@@ -165,6 +165,11 @@ class RiskSubmissionFormValidationMixin:
             )
         if not (data.get("satellite_company") or "").strip():
             return "La empresa satelital es obligatoria."
+        satellite_url = (data.get("satellite_url") or "").strip()
+        if not satellite_url:
+            return "La URL de la empresa de rastreo satelital es obligatoria."
+        if not satellite_url.startswith(("http://", "https://")):
+            return "La URL de la empresa de rastreo debe iniciar con http:// o https://."
         if not (data.get("satellite_user") or "").strip():
             return "El usuario de la cuenta satelital es obligatorio."
         if not (data.get("satellite_password") or "").strip():

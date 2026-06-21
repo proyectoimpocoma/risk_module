@@ -104,5 +104,6 @@ class RiskSubmissionValiditi(models.Model):
                 "plate": self.vehicle_plate,
                 "semi_trailer_plate": self.semi_trailer_plate,
                 "satellite_company": self.satellite_company,
+                "satellite_url": self.satellite_url,
             },
         }

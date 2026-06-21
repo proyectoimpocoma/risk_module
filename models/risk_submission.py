@@ -37,6 +37,7 @@ class RiskSubmission(models.Model):
             "vehicle_plate",
             "semi_trailer_plate",
             "satellite_company",
+            "satellite_url",
             "satellite_user",
             "satellite_password",
             "owner_name",
@@ -162,6 +163,7 @@ class RiskSubmission(models.Model):
     vehicle_plate = fields.Char(string="Placa", required=True, tracking=True)
     semi_trailer_plate = fields.Char(string="Semi/Remolque", tracking=True)
     satellite_company = fields.Char(string="Empresa satelital", tracking=True)
+    satellite_url = fields.Char(string="URL empresa satelital", tracking=True)
     satellite_user = fields.Char(string="Usuario satelital", tracking=True)
     satellite_password = fields.Char(string="Clave satelital")
     owner_name = fields.Char(string="Nombres y apellidos / Empresa", tracking=True)

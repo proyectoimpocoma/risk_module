@@ -115,6 +115,7 @@
                         </group>
                         <group string="Información Satelital">
                             <field name="satellite_company" placeholder="Empresa satelital"/>
+                            <field name="satellite_url" widget="url" placeholder="https://rastreo.ejemplo.com"/>
                             <field name="satellite_user" placeholder="Usuario satelital"/>
                             <field name="satellite_password" password="True" placeholder="Contraseña satelital"/>
                         </group>

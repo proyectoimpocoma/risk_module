@@ -27,6 +27,8 @@
                         <dd t-esc="data.get('semi_trailer_plate') or 'No aplica'"/>
                         <dt>Empresa satelital</dt>
                         <dd t-esc="data.get('satellite_company') or 'Sin registrar'"/>
+                        <dt>URL rastreo</dt>
+                        <dd t-esc="data.get('satellite_url') or 'Sin registrar'"/>
                     </dl>
                 </article>
 
