@@ -1,8 +1,8 @@
 import base64
 import logging
 
-from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo import SUPERUSER_ID, api, fields, models
+from odoo.exceptions import AccessError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -235,6 +235,14 @@ class RiskSubmissionDocumentFile(models.Model):
 
     def action_retry_sharepoint(self):
         """Reintento manual desde el formulario (sincrono)."""
+        if (
+            not self.env.su
+            and self.env.uid != SUPERUSER_ID
+            and not self.env.user.has_group("base.group_system")
+        ):
+            raise AccessError(
+                "Solo los administradores pueden reintentar SharePoint."
+            )
         for record in self:
             record.sharepoint_attempts = 0
             record.sharepoint_state = "pending"

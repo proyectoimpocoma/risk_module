@@ -14,7 +14,7 @@
         </field>
     </record>
 
-    <menuitem id="menu_risk_module_root" name="Riesgo" sequence="60" groups="risk_module.group_risk_user"/>
+    <menuitem id="menu_risk_module_root" name="Riesgo" sequence="60" groups="risk_module.group_risk_user,base.group_system"/>
     <menuitem id="menu_risk_module_vehicle_requests" name="Vehiculos" parent="menu_risk_module_root" action="action_risk_module" sequence="10" groups="risk_module.group_risk_user"/>
     <menuitem id="menu_risk_module_external_validations" name="Validaciones Externas" parent="menu_risk_module_root" action="action_risk_external_validation" sequence="20" groups="risk_module.group_risk_user"/>
     <menuitem id="menu_risk_module_documents" name="Documentos" parent="menu_risk_module_root" action="action_risk_module_document" sequence="30" groups="risk_module.group_risk_user"/>
@@ -24,7 +24,7 @@
     <menuitem id="menu_risk_driver" name="Conductores" parent="menu_risk_module_master_data" action="action_risk_driver" sequence="20" groups="risk_module.group_risk_user"/>
     <menuitem id="menu_risk_owner" name="Propietarios / Tenedores" parent="menu_risk_module_master_data" action="action_risk_owner" sequence="30" groups="risk_module.group_risk_user"/>
     <menuitem id="menu_risk_vehicle_owner" name="Relaciones vehiculo-propietario" parent="menu_risk_module_master_data" action="action_risk_vehicle_owner" sequence="40" groups="risk_module.group_risk_user"/>
-    <menuitem id="menu_risk_module_configuration" name="Configuracion" parent="menu_risk_module_root" sequence="90" groups="risk_module.group_risk_user"/>
+    <menuitem id="menu_risk_module_configuration" name="Configuracion" parent="menu_risk_module_root" sequence="90" groups="risk_module.group_risk_user,base.group_system"/>
     <menuitem id="menu_risk_document_requirement" name="Catalogo de documentos" parent="menu_risk_module_configuration" action="action_risk_document_requirement" sequence="10" groups="risk_module.group_risk_user"/>
     <menuitem id="menu_risk_document_requirement_matrix" name="Documentos por perfil" parent="menu_risk_module_configuration" action="action_risk_document_requirement_matrix" sequence="20" groups="risk_module.group_risk_user"/>
     <menuitem id="menu_risk_message_template" name="Plantillas de mensajes" parent="menu_risk_module_configuration" action="action_risk_message_template" sequence="30" groups="risk_module.group_risk_user"/>

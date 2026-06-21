@@ -149,6 +149,12 @@ class RiskApprovalWizard(models.TransientModel):
             else:
                 wizard.rejection_reason_code = False
 
+    def _selected_template_message(self):
+        self.ensure_one()
+        if self.message_template_id:
+            return (self.message_template_id.body or "").strip()
+        return (self._rejection_message(self.rejection_reason_code) or "").strip()
+
     def _submission_reason_codes(self):
         return {
             code
@@ -175,10 +181,7 @@ class RiskApprovalWizard(models.TransientModel):
         elif self.decision == "reject":
             if not self.message_template_id and not self.rejection_reason_code:
                 raise ValidationError("Debes seleccionar un motivo de rechazo.")
-            if not (self.rejection_reason or "").strip():
-                self.rejection_reason = self._rejection_message(
-                    self.rejection_reason_code
-                )
+            self.rejection_reason = self._selected_template_message()
             if not self.rejection_reason or not self.rejection_reason.strip():
                 _logger.warning("Approval wizard rejection blocked missing reason submission_id=%s user_id=%s", self.submission_id.id, self.env.user.id)
                 raise ValidationError("Debes indicar el mensaje de rechazo.")

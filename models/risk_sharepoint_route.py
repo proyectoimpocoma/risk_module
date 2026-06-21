@@ -1,5 +1,5 @@
-from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo import SUPERUSER_ID, _, api, fields, models
+from odoo.exceptions import AccessError, ValidationError
 
 from .risk_sharepoint_service import TEMPLATE_TOKENS, TOKEN_RE
 
@@ -109,6 +109,30 @@ class RiskSharepointRoute(models.Model):
     _sql_constraints = [
         ("party_uniq", "unique(party)", "Ya existe una ruta para este tipo."),
     ]
+
+    def _check_sharepoint_route_manager(self):
+        if (
+            self.env.su
+            or self.env.uid == SUPERUSER_ID
+            or self.env.user.has_group("base.group_system")
+        ):
+            return
+        raise AccessError(
+            _("Solo los administradores pueden administrar rutas SharePoint.")
+        )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        self._check_sharepoint_route_manager()
+        return super().create(vals_list)
+
+    def write(self, vals):
+        self._check_sharepoint_route_manager()
+        return super().write(vals)
+
+    def unlink(self):
+        self._check_sharepoint_route_manager()
+        return super().unlink()
 
     def _selection_preview_document_type(self):
         return self.env["risk.module.document"]._fields["document_type"].selection
@@ -237,6 +261,7 @@ class RiskSharepointRoute(models.Model):
     def action_pick_folder(self):
         """Abre el explorador de SharePoint para fijar la carpeta de este tipo."""
         self.ensure_one()
+        self._check_sharepoint_route_manager()
         party_label = dict(self._fields["party"].selection).get(self.party, "")
         wizard = self.env["risk.sharepoint.drive.selector"].with_context(
             route_id=self.id,
@@ -252,6 +277,7 @@ class RiskSharepointRoute(models.Model):
 
     def action_clear_folder(self):
         """Vuelve a usar la carpeta raiz global para este tipo."""
+        self._check_sharepoint_route_manager()
         self.write({
             "dest_drive_id": False,
             "dest_item_id": False,

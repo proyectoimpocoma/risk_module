@@ -2,8 +2,8 @@ import base64
 import logging
 from datetime import datetime
 
-from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo import SUPERUSER_ID, _, api, fields, models
+from odoo.exceptions import AccessError, UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -35,6 +35,7 @@ class RiskSharepointDriveSelectorLine(models.TransientModel):
 
     def action_open_folder(self):
         self.ensure_one()
+        self.wizard_id._check_sharepoint_selector_manager()
         if not self.is_folder:
             raise UserError(_("Solo puedes entrar en carpetas."))
         return self.wizard_id._enter_child_folder(self.item_id, self.name)
@@ -116,6 +117,26 @@ class RiskSharepointDriveSelector(models.TransientModel):
     test_upload_item_id = fields.Char(string="Item prueba", readonly=True)
     test_upload_web_url = fields.Char(string="Enlace prueba", readonly=True)
     test_upload_message = fields.Text(string="Resultado prueba", readonly=True)
+
+    def _check_sharepoint_selector_manager(self):
+        if (
+            self.env.su
+            or self.env.uid == SUPERUSER_ID
+            or self.env.user.has_group("base.group_system")
+        ):
+            return
+        raise AccessError(
+            _("Solo los administradores pueden administrar SharePoint.")
+        )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        self._check_sharepoint_selector_manager()
+        return super().create(vals_list)
+
+    def write(self, vals):
+        self._check_sharepoint_selector_manager()
+        return super().write(vals)
 
     # ── Selections ────────────────────────────────────────────────────────
 

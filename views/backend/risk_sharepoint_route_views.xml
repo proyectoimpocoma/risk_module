@@ -119,5 +119,5 @@
               parent="menu_risk_module_configuration"
               action="action_risk_sharepoint_route"
               sequence="40"
-              groups="risk_module.group_risk_manager"/>
+              groups="base.group_system"/>
 </odoo>

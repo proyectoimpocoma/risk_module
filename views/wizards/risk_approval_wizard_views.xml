@@ -79,6 +79,7 @@
                                options="{'no_create': True, 'no_open': True}"/>
                         <field name="rejection_reason_code" invisible="1"/>
                         <field name="rejection_reason" required="decision != 'approve'"
+                               readonly="1"
                                placeholder="Este mensaje se enviara al usuario. Debe explicar el motivo del rechazo definitivo."/>
                     </group>
                 </sheet>

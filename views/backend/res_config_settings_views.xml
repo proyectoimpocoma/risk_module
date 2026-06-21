@@ -5,9 +5,11 @@
         <field name="inherit_id" ref="base.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//form" position="inside">
-                <app data-string="Riesgo" string="Riesgo" name="risk_module">
+                <app data-string="Riesgo" string="Riesgo" name="risk_module"
+                     groups="base.group_system">
                     <block title="Almacenamiento en SharePoint"
-                           name="risk_sharepoint_settings">
+                           name="risk_sharepoint_settings"
+                           groups="base.group_system">
                         <setting id="risk_sp_enabled_setting"
                                  string="Guardar documentos en SharePoint"
                                  help="Sincroniza los documentos cargados por el tercero a SharePoint. Si se desactiva, los archivos quedan solo en Odoo.">
@@ -154,5 +156,5 @@
               parent="menu_risk_module_configuration"
               action="action_risk_sharepoint_settings"
               sequence="90"
-              groups="risk_module.group_risk_manager"/>
+              groups="base.group_system"/>
 </odoo>

@@ -68,8 +68,10 @@
                        decoration-success="sharepoint_state == 'synced'"
                        decoration-warning="sharepoint_state == 'pending'"
                        decoration-danger="sharepoint_state == 'error'"
-                       decoration-muted="sharepoint_state == 'disabled'"/>
-                <field name="sharepoint_synced_at" string="Sincronizado" optional="hide"/>
+                       decoration-muted="sharepoint_state == 'disabled'"
+                       groups="base.group_system"/>
+                <field name="sharepoint_synced_at" string="Sincronizado" optional="hide"
+                       groups="base.group_system"/>
                 <field name="replacement_count" string="Reenvios" optional="show"/>
                 <button name="action_open_document_preview" type="object" string="Ver PDF"
                         invisible="not has_file"/>
@@ -98,7 +100,8 @@
                     <button name="action_reject" type="object" string="Rechazar"
                             invisible="state not in ('received', 'approved')"/>
                     <button name="action_retry_sharepoint" type="object" string="Reintentar SharePoint"
-                            invisible="sharepoint_state != 'error'"/>
+                            invisible="sharepoint_state != 'error'"
+                            groups="base.group_system"/>
                     <field name="state" widget="statusbar" statusbar_visible="pending,received,approved,rejected"/>
                 </header>
                 <sheet>
@@ -154,7 +157,7 @@
                                 <field name="rejection_message_sent_at"/>
                                 <field name="replacement_count"/>
                             </group>
-                            <group string="SharePoint">
+                            <group string="SharePoint" groups="base.group_system">
                                 <field name="sharepoint_state"/>
                                 <field name="sharepoint_web_url" widget="url" readonly="1"
                                        invisible="not sharepoint_web_url"/>
@@ -176,12 +179,16 @@
                                                    decoration-success="sharepoint_state == 'synced'"
                                                    decoration-warning="sharepoint_state == 'pending'"
                                                    decoration-danger="sharepoint_state == 'error'"
-                                                   decoration-muted="sharepoint_state == 'disabled'"/>
-                                            <field name="sharepoint_web_url" widget="url" readonly="1" optional="hide"/>
-                                            <field name="sharepoint_error" optional="hide"/>
+                                                   decoration-muted="sharepoint_state == 'disabled'"
+                                                   groups="base.group_system"/>
+                                            <field name="sharepoint_web_url" widget="url" readonly="1" optional="hide"
+                                                   groups="base.group_system"/>
+                                            <field name="sharepoint_error" optional="hide"
+                                                   groups="base.group_system"/>
                                             <button name="action_retry_sharepoint" type="object"
                                                     string="Reintentar SharePoint" icon="fa-refresh"
-                                                    invisible="sharepoint_state != 'error'"/>
+                                                    invisible="sharepoint_state != 'error'"
+                                                    groups="base.group_system"/>
                                         </list>
                                     </field>
                                 </page>

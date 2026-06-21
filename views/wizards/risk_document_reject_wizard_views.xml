@@ -10,6 +10,7 @@
                            options="{'no_create': True, 'no_open': True}"/>
                     <field name="rejection_reason" invisible="1"/>
                     <field name="observations"
+                           readonly="1"
                            placeholder="Este mensaje se enviara al usuario para que corrija el documento."/>
                 </group>
                 <footer>

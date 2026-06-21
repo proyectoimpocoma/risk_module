@@ -163,6 +163,24 @@ class TestRiskSubmission(RiskModuleTestCase):
         self.assertEqual(mail.email_to, "portal-a@example.com")
         self.assertFalse(mail.recipient_ids)
 
+    def test_rejection_wizard_uses_template_message(self):
+        template = self.env.ref(
+            "risk_module.msg_submission_reject_incomplete_documents"
+        )
+        wizard = self.env["risk.approval.wizard"].create(
+            {
+                "submission_id": self.submission.id,
+                "decision": "reject",
+                "message_template_id": template.id,
+                "rejection_reason": "Motivo manual no permitido",
+            }
+        )
+
+        wizard.action_confirm()
+
+        self.assertEqual(self.submission.state, "rejected")
+        self.assertEqual(self.submission.rejection_reason, template.body)
+
     def test_document_rejection_email_is_queued_when_document_rejected(self):
         document = self.make_document(
             self.submission,
@@ -185,6 +203,28 @@ class TestRiskSubmission(RiskModuleTestCase):
         self.assertEqual(mail.reply_to, "reporte@impocoma.com")
         self.assertEqual(mail.email_to, "portal-a@example.com")
         self.assertFalse(mail.recipient_ids)
+
+    def test_document_rejection_wizard_uses_template_message(self):
+        document = self.make_document(
+            self.submission,
+            document_type="vehicle_registration",
+            party="vehicle",
+            state="received",
+        )
+        template = self.env.ref("risk_module.msg_doc_reject_illegible")
+        wizard = self.env["risk.module.document.reject.wizard"].create(
+            {
+                "document_id": document.id,
+                "message_template_id": template.id,
+                "observations": "Motivo manual no permitido",
+            }
+        )
+
+        wizard.action_confirm()
+
+        self.assertEqual(document.state, "rejected")
+        self.assertEqual(document.rejection_reason, "illegible")
+        self.assertEqual(document.observations, template.body)
 
     def test_owner_signature_code_email_is_queued(self):
         result = self.submission.with_context(
@@ -420,6 +460,27 @@ class TestRiskSubmission(RiskModuleTestCase):
         self.assertEqual(validation.status, "approved")
         self.assertEqual(self.submission.state, "manual_approval_pending")
         self.assertEqual(self.submission.risk_reviewer_id, self.env.user)
+
+    def test_validiti_rejection_wizard_uses_template_message(self):
+        validation = self.make_validation(self.submission)
+        template = self.env.ref(
+            "risk_module.msg_submission_reject_external_validation_failed"
+        )
+        wizard = self.env["risk.external.validation.result.wizard"].create(
+            {
+                "validation_id": validation.id,
+                "decision": "rejected",
+                "message_template_id": template.id,
+                "summary": "Resumen manual no permitido",
+            }
+        )
+
+        wizard.action_confirm()
+
+        self.assertEqual(validation.status, "rejected")
+        self.assertEqual(validation.summary, template.body)
+        self.assertEqual(self.submission.state, "rejected")
+        self.assertEqual(self.submission.rejection_reason, template.body)
 
     def test_cannot_create_second_active_submission_for_same_plate(self):
         self.make_submission(owner=self.portal_user, state="submitted", plate="DUP123")

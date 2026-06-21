@@ -9,7 +9,13 @@
                     <field name="decision"/>
                     <field name="external_reference"/>
                     <field name="risk_score"/>
-                    <field name="summary" placeholder="Resume el resultado, alertas encontradas o motivo de la decision."/>
+                    <field name="message_template_id"
+                           invisible="decision != 'rejected'"
+                           required="decision == 'rejected'"
+                           options="{'no_create': True, 'no_open': True}"/>
+                    <field name="summary"
+                           readonly="decision == 'rejected'"
+                           placeholder="Resume el resultado, alertas encontradas o motivo de la decision."/>
                     <field name="response_payload" placeholder="Pega aqui la respuesta, evidencia o referencia del resultado externo."/>
                 </group>
                 <footer>

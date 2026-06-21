@@ -1,6 +1,6 @@
 {
     "name": "Risk Module",
-    "version": "19.0.1.0.8",
+    "version": "19.0.1.0.10",
     "category": "Impocoma",
     "author": "Angel",
     "website": "https://www.impocoma.com",

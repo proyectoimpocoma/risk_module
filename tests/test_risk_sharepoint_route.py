@@ -5,7 +5,7 @@ construye desde una solicitud/documento de prueba.
 """
 from unittest.mock import patch
 
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tests.common import tagged
 
 from .common import RiskModuleTestCase
@@ -19,6 +19,20 @@ class TestRiskSharepointRoute(RiskModuleTestCase):
         super().setUp()
         self.service = self.env["risk.sharepoint.service"]
         self.Route = self.env["risk.sharepoint.route"]
+
+    def _make_internal_user(self, login, groups):
+        return (
+            self.env["res.users"]
+            .with_context(no_reset_password=True)
+            .create(
+                {
+                    "name": login,
+                    "login": login,
+                    "email": login,
+                    "group_ids": [(6, 0, [group.id for group in groups])],
+                }
+            )
+        )
 
     # ── Renderer puro ─────────────────────────────────────────────────
     def test_render_template_replaces_known_tokens(self):
@@ -319,3 +333,47 @@ class TestRiskSharepointRoute(RiskModuleTestCase):
         self.assertFalse(route.dest_item_id)
         self.assertFalse(route.dest_drive_id)
         self.assertFalse(route.dest_label)
+
+    def test_sharepoint_route_write_requires_manager(self):
+        analyst = self._make_internal_user(
+            "risk-analyst-sp@example.com",
+            [self.env.ref("risk_module.group_risk_user")],
+        )
+        route = self.Route._route_for_party("vehicle")
+
+        with self.assertRaises(AccessError):
+            route.with_user(analyst).write({"folder_template": "{placa}/SOAT"})
+
+    def test_sharepoint_route_write_allowed_for_system_admin(self):
+        admin = self._make_internal_user(
+            "risk-admin-sp@example.com",
+            [self.env.ref("base.group_system")],
+        )
+        route = self.Route._route_for_party("vehicle")
+
+        route.with_user(admin).write({"folder_template": "{placa}/SOAT"})
+
+        self.assertEqual(route.folder_template, "{placa}/SOAT")
+
+    def test_sharepoint_settings_write_requires_manager(self):
+        analyst = self._make_internal_user(
+            "risk-analyst-settings@example.com",
+            [self.env.ref("risk_module.group_risk_user")],
+        )
+
+        with self.assertRaises(AccessError):
+            self.env["res.config.settings"].with_user(analyst).create(
+                {"risk_sp_enabled": True}
+            )
+
+    def test_sharepoint_settings_write_allowed_for_system_admin(self):
+        admin = self._make_internal_user(
+            "risk-admin-settings@example.com",
+            [self.env.ref("base.group_system")],
+        )
+
+        settings = self.env["res.config.settings"].with_user(admin).create(
+            {"risk_sp_enabled": True}
+        )
+
+        self.assertTrue(settings.risk_sp_enabled)

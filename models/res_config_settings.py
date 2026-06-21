@@ -1,13 +1,28 @@
 import logging
 
-from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo import SUPERUSER_ID, _, api, fields, models
+from odoo.exceptions import AccessError, UserError
 
 _logger = logging.getLogger(__name__)
 
 
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
+
+    _RISK_SP_FIELDS = {
+        "risk_sp_enabled",
+        "risk_sp_tenant_id",
+        "risk_sp_client_id",
+        "risk_sp_client_secret",
+        "risk_sp_site",
+        "risk_sp_drive",
+        "risk_sp_drive_id",
+        "risk_sp_root_folder",
+        "risk_sp_root_item_id",
+        "risk_sp_graph_children_url",
+        "risk_sp_purge_local",
+        "risk_sp_max_attempts",
+    }
 
     # Parametros de integracion con SharePoint (Microsoft Graph, app-only).
     # Persistidos en ir.config_parameter via el atajo config_parameter.
@@ -97,6 +112,28 @@ class ResConfigSettings(models.TransientModel):
     )
     risk_sp_show_advanced = fields.Boolean(string="Mostrar ajustes avanzados")
 
+    def _check_risk_sp_manager(self):
+        if (
+            self.env.su
+            or self.env.uid == SUPERUSER_ID
+            or self.env.user.has_group("base.group_system")
+        ):
+            return
+        raise AccessError(
+            _("Solo los administradores pueden administrar SharePoint.")
+        )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        if any(self._RISK_SP_FIELDS.intersection(vals) for vals in vals_list):
+            self._check_risk_sp_manager()
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if self._RISK_SP_FIELDS.intersection(vals):
+            self._check_risk_sp_manager()
+        return super().write(vals)
+
     @api.depends(
         "risk_sp_enabled",
         "risk_sp_tenant_id",
@@ -159,6 +196,7 @@ class ResConfigSettings(models.TransientModel):
     def action_risk_sp_test_connection(self):
         """Resuelve sitio y biblioteca para validar credenciales/permisos."""
         self.ensure_one()
+        self._check_risk_sp_manager()
         try:
             info = self.env["risk.sharepoint.service"]._test_connection()
         except Exception as exc:  # noqa: BLE001 - mostramos el error al usuario
@@ -171,6 +209,7 @@ class ResConfigSettings(models.TransientModel):
     def action_risk_sp_apply_graph_url(self):
         """Guarda drive_id/item_id desde una URL /children de Graph Explorer."""
         self.ensure_one()
+        self._check_risk_sp_manager()
         service = self.env["risk.sharepoint.service"]
         parsed = service._parse_children_url(self.risk_sp_graph_children_url)
         _logger.info(
@@ -202,6 +241,7 @@ class ResConfigSettings(models.TransientModel):
     def action_risk_sp_explore_graph_url(self):
         """Abre el explorador de carpetas desde la URL /children ingresada."""
         self.ensure_one()
+        self._check_risk_sp_manager()
         graph_url = self.risk_sp_graph_children_url
         if not graph_url:
             raise UserError(_("Pega primero la URL Graph /children."))
@@ -227,6 +267,7 @@ class ResConfigSettings(models.TransientModel):
     def action_risk_sp_test_root_folder(self):
         """Valida acceso de lectura a la carpeta raiz configurada."""
         self.ensure_one()
+        self._check_risk_sp_manager()
         try:
             info = self.env["risk.sharepoint.service"]._test_root_folder()
         except Exception as exc:  # noqa: BLE001 - mostramos el error al usuario
@@ -239,6 +280,7 @@ class ResConfigSettings(models.TransientModel):
     def action_risk_sp_select_drive(self):
         """Abre el asistente para seleccionar la biblioteca de SharePoint."""
         self.ensure_one()
+        self._check_risk_sp_manager()
         wizard = self.env["risk.sharepoint.drive.selector"].create({})
         return {
             "type": "ir.actions.act_window",
@@ -252,6 +294,7 @@ class ResConfigSettings(models.TransientModel):
     def action_risk_sp_backfill(self):
         """Marca los documentos existentes con archivo para subirlos al cron."""
         self.ensure_one()
+        self._check_risk_sp_manager()
         docs = self.env["risk.module.document"].search(
             [
                 ("file", "!=", False),

@@ -85,6 +85,7 @@ class RiskDocumentRejectWizard(models.TransientModel):
         self.ensure_one()
         if not self.message_template_id:
             raise ValidationError("Debes seleccionar un motivo de rechazo.")
+        self.observations = (self.message_template_id.body or "").strip()
         if not (self.observations or "").strip():
             raise ValidationError("Debes indicar el mensaje que recibira el usuario.")
         _logger.info(
